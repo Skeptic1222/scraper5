@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Navigation Fix Test</title>
+    <style>
+        .result {
+            margin: 20px;
+            padding: 20px;
+            background: #f0f0f0;
+            border-radius: 8px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>Navigation Fix Test</h1>
+    
+    <div id="testResults" class="result">
+        <h2>Test Results:</h2>
+        <ul id="results"></ul>
+    </div>
+    
+    <script>
+        // Test results container
+        const results = document.getElementById('results');
+        let testsPassed = 0;
+        let totalTests = 0;
+        
+        function addResult(testName, passed, error = null) {
+            totalTests++;
+            if (passed) testsPassed++;
+            
+            const li = document.createElement('li');
+            li.innerHTML = `${testName}: <strong style="color: ${passed ? 'green' : 'red'}">${passed ? 'PASSED' : 'FAILED'}</strong>`;
+            if (error) {
+                li.innerHTML += ` - ${error}`;
+            }
+            results.appendChild(li);
+        }
+        
+        // Test 1: Check if showSection is defined
+        try {
+            if (typeof showSection === 'function') {
+                addResult('showSection is defined as function', true);
+            } else if (typeof showSection !== 'undefined') {
+                addResult('showSection is defined as function', false, `Type is ${typeof showSection}`);
+            } else {
+                addResult('showSection is defined as function', false, 'showSection is undefined');
+            }
+        } catch (e) {
+            addResult('showSection is defined as function', false, e.message);
+        }
+        
+        // Test 2: Check for duplicate variable declarations
+        try {
+            let testVar = null;
+            let testVar = null; // This should throw an error if duplicates are not allowed
+            addResult('Duplicate variable test', false, 'No error thrown for duplicate declaration');
+        } catch (e) {
+            if (e.message.includes('already been declared')) {
+                addResult('No duplicate variable declarations', true);
+            } else {
+                addResult('No duplicate variable declarations', false, e.message);
+            }
+        }
+        
+        // Test 3: Test onclick handler
+        try {
+            const testDiv = document.createElement('div');
+            testDiv.setAttribute('onclick', 'showSection("test")');
+            
+            // Try to trigger the onclick
+            const clickEvent = new MouseEvent('click');
+            let errorThrown = false;
+            
+            window.addEventListener('error', function(e) {
+                if (e.message.includes('showSection is not defined')) {
+                    errorThrown = true;
+                }
+            }, { once: true });
+            
+            testDiv.dispatchEvent(clickEvent);
+            
+            setTimeout(() => {
+                addResult('Onclick handler can call showSection', !errorThrown);
+            }, 100);
+        } catch (e) {
+            addResult('Onclick handler can call showSection', false, e.message);
+        }
+        
+        // Show final results
+        setTimeout(() => {
+            const resultDiv = document.getElementById('testResults');
+            if (testsPassed === totalTests) {
+                resultDiv.classList.add('success');
+                resultDiv.innerHTML = `<h2>✅ All tests passed! (${testsPassed}/${totalTests})</h2>` + resultDiv.innerHTML;
+            } else {
+                resultDiv.classList.add('error');
+                resultDiv.innerHTML = `<h2>❌ Some tests failed! (${testsPassed}/${totalTests} passed)</h2>` + resultDiv.innerHTML;
+            }
+        }, 200);
+        
+        // Mock showSection for testing
+        if (typeof showSection === 'undefined') {
+            window.showSection = function(section) {
+                console.log('Mock showSection called with:', section);
+            };
+        }
+    </script>
+</body>
+</html> 

@@ -112,4 +112,8 @@ $RECYCLE.BIN/
 
 # Linux specific
 *~
-.nfs* 
+.nfs*
+
+# Batch file generated scripts
+run_production.py
+run_temp_*.py 

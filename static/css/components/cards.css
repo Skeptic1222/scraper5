@@ -1,0 +1,253 @@
+/**
+ * ============================================================================
+ * CARDS COMPONENT
+ * ============================================================================
+ * 
+ * Card component styling and variations
+ */
+
+/* === BASE CARD STYLES === */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-xl);
+    margin-bottom: var(--spacing-xl);
+    overflow: hidden;
+    transition: all var(--transition-normal);
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* === CARD HEADER === */
+.card-header {
+    background: transparent;
+    border-bottom: 1px solid var(--border-color);
+    padding: var(--spacing-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+}
+
+.card-header h1,
+.card-header h2,
+.card-header h3,
+.card-header h4,
+.card-header h5,
+.card-header h6 {
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+/* === CARD BODY === */
+.card-body {
+    padding: var(--spacing-xl);
+    color: var(--text-primary);
+}
+
+/* === CARD FOOTER === */
+.card-footer {
+    background: var(--bg-tertiary);
+    border-top: 1px solid var(--border-color);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    color: var(--text-secondary);
+}
+
+/* === CARD VARIATIONS === */
+
+/* Elevated Card */
+.card-elevated {
+    box-shadow: var(--shadow-xl);
+    border: none;
+}
+
+.card-elevated:hover {
+    box-shadow: var(--shadow-2xl);
+    transform: translateY(-4px);
+}
+
+/* Bordered Card */
+.card-bordered {
+    border: 2px solid var(--primary-color);
+    box-shadow: none;
+}
+
+/* Flat Card */
+.card-flat {
+    box-shadow: none;
+    border: 1px solid var(--border-color);
+}
+
+/* Success Card */
+.card-success {
+    border-left: 4px solid var(--success-color);
+}
+
+.card-success .card-header {
+    color: var(--success-color);
+}
+
+/* Warning Card */
+.card-warning {
+    border-left: 4px solid var(--warning-color);
+}
+
+.card-warning .card-header {
+    color: var(--warning-color);
+}
+
+/* Danger Card */
+.card-danger {
+    border-left: 4px solid var(--danger-color);
+}
+
+.card-danger .card-header {
+    color: var(--danger-color);
+}
+
+/* Info Card */
+.card-info {
+    border-left: 4px solid var(--info-color);
+}
+
+.card-info .card-header {
+    color: var(--info-color);
+}
+
+/* === STAT CARDS === */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-xl);
+    text-align: center;
+    transition: all var(--transition-normal);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-value {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-sm);
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: var(--font-weight-medium);
+}
+
+/* === STATUS PANEL === */
+.status-panel {
+    position: sticky;
+    top: calc(var(--navbar-height) + var(--spacing-lg));
+    z-index: 100;
+}
+
+.status-panel .card-header {
+    background: var(--primary-color);
+    color: var(--text-white);
+    border-bottom: none;
+}
+
+.status-panel .card-body {
+    background: rgba(102, 126, 234, 0.05);
+}
+
+/* === RESPONSIVE CARDS === */
+@media (max-width: 768px) {
+    .card-header,
+    .card-body,
+    .card-footer {
+        padding: var(--spacing-lg);
+    }
+    
+    .stat-card {
+        padding: var(--spacing-lg);
+    }
+    
+    .stat-value {
+        font-size: var(--font-size-2xl);
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-md);
+    }
+}
+
+@media (max-width: 576px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* === THEME SPECIFIC STYLES === */
+[data-theme="dark"] .card {
+    background: rgba(17, 24, 39, 0.95);
+    border-color: rgba(75, 85, 99, 0.3);
+}
+
+[data-theme="dark"] .card-header {
+    border-bottom-color: rgba(75, 85, 99, 0.3);
+}
+
+[data-theme="dark"] .card-footer {
+    background: rgba(31, 41, 55, 0.8);
+    border-top-color: rgba(75, 85, 99, 0.3);
+}
+
+[data-theme="dark"] .stat-card {
+    background: rgba(17, 24, 39, 0.95);
+    border-color: rgba(75, 85, 99, 0.3);
+}
+
+/* === ACCESSIBILITY === */
+.card:focus-within {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .card,
+    .stat-card {
+        transition: none;
+        transform: none !important;
+    }
+    
+    .card:hover,
+    .stat-card:hover {
+        transform: none;
+    }
+}

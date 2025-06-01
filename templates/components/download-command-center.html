@@ -1,0 +1,129 @@
+<!-- Download Command Center Modal -->
+<div class="modal fade" 
+     id="download-command-center" 
+     tabindex="-1" 
+     aria-labelledby="download-center-title" 
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="download-center-title">
+                    <i class="fas fa-download me-2"></i>
+                    Download Command Center
+                </h5>
+                <button type="button" 
+                        class="btn-close" 
+                        data-bs-dismiss="modal" 
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Active Downloads Section -->
+                <section class="mb-4" aria-labelledby="active-downloads-heading">
+                    <h6 id="active-downloads-heading" class="border-bottom pb-2">
+                        <i class="fas fa-clock text-warning me-2"></i>
+                        Active Downloads
+                    </h6>
+                    <div id="active-downloads-list" class="download-list">
+                        <div class="text-muted text-center py-3">
+                            <i class="fas fa-hourglass-half fa-2x mb-2"></i><br>
+                            No active downloads
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Completed Downloads Section -->
+                <section class="mb-4" aria-labelledby="completed-downloads-heading">
+                    <h6 id="completed-downloads-heading" class="border-bottom pb-2">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Completed Downloads
+                    </h6>
+                    <div id="completed-downloads-list" class="download-list">
+                        <div class="text-muted text-center py-3">
+                            <i class="fas fa-check-circle fa-2x mb-2"></i><br>
+                            No completed downloads
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Failed Downloads Section -->
+                <section aria-labelledby="failed-downloads-heading">
+                    <h6 id="failed-downloads-heading" class="border-bottom pb-2">
+                        <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                        Failed Downloads
+                    </h6>
+                    <div id="failed-downloads-list" class="download-list">
+                        <div class="text-muted text-center py-3">
+                            <i class="fas fa-times-circle fa-2x mb-2"></i><br>
+                            No failed downloads
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <div class="modal-footer">
+                <div class="d-flex justify-content-between w-100">
+                    <div>
+                        <button type="button" 
+                                class="btn btn-outline-secondary"
+                                id="clear-completed-btn">
+                            <i class="fas fa-broom me-2"></i>
+                            Clear Completed
+                        </button>
+                        <button type="button" 
+                                class="btn btn-outline-warning"
+                                id="retry-failed-btn">
+                            <i class="fas fa-redo me-2"></i>
+                            Retry Failed
+                        </button>
+                    </div>
+                    <div>
+                        <button type="button" 
+                                class="btn btn-outline-primary"
+                                id="refresh-downloads-btn">
+                            <i class="fas fa-sync me-2"></i>
+                            Refresh
+                        </button>
+                        <button type="button" 
+                                class="btn btn-secondary" 
+                                data-bs-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Download Progress Toast Template (hidden) -->
+<template id="download-progress-template">
+    <div class="download-item card mb-2">
+        <div class="card-body py-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="download-info flex-grow-1">
+                    <div class="download-title text-truncate" title="">
+                        <!-- Title will be set here -->
+                    </div>
+                    <div class="download-status text-muted small">
+                        <!-- Status will be set here -->
+                    </div>
+                </div>
+                <div class="download-actions">
+                    <button type="button" 
+                            class="btn btn-sm btn-outline-danger cancel-download-btn"
+                            title="Cancel download">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="progress mt-2" style="height: 6px;">
+                <div class="progress-bar" 
+                     role="progressbar" 
+                     style="width: 0%" 
+                     aria-valuenow="0" 
+                     aria-valuemin="0" 
+                     aria-valuemax="100">
+                </div>
+            </div>
+        </div>
+    </div>
+</template> 

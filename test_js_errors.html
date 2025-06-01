@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JavaScript Error Test</title>
+    <script>
+        // This demonstrates the issue and solution
+        
+        // SOLUTION: Define functions BEFORE they're used in onclick handlers
+        function testFunction1() {
+            alert('Function 1 works!');
+        }
+        
+        function testFunction2() {
+            alert('Function 2 works!');
+        }
+    </script>
+</head>
+<body>
+    <h1>JavaScript Error Test</h1>
+    
+    <h2>These buttons work because functions are defined before HTML:</h2>
+    <button onclick="testFunction1()">Test Function 1</button>
+    <button onclick="testFunction2()">Test Function 2</button>
+    
+    <h2>This would fail if function is defined after:</h2>
+    <button onclick="testFunction3()">Test Function 3 (will error)</button>
+    
+    <script>
+        // If defined here, testFunction3 wouldn't be available for the button above
+        function testFunction3() {
+            alert('Function 3 works only if defined before button!');
+        }
+        
+        // Better approach: Use addEventListener instead of onclick
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add event listeners here instead of using onclick
+            console.log('Page loaded, adding event listeners is safer');
+        });
+    </script>
+    
+    <h2>Your specific errors:</h2>
+    <ul>
+        <li>Syntax Error at line 6897: There's likely a missing closing brace or duplicate code block</li>
+        <li>resetCreditsForTesting not defined: Function is defined too late in the script</li>
+        <li>showSection not defined: Function is defined too late in the script</li>
+    </ul>
+    
+    <h2>Solution:</h2>
+    <ol>
+        <li>Move critical functions to the beginning of the script tag</li>
+        <li>Fix any syntax errors (duplicate if statements, missing braces)</li>
+        <li>Use addEventListener instead of inline onclick handlers</li>
+    </ol>
+</body>
+</html> 

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>UI Debug Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        pre {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        #consoleOutput {
+            max-height: 400px;
+            overflow-y: auto;
+            background: #000;
+            color: #0f0;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>UI Debug Test</h1>
+    
+    <div class="test-section">
+        <h2>Instructions:</h2>
+        <ol>
+            <li>Open your main application at <a href="http://localhost:5000" target="_blank">http://localhost:5000</a> in a new tab</li>
+            <li>Open browser console (F12) and go to Console tab</li>
+            <li>Look for any red error messages</li>
+            <li>Copy any error messages you see</li>
+        </ol>
+    </div>
+    
+    <div class="test-section">
+        <h2>Common JavaScript Errors to Look For:</h2>
+        <ul>
+            <li class="error">Uncaught ReferenceError: [function] is not defined</li>
+            <li class="error">Uncaught SyntaxError: Unexpected end of input</li>
+            <li class="error">Uncaught TypeError: Cannot read property of undefined</li>
+            <li class="error">Failed to load resource: 404</li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h2>Quick Test - Check if JavaScript Works:</h2>
+        <button onclick="testJavaScript()">Click Me to Test JavaScript</button>
+        <div id="testResult" style="margin-top: 10px;"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Inline JavaScript:</h2>
+        <div id="inlineTest"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Console Output Capture:</h2>
+        <div id="consoleOutput"></div>
+    </div>
+    
+    <script>
+        // Test if JavaScript is working
+        function testJavaScript() {
+            document.getElementById('testResult').innerHTML = '<span class="success">✓ JavaScript is working!</span>';
+        }
+        
+        // Test inline JavaScript
+        document.getElementById('inlineTest').innerHTML = '<span class="success">✓ Inline JavaScript executed successfully!</span>';
+        
+        // Capture console messages
+        const consoleOutput = document.getElementById('consoleOutput');
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function addConsoleMessage(type, args) {
+            const message = Array.from(args).map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            
+            const entry = document.createElement('div');
+            entry.style.color = type === 'error' ? '#f00' : type === 'warn' ? '#ff0' : '#0f0';
+            entry.textContent = `[${type.toUpperCase()}] ${message}`;
+            consoleOutput.appendChild(entry);
+        }
+        
+        console.log = function() {
+            originalLog.apply(console, arguments);
+            addConsoleMessage('log', arguments);
+        };
+        
+        console.error = function() {
+            originalError.apply(console, arguments);
+            addConsoleMessage('error', arguments);
+        };
+        
+        console.warn = function() {
+            originalWarn.apply(console, arguments);
+            addConsoleMessage('warn', arguments);
+        };
+        
+        // Test API connectivity
+        console.log('Testing API connectivity...');
+        
+        fetch('http://localhost:5000/')
+            .then(response => {
+                console.log('Main page response:', response.status);
+                return response.text();
+            })
+            .then(html => {
+                console.log('Page loaded, length:', html.length);
+                
+                // Check if there are any script errors in the HTML
+                const scriptMatch = html.match(/<script[\s\S]*?<\/script>/gi);
+                if (scriptMatch) {
+                    console.log('Found', scriptMatch.length, 'script tags');
+                }
+            })
+            .catch(error => {
+                console.error('Failed to load main page:', error);
+            });
+    </script>
+</body>
+</html> 

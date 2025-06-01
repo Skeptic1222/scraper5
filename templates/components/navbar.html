@@ -1,0 +1,133 @@
+<!-- Top Navigation Bar with Authentication -->
+<nav class="navbar navbar-expand-lg navbar-dark position-fixed w-100" 
+     role="navigation" 
+     aria-label="Main navigation"
+     style="top: 0; left: 0; z-index: 2000;">
+    <div class="container-fluid px-4">
+        <!-- Brand -->
+        <a href="{{ url_for('index') }}" 
+           class="navbar-brand d-flex align-items-center text-decoration-none"
+           aria-label="Enhanced Media Scraper home">
+            <i class="fas fa-download me-2" aria-hidden="true"></i>
+            <span class="site-title">Enhanced Media Scraper</span>
+        </a>
+        
+        <!-- Theme Toggle -->
+        <button id="theme-toggle" 
+                class="btn btn-outline-light btn-sm ms-3" 
+                type="button"
+                aria-label="Toggle dark/light theme"
+                title="Toggle theme">
+            <i class="fas fa-moon" id="theme-icon" aria-hidden="true"></i>
+        </button>
+        
+        <!-- Spacer -->
+        <div class="mx-auto"></div>
+        
+        <!-- User Section -->
+        <div class="d-flex align-items-center gap-3">
+            {% if user_info.authenticated %}
+                <!-- Credits Display -->
+                <div class="credits-display" 
+                     id="credits-display"
+                     role="status"
+                     aria-label="Available credits">
+                    <i class="fas fa-coins" aria-hidden="true"></i>
+                    <span>Credits: <span class="credits-count" id="user-credits-count">{{ user_info.subscription.credits if user_info.subscription else 0 }}</span></span>
+                </div>
+                
+                <!-- Subscription Badge -->
+                <div class="subscription-badge me-2" 
+                     id="user-plan-badge"
+                     role="status"
+                     aria-label="Current subscription plan">
+                    {{ user_info.subscription.plan_name if user_info.subscription else 'Free' }}
+                </div>
+                
+                <!-- User Menu -->
+                <div class="dropdown">
+                    <button class="btn p-0 border-0" 
+                            type="button" 
+                            id="user-dropdown" 
+                            data-bs-toggle="dropdown" 
+                            aria-expanded="false" 
+                            aria-haspopup="true"
+                            aria-label="User menu">
+                        <div class="user-avatar-badge">
+                            {% set first_initial = user_info.user.name.split()[0][0].upper() if user_info.user.name else user_info.user.email[0].upper() %}
+                            {% set last_initial = user_info.user.name.split()[1][0].upper() if user_info.user.name and user_info.user.name.split()|length > 1 else '' %}
+                            {{ first_initial }}{{ last_initial }}
+                        </div>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" 
+                        aria-labelledby="user-dropdown"
+                        role="menu">
+                        <li role="presentation">
+                            <h6 class="dropdown-header" role="menuitem">
+                                <i class="fas fa-user-circle" aria-hidden="true"></i> 
+                                {{ user_info.user.name or user_info.user.email }}
+                            </h6>
+                        </li>
+                        <li role="presentation"><hr class="dropdown-divider"></li>
+                        <li role="presentation">
+                            <a class="dropdown-item" 
+                               href="{{ url_for('subscription.account') }}"
+                               role="menuitem">
+                                <i class="fas fa-crown" aria-hidden="true"></i> My Subscription
+                            </a>
+                        </li>
+                        <li role="presentation">
+                            <a class="dropdown-item" 
+                               href="{{ url_for('subscription.plans') }}"
+                               role="menuitem">
+                                <i class="fas fa-rocket" aria-hidden="true"></i> Upgrade Plan
+                            </a>
+                        </li>
+                        <li role="presentation"><hr class="dropdown-divider"></li>
+                        <li role="presentation">
+                            <button class="dropdown-item" 
+                                    type="button"
+                                    onclick="window.mediaScraperApp.showAccountSettings()"
+                                    role="menuitem">
+                                <i class="fas fa-user-cog" aria-hidden="true"></i> Account Settings
+                            </button>
+                        </li>
+                        <li role="presentation">
+                            <button class="dropdown-item" 
+                                    type="button"
+                                    onclick="window.mediaScraperApp.showAppSettings()"
+                                    role="menuitem">
+                                <i class="fas fa-cogs" aria-hidden="true"></i> App Settings
+                            </button>
+                        </li>
+                        <li role="presentation"><hr class="dropdown-divider"></li>
+                        <li role="presentation">
+                            <button class="dropdown-item" 
+                                    type="button"
+                                    onclick="window.mediaScraperApp.showHelp()"
+                                    role="menuitem">
+                                <i class="fas fa-question-circle" aria-hidden="true"></i> Help
+                            </button>
+                        </li>
+                        <li role="presentation"><hr class="dropdown-divider"></li>
+                        <li role="presentation">
+                            <a class="dropdown-item text-danger" 
+                               href="{{ url_for('auth.logout') }}"
+                               role="menuitem">
+                                <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Sign Out
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            {% else %}
+                <!-- Sign In Button for Guest Users -->
+                <a href="{{ url_for('auth.login') }}" 
+                   class="btn btn-light btn-lg sign-in-btn"
+                   aria-label="Sign in with Google">
+                    <i class="fab fa-google me-2" aria-hidden="true"></i> 
+                    Sign In with Google
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</nav> 

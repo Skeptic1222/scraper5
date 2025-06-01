@@ -15,6 +15,8 @@ import re
 from bs4 import BeautifulSoup
 import subprocess
 from pathlib import Path
+import tempfile
+import shutil
 
 def get_multiple_user_agents():
     """Return list of realistic user agents with better variety"""
@@ -32,19 +34,272 @@ def get_multiple_user_agents():
         'Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Mobile/15E148 Safari/604.1'
     ]
 
+# --- Modular Source Handler Registry ---
+class SourceHandlerRegistry:
+    """Registry for source search and download handlers"""
+    def __init__(self):
+        self.handlers = {}
+    
+    def register(self, name, search_func=None, download_func=None, category=None, requires_no_safe_search=False):
+        self.handlers[name] = {
+            'search': search_func,
+            'download': download_func,
+            'category': category,
+            'requires_no_safe_search': requires_no_safe_search
+        }
+    
+    def get(self, name):
+        return self.handlers.get(name)
+
+# Global registry instance
+source_handler_registry = SourceHandlerRegistry()
+
+# Register all available search handlers
+print("🔧 Registering content source handlers...")
+
+# Search Engines
+source_handler_registry.register(
+    'bing_images',
+    search_func=lambda query, max_results, safe_search: enhanced_bing_search(query, max_results, safe_search),
+    download_func=None,
+    category='search',
+    requires_no_safe_search=False
+)
+
+source_handler_registry.register(
+    'yandex_images',
+    search_func=lambda query, max_results, safe_search: enhanced_yandex_search(query, max_results, safe_search),
+    download_func=None,
+    category='search',
+    requires_no_safe_search=False
+)
+
+# Image Galleries & Sharing
+source_handler_registry.register(
+    'imgur',
+    search_func=lambda query, max_results, safe_search: enhanced_imgur_search(query, max_results, safe_search),
+    download_func=None,
+    category='gallery',
+    requires_no_safe_search=False
+)
+
+source_handler_registry.register(
+    'pinterest',
+    search_func=lambda query, max_results, safe_search: enhanced_pinterest_search(query, max_results, safe_search),
+    download_func=None,
+    category='gallery',
+    requires_no_safe_search=False
+)
+
+source_handler_registry.register(
+    'flickr',
+    search_func=lambda query, max_results, safe_search: enhanced_flickr_search(query, max_results, safe_search),
+    download_func=None,
+    category='gallery',
+    requires_no_safe_search=False
+)
+
+# Stock Photo Sites
+source_handler_registry.register(
+    'unsplash',
+    search_func=lambda query, max_results, safe_search: enhanced_unsplash_search(query, max_results, safe_search),
+    download_func=None,
+    category='stock',
+    requires_no_safe_search=False
+)
+
+source_handler_registry.register(
+    'pexels',
+    search_func=lambda query, max_results, safe_search: enhanced_pexels_search(query, max_results, safe_search),
+    download_func=None,
+    category='stock',
+    requires_no_safe_search=False
+)
+
+# Social Media - Basic Reddit Search
+source_handler_registry.register(
+    'reddit',
+    search_func=lambda query, max_results, safe_search: enhanced_reddit_search(query, max_results, safe_search) if safe_search else enhanced_reddit_nsfw_search(query, max_results),
+    download_func=None,
+    category='social',
+    requires_no_safe_search=False
+)
+
+source_handler_registry.register(
+    'tumblr',
+    search_func=lambda query, max_results, safe_search: enhanced_tumblr_search(query, max_results, safe_search),
+    download_func=None,
+    category='social',
+    requires_no_safe_search=False
+)
+
+# Video Platforms
+source_handler_registry.register(
+    'youtube',
+    search_func=lambda query, max_results, safe_search: enhanced_youtube_search(query, max_results),
+    download_func=None,
+    category='video',
+    requires_no_safe_search=False
+)
+
+source_handler_registry.register(
+    'videos',
+    search_func=lambda query, max_results, safe_search: enhanced_video_search(query, max_results, safe_search),
+    download_func=None,
+    category='video',
+    requires_no_safe_search=False
+)
+
+# Art Platforms (DeviantArt placeholder)
+source_handler_registry.register(
+    'deviantart',
+    search_func=lambda query, max_results, safe_search: enhanced_deviantart_search(query, max_results, safe_search),
+    download_func=None,
+    category='art',
+    requires_no_safe_search=False
+)
+
+# Adult Content (NSFW) - only when safe search is disabled
+source_handler_registry.register(
+    'reddit_nsfw',
+    search_func=lambda query, max_results, safe_search: enhanced_reddit_nsfw_search(query, max_results),
+    download_func=None,
+    category='adult',
+    requires_no_safe_search=True
+)
+
+source_handler_registry.register(
+    'pornhub',
+    search_func=lambda query, max_results, safe_search: enhanced_pornhub_search(query, max_results),
+    download_func=None,
+    category='adult',
+    requires_no_safe_search=True
+)
+
+source_handler_registry.register(
+    'xhamster',
+    search_func=lambda query, max_results, safe_search: enhanced_xhamster_search(query, max_results),
+    download_func=None,
+    category='adult',
+    requires_no_safe_search=True
+)
+
+source_handler_registry.register(
+    'gelbooru',
+    search_func=lambda query, max_results, safe_search: enhanced_gelbooru_search(query, max_results),
+    download_func=None,
+    category='adult',
+    requires_no_safe_search=True
+)
+
+source_handler_registry.register(
+    'rule34',
+    search_func=lambda query, max_results, safe_search: enhanced_rule34_search(query, max_results),
+    download_func=None,
+    category='adult',
+    requires_no_safe_search=True
+)
+
+source_handler_registry.register(
+    'e621',
+    search_func=lambda query, max_results, safe_search: enhanced_e621_search(query, max_results),
+    download_func=None,
+    category='adult',
+    requires_no_safe_search=True
+)
+
+print(f"✅ Registered {len(source_handler_registry.handlers)} search handlers")
+
+# Add missing search functions for sources that don't have implementations yet
+def enhanced_reddit_search(query, max_results=50, safe_search=True):
+    """Safe Reddit search (no NSFW content)"""
+    print(f"🔍 Enhanced Reddit search for: {query} (Safe mode)")
+    found_urls = set()
+    
+    try:
+        import requests
+        from urllib.parse import quote_plus
+        import time
+        import random
+        
+        headers = {
+            'User-Agent': random.choice(get_multiple_user_agents()),
+            'Accept': 'application/json'
+        }
+        
+        # Safe subreddits for general search
+        safe_subreddits = ['pics', 'funny', 'mildlyinteresting', 'earthporn', 'cityporn', 'spaceporn']
+        
+        session = requests.Session()
+        session.headers.update(headers)
+        
+        # Search specific subreddits
+        for subreddit in safe_subreddits[:3]:
+            try:
+                search_url = f"https://www.reddit.com/r/{subreddit}/search.json?q={quote_plus(query)}&restrict_sr=1&limit=25&sort=hot"
+                time.sleep(random.uniform(1, 3))
+                
+                response = session.get(search_url, timeout=15)
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    if 'data' in data and 'children' in data['data']:
+                        for post in data['data']['children']:
+                            try:
+                                post_data = post['data']
+                                
+                                # Skip NSFW content
+                                if post_data.get('over_18', False):
+                                    continue
+                                
+                                if 'url' in post_data:
+                                    url = post_data['url']
+                                    
+                                    # Reddit-hosted images
+                                    if 'i.redd.it' in url:
+                                        found_urls.add(url)
+                                    # Imgur links
+                                    elif 'imgur.com' in url and any(ext in url.lower() for ext in ['.jpg', '.png', '.gif', '.webp']):
+                                        found_urls.add(url)
+                                    
+                                    if len(found_urls) >= max_results:
+                                        break
+                            except Exception:
+                                continue
+                                
+                if len(found_urls) >= max_results:
+                    break
+                    
+            except Exception as e:
+                print(f"❌ Reddit subreddit {subreddit} error: {str(e)}")
+                continue
+    
+    except Exception as e:
+        print(f"❌ Reddit search error: {str(e)}")
+    
+    print(f"✅ Reddit safe search found: {len(found_urls)} URLs")
+    return list(found_urls)[:max_results]
+
+def enhanced_deviantart_search(query, max_results=50, safe_search=True):
+    """DeviantArt search placeholder"""
+    print(f"🎨 DeviantArt search for: {query}")
+    print("⚠️ DeviantArt search not fully implemented yet")
+    return []
+
 class ContentSource:
-    """Represents a content source with detection and download capabilities"""
+    """Represents a content source with detection and download capabilities (modular)"""
     def __init__(self, name, display_name, enabled=True, category="general", requires_no_safe_search=False):
         self.name = name
         self.display_name = display_name
         self.enabled = enabled
         self.category = category
-        self.requires_no_safe_search = requires_no_safe_search  # NEW: Adult content flag
+        self.requires_no_safe_search = requires_no_safe_search
         self.detected_count = 0
         self.downloaded_count = 0
         self.failed_count = 0
         self.urls = []
-        
+        self.handler = source_handler_registry.get(name)
+    
     def add_url(self, url):
         self.urls.append(url)
         self.detected_count += 1
@@ -67,9 +322,25 @@ class ContentSource:
             'failed': self.failed_count,
             'success_rate': (self.downloaded_count / max(1, self.downloaded_count + self.failed_count)) * 100
         }
+    
+    def search(self, query, max_results=50, safe_search=True):
+        if self.handler and self.handler['search']:
+            try:
+                urls = self.handler['search'](query, max_results, safe_search)
+                for url in urls:
+                    self.add_url(url)
+                return urls
+            except Exception as e:
+                print(f"❌ Error in {self.name} search: {str(e)}")
+                return []
+        else:
+            print(f"⚠️ No search handler registered for source: {self.name}")
+            return []
 
 def get_content_sources():
-    """Get all available content sources with adult content separated"""
+    """
+    Get all available content sources with their configurations
+    """
     return {
         # Social Media Platforms
         'instagram': ContentSource('instagram', 'Instagram', True, 'social'),
@@ -86,6 +357,7 @@ def get_content_sources():
         'threads': ContentSource('threads', 'Threads', True, 'social'),
         
         # Video Platforms
+        'videos': ContentSource('videos', 'Video Search (All Platforms)', True, 'video'),  # Generic video search
         'youtube': ContentSource('youtube', 'YouTube', True, 'video'),
         'vimeo': ContentSource('vimeo', 'Vimeo', True, 'video'),
         'dailymotion': ContentSource('dailymotion', 'Dailymotion', True, 'video'),
@@ -168,12 +440,278 @@ def get_content_sources():
         'onlyfans': ContentSource('onlyfans', 'OnlyFans', True, 'adult', True),
     }
 
-def enhanced_instagram_scrape(username_or_url, max_content=10, output_dir="downloads", progress_callback=None):
+def comprehensive_multi_source_scrape(query, search_type='comprehensive', enabled_sources=None, max_content_per_source=10, output_dir=None, progress_callback=None, safe_search=True):
     """
-    FIXED: Enhanced Instagram scraping with better reliability and authentication
+    Scrape content from multiple sources with detailed progress tracking
+    
+    Args:
+        query: Search query
+        search_type: Type of search ('comprehensive', 'images', 'videos')
+        enabled_sources: List of enabled source names
+        max_content_per_source: Max content per source
+        output_dir: Output directory (None for database-only storage)
+        progress_callback: Progress callback function
+        safe_search: Filter adult content
     """
+    print(f"\n🔍 Starting {search_type} search for: '{query}'")
+    print(f"📊 Max content per source: {max_content_per_source}")
+    print(f"🔒 Safe search: {'ON' if safe_search else 'OFF'}")
+    
+    # Create output directory if specified
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+    
+    # Get all available sources
+    all_sources = get_content_sources()
+    
+    # Filter sources based on safe search
+    if safe_search:
+        all_sources = {name: source for name, source in all_sources.items() 
+                      if not source.requires_no_safe_search}
+    
+    # Filter enabled sources
+    if enabled_sources:
+        sources_to_use = {name: source for name, source in all_sources.items() 
+                         if name in enabled_sources and source.enabled}
+    else:
+        sources_to_use = {name: source for name, source in all_sources.items() 
+                         if source.enabled}
+    
+    print(f"📦 Using {len(sources_to_use)} sources")
+    
+    # Results tracking
+    results = {
+        'total_detected': 0,
+        'total_downloaded': 0,
+        'total_images': 0,
+        'total_videos': 0,
+        'sources': {}
+    }
+    
+    # If search type is "videos", always prioritize video sources
+    if search_type == 'videos':
+        if progress_callback:
+            progress_callback("🎬 Searching for videos only...", 5, 0, 0, 0)
+        
+        try:
+            # Search for videos using enhanced video search
+            video_urls = enhanced_video_search(query, max_results=max_content_per_source * 3, safe_search=safe_search)
+            if video_urls:
+                # Create temporary directory if output_dir is None
+                temp_video_dir = None
+                video_output_dir = output_dir
+                
+                if video_output_dir is None:
+                    temp_video_dir = tempfile.mkdtemp(prefix="videos_")
+                    video_output_dir = temp_video_dir
+                
+                video_results = download_videos_with_ytdlp(
+                    video_urls[:max_content_per_source * 2],  # Download more videos
+                    video_output_dir,
+                    progress_callback
+                )
+                results['total_downloaded'] += video_results.get('downloaded', 0)
+                results['total_videos'] += video_results.get('videos', 0)
+                results['total_detected'] += len(video_urls)
+                results['sources']['video_search'] = {
+                    'detected': len(video_urls),
+                    'downloaded': video_results.get('downloaded', 0),
+                    'failed': video_results.get('failed', 0),
+                    'images': 0,
+                    'videos': video_results.get('videos', 0)
+                }
+                
+                # Clean up temporary directory if created
+                if temp_video_dir and os.path.exists(temp_video_dir):
+                    try:
+                        shutil.rmtree(temp_video_dir)
+                    except Exception as e:
+                        print(f"⚠️ Failed to clean up video temp directory: {e}")
+                
+                if progress_callback:
+                    progress_callback(
+                        f"✅ Downloaded {video_results['videos']} videos",
+                        30,
+                        results['total_downloaded'], 
+                        results['total_images'], 
+                        results['total_videos']
+                    )
+        except Exception as e:
+            print(f"❌ Video search error: {str(e)}")
+        
+        # For videos only, skip regular source searching
+        if results['total_downloaded'] > 0:
+            if progress_callback:
+                progress_callback(
+                    f"✅ Video search complete: {results['total_videos']} videos downloaded", 
+                    100, 
+                    results['total_downloaded'], 
+                    results['total_images'], 
+                    results['total_videos']
+                )
+            return results
+        else:
+            # If no videos found, continue with regular sources but filter for video content
+            if progress_callback:
+                progress_callback("⚠️ No direct videos found, searching other sources...", 35, 0, 0, 0)
+    
+    # Check if this is primarily a video search (either by type or query)
+    is_video_search = search_type == 'videos' or any(word in query.lower() for word in ['video', 'movie', 'clip', 'footage', 'tutorial'])
+    
+    # If it's a video search but not "videos only", still add video sources
+    if is_video_search and search_type != 'images':
+        if progress_callback:
+            progress_callback("🎬 Searching for videos...", 5, 0, 0, 0)
+        
+        try:
+            video_urls = enhanced_video_search(query, max_results=max_content_per_source * 2, safe_search=safe_search)
+            if video_urls:
+                # Create temporary directory if output_dir is None
+                temp_video_dir = None
+                video_output_dir = output_dir
+                
+                if video_output_dir is None:
+                    temp_video_dir = tempfile.mkdtemp(prefix="videos_")
+                    video_output_dir = temp_video_dir
+                
+                video_results = download_videos_with_ytdlp(
+                    video_urls[:max_content_per_source], 
+                    video_output_dir,
+                    progress_callback
+                )
+                results['total_downloaded'] += video_results.get('downloaded', 0)
+                results['total_videos'] += video_results.get('videos', 0)
+                
+                # Clean up temporary directory if created
+                if temp_video_dir and os.path.exists(temp_video_dir):
+                    try:
+                        shutil.rmtree(temp_video_dir)
+                    except Exception as e:
+                        print(f"⚠️ Failed to clean up video temp directory: {e}")
+                
+                if progress_callback:
+                    progress_callback(
+                        f"✅ Downloaded {video_results['videos']} videos",
+                        20,
+                        results['total_downloaded'], 
+                        results['total_images'], 
+                        results['total_videos']
+                    )
+        except Exception as e:
+            print(f"❌ Video search error: {str(e)}")
+    
+    # Continue with regular source searching
+    sources_processed = 0
+    
+    for source_name, source_obj in sources_to_use.items():
+        # Skip non-video sources if search type is "videos"
+        if search_type == 'videos' and source_name in ['imgur', 'flickr', 'unsplash', 'pexels', 'pinterest']:
+            continue
+            
+        # Skip video sources if search type is "images"
+        if search_type == 'images' and source_name in ['youtube']:
+            continue
+        
+        sources_processed += 1
+        progress_percent = 20 + int((sources_processed / len(sources_to_use)) * 70)
+        
+        if progress_callback:
+            progress_callback(f"🔍 Searching {source_obj.display_name}...", 
+                            progress_percent - 5, 
+                            results['total_downloaded'], 
+                            results['total_images'], 
+                            results['total_videos'])
+        
+        try:
+            # Search for content URLs
+            urls = source_obj.search(query, max_results=max_content_per_source * 2, safe_search=safe_search)
+            
+            if urls:
+                source_obj.urls = urls
+                results['total_detected'] += len(urls)
+                
+                # Create temporary directory if output_dir is None
+                temp_source_dir = None
+                source_output_dir = output_dir
+                
+                if source_output_dir is None:
+                    temp_source_dir = tempfile.mkdtemp(prefix=f"{source_name}_")
+                    source_output_dir = temp_source_dir
+                
+                # Download content from URLs
+                download_results = download_urls_from_source(
+                    urls, 
+                    source_output_dir, 
+                    source_obj, 
+                    progress_callback,
+                    max_downloads=max_content_per_source,
+                    filter_type=search_type  # Pass filter type to download function
+                )
+                
+                results['total_downloaded'] += download_results['downloaded']
+                results['total_images'] += download_results['images']
+                results['total_videos'] += download_results['videos']
+                results['sources'][source_name] = {
+                    'detected': len(urls),
+                    'downloaded': download_results['downloaded'],
+                    'failed': download_results['failed'],
+                    'images': download_results['images'],
+                    'videos': download_results['videos']
+                }
+                
+                # Clean up temporary directory if created
+                if temp_source_dir and os.path.exists(temp_source_dir):
+                    try:
+                        shutil.rmtree(temp_source_dir)
+                    except Exception as e:
+                        print(f"⚠️ Failed to clean up temp directory for {source_name}: {e}")
+                
+                print(f"✅ {source_obj.display_name}: {len(urls)} URLs found")
+            else:
+                print(f"⚠️ {source_obj.display_name}: No results")
+                
+        except Exception as e:
+            print(f"❌ Error with {source_obj.display_name}: {str(e)}")
+            continue
+        
+        if progress_callback:
+            progress_callback(f"✅ Processed {source_obj.display_name}", 
+                            progress_percent, 
+                            results['total_downloaded'], 
+                            results['total_images'], 
+                            results['total_videos'])
+    
+    # Final report
     if progress_callback:
-        progress_callback("📸 Starting enhanced Instagram scraping...", 0, 0, 0, 0)
+        progress_callback(
+            f"✅ {search_type.capitalize()} search complete: {results['total_downloaded']} files downloaded", 
+            100, 
+            results['total_downloaded'], 
+            results['total_images'], 
+            results['total_videos']
+        )
+    
+    print(f"\n📊 === FINAL RESULTS ===")
+    print(f"🔍 Total URLs detected: {results['total_detected']}")
+    print(f"✅ Total downloaded: {results['total_downloaded']}")
+    print(f"🖼️ Images: {results['total_images']}")
+    print(f"🎬 Videos: {results['total_videos']}")
+    print(f"📦 Sources used: {len(sources_to_use)}")
+    
+    return results
+
+def enhanced_instagram_scrape(username_or_url, max_content=10, output_dir=None, progress_callback=None):
+    """
+    Enhanced Instagram scraping with database storage support
+    """
+    # Create temporary directory if output_dir is None
+    temp_dir = None
+    if output_dir is None:
+        temp_dir = tempfile.mkdtemp(prefix="instagram_")
+        output_dir = temp_dir
+    
+    # Ensure output directory exists
+    os.makedirs(output_dir, exist_ok=True)
     
     print(f"📸 === ENHANCED INSTAGRAM SCRAPING (FIXED) ===")
     print(f"🎯 Target: {username_or_url}")
@@ -185,10 +723,7 @@ def enhanced_instagram_scrape(username_or_url, max_content=10, output_dir="downl
     else:
         username = username_or_url.replace('@', '')
     
-    output_path = os.path.join(output_dir, 'instagram', username)
-    os.makedirs(output_path, exist_ok=True)
-    
-    print(f"📁 Output: {output_path}")
+    print(f"📁 Output: {output_dir}")
     
     downloaded_count = 0
     image_count = 0
@@ -211,7 +746,7 @@ def enhanced_instagram_scrape(username_or_url, max_content=10, output_dir="downl
             '--retries', '5',  # More retries for reliability
             '--write-metadata',
             '--write-info-json',
-            '--dest', output_path,
+            '--dest', output_dir,
             '--config', '-',  # Use stdin config for better control
             f'https://www.instagram.com/{username}/'
         ]
@@ -234,9 +769,9 @@ def enhanced_instagram_scrape(username_or_url, max_content=10, output_dir="downl
         
         if result.returncode == 0:
             # Count and categorize files
-            if os.path.exists(output_path):
-                for file in os.listdir(output_path):
-                    file_path = os.path.join(output_path, file)
+            if os.path.exists(output_dir):
+                for file in os.listdir(output_dir):
+                    file_path = os.path.join(output_dir, file)
                     if os.path.isfile(file_path) and os.path.getsize(file_path) > 5000:
                         if file.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp')):
                             image_count += 1
@@ -246,23 +781,23 @@ def enhanced_instagram_scrape(username_or_url, max_content=10, output_dir="downl
                         
                         if progress_callback:
                             try:
-                                progress_callback(f"✅ Downloaded: {file}", 50, downloaded_count, image_count, video_count)
+                                progress_callback(f"✅ Downloaded: {file}", 50, downloaded_count, image_count, video_count, file_path)
                             except Exception as e:
-                                print(f"⚠️ Progress callback error: {str(e)[:50]}")
+                                print(f"⚠️ Progress callback error: {str(e)}")
             
             if downloaded_count > 0:
                 if progress_callback:
                     try:
                         progress_callback(f"✅ Gallery-dl success: {downloaded_count} files", 100, downloaded_count, image_count, video_count)
                     except Exception as e:
-                        print(f"⚠️ Progress callback error: {str(e)[:50]}")
+                        print(f"⚠️ Progress callback error: {str(e)}")
                 print(f"✅ Gallery-dl success: {downloaded_count} files")
                 return {'downloaded': downloaded_count, 'images': image_count, 'videos': video_count}
         
         print(f"❌ Gallery-dl failed: {result.stderr[:200]}...")
         
     except Exception as e:
-        print(f"❌ Gallery-dl error: {str(e)[:100]}")
+        print(f"❌ Gallery-dl error: {str(e)}")
     
     # Method 2: IMPROVED yt-dlp with better configuration
     try:
@@ -273,7 +808,7 @@ def enhanced_instagram_scrape(username_or_url, max_content=10, output_dir="downl
         methods_tried.append("yt-dlp-improved")
         
         ydl_opts = {
-            'outtmpl': os.path.join(output_path, '%(uploader)s_%(id)s.%(ext)s'),
+            'outtmpl': os.path.join(output_dir, '%(uploader)s_%(id)s.%(ext)s'),
             'writesubtitles': False,
             'writeautomaticsub': False,
             'writedescription': True,
@@ -283,7 +818,7 @@ def enhanced_instagram_scrape(username_or_url, max_content=10, output_dir="downl
             'ignoreerrors': True,
             'sleep_interval': 15,  # Increased delays
             'max_sleep_interval': 30,
-            'cookiesfrombrowser': ['chrome', 'firefox'],  # Try multiple browsers
+            'cookiesfrombrowser': 'chrome',  # Try Chrome browser cookies
             'extractor_args': {
                 'instagram': {
                     'comment_count': 0,  # Skip comments for faster extraction
@@ -301,9 +836,9 @@ def enhanced_instagram_scrape(username_or_url, max_content=10, output_dir="downl
                 new_video_count = 0
                 new_downloaded = 0
                 
-                if os.path.exists(output_path):
-                    for file in os.listdir(output_path):
-                        file_path = os.path.join(output_path, file)
+                if os.path.exists(output_dir):
+                    for file in os.listdir(output_dir):
+                        file_path = os.path.join(output_dir, file)
                         if os.path.isfile(file_path) and os.path.getsize(file_path) > 5000:
                             if file.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp')):
                                 new_image_count += 1
@@ -312,7 +847,7 @@ def enhanced_instagram_scrape(username_or_url, max_content=10, output_dir="downl
                             new_downloaded += 1
                             
                             if progress_callback:
-                                progress_callback(f"✅ Downloaded: {file}", 70, new_downloaded, new_image_count, new_video_count)
+                                progress_callback(f"✅ Downloaded: {file}", 70, new_downloaded, new_image_count, new_video_count, file_path)
                 
                 if new_downloaded > downloaded_count:
                     downloaded_count = new_downloaded
@@ -325,10 +860,10 @@ def enhanced_instagram_scrape(username_or_url, max_content=10, output_dir="downl
                     return {'downloaded': downloaded_count, 'images': image_count, 'videos': video_count}
                     
             except Exception as e:
-                print(f"❌ yt-dlp download error: {str(e)[:100]}")
+                print(f"❌ yt-dlp download error: {str(e)}")
         
     except Exception as e:
-        print(f"❌ yt-dlp setup error: {str(e)[:100]}")
+        print(f"❌ yt-dlp setup error: {str(e)}")
     
     # Method 3: NEW - Direct Instagram API simulation
     try:
@@ -389,7 +924,7 @@ def enhanced_instagram_scrape(username_or_url, max_content=10, output_dir="downl
                                 continue
         
     except Exception as e:
-        print(f"❌ API simulation error: {str(e)[:100]}")
+        print(f"❌ API simulation error: {str(e)}")
     
     if progress_callback:
         progress_callback(f"⚠️ Instagram scraping completed with limited success", 100, downloaded_count, image_count, video_count)
@@ -398,13 +933,28 @@ def enhanced_instagram_scrape(username_or_url, max_content=10, output_dir="downl
     print(f"🔧 Methods tried: {', '.join(methods_tried)}")
     print(f"📁 Files downloaded: {downloaded_count} (Images: {image_count}, Videos: {video_count})")
     
+    # Clean up temporary directory if used
+    if temp_dir and os.path.exists(temp_dir):
+        try:
+            shutil.rmtree(temp_dir)
+        except Exception as e:
+            print(f"⚠️ Failed to clean up temp directory: {e}")
+    
     return {'downloaded': downloaded_count, 'images': image_count, 'videos': video_count}
 
-def enhanced_twitter_scrape(username_or_url, max_content=10, output_dir="downloads", progress_callback=None):
-    """FIXED: Enhanced Twitter/X scraping with better authentication and methods"""
-    if progress_callback:
-        progress_callback("🐦 Starting enhanced Twitter scraping...", 0, 0, 0, 0)
-        
+def enhanced_twitter_scrape(username_or_url, max_content=10, output_dir=None, progress_callback=None):
+    """
+    Enhanced Twitter/X scraping with database storage support
+    """
+    # Create temporary directory if output_dir is None
+    temp_dir = None
+    if output_dir is None:
+        temp_dir = tempfile.mkdtemp(prefix="twitter_")
+        output_dir = temp_dir
+    
+    # Ensure output directory exists
+    os.makedirs(output_dir, exist_ok=True)
+    
     print(f"🐦 === ENHANCED TWITTER SCRAPING (FIXED) ===")
     
     # Parse username
@@ -413,8 +963,7 @@ def enhanced_twitter_scrape(username_or_url, max_content=10, output_dir="downloa
     else:
         username = username_or_url.replace('@', '')
     
-    output_path = os.path.join(output_dir, 'twitter', username)
-    os.makedirs(output_path, exist_ok=True)
+    print(f"📁 Output: {output_dir}")
     
     downloaded_count = 0
     image_count = 0
@@ -434,16 +983,16 @@ def enhanced_twitter_scrape(username_or_url, max_content=10, output_dir="downloa
             '--sleep-request', '10',
             '--retries', '5',
             '--write-metadata',
-            '--dest', output_path,
+            '--dest', output_dir,
             f'https://twitter.com/{username}/media'
         ]
         
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
         
         if result.returncode == 0:
-            if os.path.exists(output_path):
-                for file in os.listdir(output_path):
-                    file_path = os.path.join(output_path, file)
+            if os.path.exists(output_dir):
+                for file in os.listdir(output_dir):
+                    file_path = os.path.join(output_dir, file)
                     if os.path.isfile(file_path) and os.path.getsize(file_path) > 5000:
                         if file.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp')):
                             image_count += 1
@@ -452,7 +1001,7 @@ def enhanced_twitter_scrape(username_or_url, max_content=10, output_dir="downloa
                         downloaded_count += 1
                         
                         if progress_callback:
-                            progress_callback(f"✅ Downloaded: {file}", 60, downloaded_count, image_count, video_count)
+                            progress_callback(f"✅ Downloaded: {file}", 60, downloaded_count, image_count, video_count, file_path)
             
             if downloaded_count > 0:
                 if progress_callback:
@@ -463,7 +1012,7 @@ def enhanced_twitter_scrape(username_or_url, max_content=10, output_dir="downloa
         print(f"❌ Gallery-dl failed: {result.stderr[:200]}...")
         
     except Exception as e:
-        print(f"❌ Gallery-dl error: {str(e)[:100]}")
+        print(f"❌ Gallery-dl error: {str(e)}")
     
     # Method 2: IMPROVED yt-dlp for Twitter
     try:
@@ -473,7 +1022,7 @@ def enhanced_twitter_scrape(username_or_url, max_content=10, output_dir="downloa
         print(f"🔄 Twitter Method 2: Improved yt-dlp...")
         
         ydl_opts = {
-            'outtmpl': os.path.join(output_path, '%(uploader)s_%(id)s.%(ext)s'),
+            'outtmpl': os.path.join(output_dir, '%(uploader)s_%(id)s.%(ext)s'),
             'writesubtitles': False,
             'writeautomaticsub': False,
             'writedescription': True,
@@ -483,7 +1032,7 @@ def enhanced_twitter_scrape(username_or_url, max_content=10, output_dir="downloa
             'ignoreerrors': True,
             'sleep_interval': 20,
             'max_sleep_interval': 40,
-            'cookiesfrombrowser': ['chrome', 'firefox'],
+            'cookiesfrombrowser': 'chrome',  # Try Chrome browser cookies
         }
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -494,9 +1043,9 @@ def enhanced_twitter_scrape(username_or_url, max_content=10, output_dir="downloa
                 new_image_count = 0
                 new_video_count = 0
                 
-                if os.path.exists(output_path):
-                    for file in os.listdir(output_path):
-                        file_path = os.path.join(output_path, file)
+                if os.path.exists(output_dir):
+                    for file in os.listdir(output_dir):
+                        file_path = os.path.join(output_dir, file)
                         if os.path.isfile(file_path) and os.path.getsize(file_path) > 5000:
                             if file.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp')):
                                 new_image_count += 1
@@ -505,7 +1054,7 @@ def enhanced_twitter_scrape(username_or_url, max_content=10, output_dir="downloa
                             new_downloaded += 1
                             
                             if progress_callback:
-                                progress_callback(f"✅ Downloaded: {file}", 80, new_downloaded, new_image_count, new_video_count)
+                                progress_callback(f"✅ Downloaded: {file}", 80, new_downloaded, new_image_count, new_video_count, file_path)
                 
                 if new_downloaded > downloaded_count:
                     downloaded_count = new_downloaded
@@ -518,16 +1067,23 @@ def enhanced_twitter_scrape(username_or_url, max_content=10, output_dir="downloa
                     return {'downloaded': downloaded_count, 'images': image_count, 'videos': video_count}
                     
             except Exception as e:
-                print(f"❌ yt-dlp download error: {str(e)[:100]}")
+                print(f"❌ yt-dlp download error: {str(e)}")
         
     except Exception as e:
-        print(f"❌ yt-dlp setup error: {str(e)[:100]}")
+        print(f"❌ yt-dlp setup error: {str(e)}")
     
     if progress_callback:
         progress_callback(f"⚠️ Twitter scraping completed with limited success", 100, downloaded_count, image_count, video_count)
     
     print(f"📊 Twitter scraping complete")
     print(f"📁 Files downloaded: {downloaded_count} (Images: {image_count}, Videos: {video_count})")
+    
+    # Clean up temporary directory if used
+    if temp_dir and os.path.exists(temp_dir):
+        try:
+            shutil.rmtree(temp_dir)
+        except Exception as e:
+            print(f"⚠️ Failed to clean up temp directory: {e}")
     
     return {'downloaded': downloaded_count, 'images': image_count, 'videos': video_count}
 
@@ -569,10 +1125,10 @@ def enhanced_tiktok_scrape(username_or_url, max_content=10, output_dir="download
                     return downloaded_count
                     
             except Exception as e:
-                print(f"❌ TikTok yt-dlp download error: {str(e)[:100]}")
+                print(f"❌ TikTok yt-dlp download error: {str(e)}")
         
     except Exception as e:
-        print(f"❌ TikTok yt-dlp setup error: {str(e)[:100]}")
+        print(f"❌ TikTok yt-dlp setup error: {str(e)}")
     
     # Method 2: gallery-dl for TikTok
     try:
@@ -598,7 +1154,7 @@ def enhanced_tiktok_scrape(username_or_url, max_content=10, output_dir="download
                 return downloaded_count
         
     except Exception as e:
-        print(f"❌ TikTok gallery-dl error: {str(e)[:100]}")
+        print(f"❌ TikTok gallery-dl error: {str(e)}")
     
     return downloaded_count
 
@@ -742,7 +1298,7 @@ def enhanced_reddit_nsfw_search(query, max_results=50, progress_callback=None):
                 continue
                 
         except Exception as e:
-            print(f"❌ Error searching {search_url}: {str(e)[:100]}")
+            print(f"❌ Error searching {search_url}: {str(e)}")
             continue
     
     if progress_callback:
@@ -830,7 +1386,7 @@ def enhanced_pornhub_search(query, max_results=50, progress_callback=None):
                         break
                         
             except Exception as e:
-                print(f"❌ PornHub strategy error: {str(e)[:50]}")
+                print(f"❌ PornHub strategy error: {str(e)}")
                 continue
                 
     except Exception as e:
@@ -901,7 +1457,7 @@ def enhanced_xhamster_search(query, max_results=50, progress_callback=None):
             print(f"❌ xHamster search failed: HTTP {response.status_code}")
             
     except Exception as e:
-        print(f"❌ xHamster search error: {str(e)[:100]}")
+        print(f"❌ xHamster search error: {str(e)}")
     
     return list(found_urls)
 
@@ -953,7 +1509,7 @@ def enhanced_gelbooru_search(query, max_results=50, progress_callback=None):
             print(f"❌ Gelbooru search failed: HTTP {response.status_code}")
             
     except Exception as e:
-        print(f"❌ Gelbooru search error: {str(e)[:100]}")
+        print(f"❌ Gelbooru search error: {str(e)}")
     
     return list(found_urls)
 
@@ -1005,7 +1561,7 @@ def enhanced_rule34_search(query, max_results=50, progress_callback=None):
             print(f"❌ Rule34 search failed: HTTP {response.status_code}")
             
     except Exception as e:
-        print(f"❌ Rule34 search error: {str(e)[:100]}")
+        print(f"❌ Rule34 search error: {str(e)}")
     
     return list(found_urls)
 
@@ -1056,7 +1612,7 @@ def enhanced_e621_search(query, max_results=50, progress_callback=None):
             print(f"❌ e621 search failed: HTTP {response.status_code}")
             
     except Exception as e:
-        print(f"❌ e621 search error: {str(e)[:100]}")
+        print(f"❌ e621 search error: {str(e)}")
     
     return list(found_urls)
 
@@ -1127,7 +1683,7 @@ def enhanced_bing_search(query, max_results=50, safe_search=True):
         print(f"✅ Bing search complete: {len(found_urls)} URLs")
     
     except Exception as e:
-        print(f"❌ Bing search error: {str(e)[:100]}")
+        print(f"❌ Bing search error: {str(e)}")
     
     return list(found_urls)[:max_results]
 
@@ -1171,7 +1727,7 @@ def enhanced_youtube_search(query, max_results=20, progress_callback=None):
             progress_callback(f"📺 YouTube search complete: {len(found_urls)} videos", 90, 0, 0, 0)
     
     except Exception as e:
-        print(f"❌ YouTube search error: {str(e)[:100]}")
+        print(f"❌ YouTube search error: {str(e)}")
     
     return found_urls[:max_results]
 
@@ -1291,17 +1847,17 @@ def download_images_simple(query, max_images=10, output_dir="downloads", safe_se
         found_urls.update(bing_urls)
         print(f"✅ Bing Images: {len(bing_urls)} URLs")
     except Exception as e:
-        print(f"❌ Bing search error: {str(e)[:100]}")
+        print(f"❌ Bing search error: {str(e)}")
     
-    # 2. Google Images search
+    # 2. Yandex Images search
     if progress_callback:
-        progress_callback("🔍 Searching Google Images...", 40, len(found_urls), 0, 0)
+        progress_callback("🔍 Searching Yandex Images...", 40, len(found_urls), 0, 0)
     try:
-        google_urls = enhanced_google_search(query, max_results=max_images * 2, safe_search=safe_search)
-        found_urls.update(google_urls)
-        print(f"✅ Google Images: {len(google_urls)} URLs")
+        yandex_urls = enhanced_yandex_search(query, max_results=max_images * 2, safe_search=safe_search)
+        found_urls.update(yandex_urls)
+        print(f"✅ Yandex Images: {len(yandex_urls)} URLs")
     except Exception as e:
-        print(f"❌ Google search error: {str(e)[:100]}")
+        print(f"❌ Yandex search error: {str(e)}")
     
     # 3. Adult content sources (only if safe search is disabled)
     if not safe_search:
@@ -1313,7 +1869,7 @@ def download_images_simple(query, max_images=10, output_dir="downloads", safe_se
             found_urls.update(gelbooru_urls)
             print(f"✅ Gelbooru: {len(gelbooru_urls)} URLs")
         except Exception as e:
-            print(f"❌ Gelbooru error: {str(e)[:100]}")
+            print(f"❌ Gelbooru error: {str(e)}")
         
         # Add Rule34
         if progress_callback:
@@ -1323,17 +1879,18 @@ def download_images_simple(query, max_images=10, output_dir="downloads", safe_se
             found_urls.update(rule34_urls)
             print(f"✅ Rule34: {len(rule34_urls)} URLs")
         except Exception as e:
-            print(f"❌ Rule34 error: {str(e)[:100]}")
+            print(f"❌ Rule34 error: {str(e)}")
     
-    # 4. DeviantArt search (safe search controlled)
+    # 4. Stock photo sites
     if progress_callback:
-        progress_callback("🎨 Searching DeviantArt...", 80, len(found_urls), 0, 0)
+        progress_callback("🎨 Searching Stock Photos...", 80, len(found_urls), 0, 0)
     try:
-        deviant_urls = enhanced_deviantart_search(query, max_results=max_images, safe_search=safe_search)
-        found_urls.update(deviant_urls)
-        print(f"✅ DeviantArt: {len(deviant_urls)} URLs")
+        # Try Unsplash
+        unsplash_urls = enhanced_unsplash_search(query, max_results=max_images, safe_search=safe_search)
+        found_urls.update(unsplash_urls)
+        print(f"✅ Unsplash: {len(unsplash_urls)} URLs")
     except Exception as e:
-        print(f"❌ DeviantArt error: {str(e)[:100]}")
+        print(f"❌ Unsplash error: {str(e)}")
     
     if progress_callback:
         progress_callback(f"📋 Found {len(found_urls)} image URLs", 85, 0, 0, 0)
@@ -1430,6 +1987,18 @@ def download_images_simple(query, max_images=10, output_dir="downloads", safe_se
                         if file_size > 5000:  # At least 5KB for decent quality
                             downloaded_count += 1
                             print(f"✅ Downloaded: {filename} ({file_size} bytes)")
+                            
+                            # Report the downloaded file through progress callback for database tracking
+                            if progress_callback:
+                                progress_callback(
+                                    f"✅ Downloaded: {filename}", 
+                                    int(progress_percent), 
+                                    downloaded_count, 
+                                    downloaded_count,  # All images 
+                                    0,  # No videos
+                                    filepath  # Pass the full file path as current_file
+                                )
+                            
                             break  # Success, exit retry loop
                         else:
                             print(f"❌ File too small: {file_size} bytes")
@@ -1447,7 +2016,7 @@ def download_images_simple(query, max_images=10, output_dir="downloads", safe_se
             time.sleep(random.uniform(0.5, 1.5))  # Rate limiting
             
         except Exception as e:
-            print(f"❌ Error processing {img_url[:50]}: {str(e)[:50]}")
+            print(f"❌ Error processing {img_url[:50]}: {str(e)}")
             continue
     
     if progress_callback:
@@ -1491,985 +2060,184 @@ def test_with_known_working_content():
         print("❌ FAILURE: System could not download any content")
         return {'success': False, 'total_files': 0, 'youtube': 0, 'images': 0}
 
-def comprehensive_multi_source_scrape(query, enabled_sources=None, max_content_per_source=10, output_dir="downloads", progress_callback=None, safe_search=True):
+def download_urls_from_source(urls, output_dir, source_obj, progress_callback=None, max_downloads=None, filter_type='comprehensive'):
     """
-    Comprehensive scraping from multiple sources with source management, progress tracking, and safe search controls
-    """
-    if progress_callback:
-        progress_callback(f"🚀 Starting comprehensive multi-source scrape for: {query} (Safe search: {'ON' if safe_search else 'OFF'})", 0, 0, 0, 0)
+    Download content from URLs with proper type detection
     
-    print(f"🚀 === COMPREHENSIVE MULTI-SOURCE SCRAPE ===")
-    print(f"🔍 Query: '{query}'")
-    print(f"📊 Max content per source: {max_content_per_source}")
-    print(f"🔒 Safe search: {'ENABLED' if safe_search else 'DISABLED (adult content allowed)'}")
-    
-    # Initialize all content sources
-    sources = get_content_sources()
-    
-    # Apply enabled/disabled sources filter
-    if enabled_sources:
-        for source_name, source in sources.items():
-            source.enabled = source_name in enabled_sources
-    
-    # Filter out adult sources if safe search is enabled
-    if safe_search:
-        for source_name, source in sources.items():
-            if source.requires_no_safe_search:
-                source.enabled = False
-                print(f"🔒 Disabled adult source '{source.display_name}' due to safe search")
-    
-    total_detected = 0
-    total_downloaded = 0
-    total_images = 0
-    total_videos = 0
-    results = {}
-    
-    enabled_source_names = [s.display_name for s in sources.values() if s.enabled]
-    if progress_callback:
-        progress_callback(f"🎯 Enabled sources: {', '.join(enabled_source_names)}", 5, 0, 0, 0)
-    
-    print(f"🎯 Enabled sources: {enabled_source_names}")
-    
-    source_count = len([s for s in sources.values() if s.enabled])
-    current_source = 0
-    
-    # 1. Reddit NSFW Scraping (only if safe search is disabled)
-    if not safe_search and sources['reddit_nsfw'].enabled:
-        current_source += 1
-        base_progress = (current_source - 1) * (100 / source_count) if source_count > 0 else 0
-        
-        if progress_callback:
-            progress_callback(f"🔴 Reddit NSFW Search ({current_source}/{source_count})", int(base_progress), total_downloaded, total_images, total_videos)
-        
-        print(f"\n🔴 === REDDIT NSFW SEARCH ===")
-        try:
-            reddit_urls = enhanced_reddit_nsfw_search(query, max_results=max_content_per_source * 2, progress_callback=progress_callback)
-            for url in reddit_urls:
-                sources['reddit_nsfw'].add_url(url)
-            
-            downloaded_result = download_urls_from_source(reddit_urls[:max_content_per_source], 
-                                                       os.path.join(output_dir, 'reddit_nsfw'), 
-                                                       sources['reddit_nsfw'],
-                                                       progress_callback=progress_callback)
-            
-            results['reddit_nsfw'] = sources['reddit_nsfw'].get_stats()
-            total_detected += sources['reddit_nsfw'].detected_count
-            total_downloaded += sources['reddit_nsfw'].downloaded_count
-            total_images += downloaded_result.get('images', 0)
-            total_videos += downloaded_result.get('videos', 0)
-            
-        except Exception as e:
-            print(f"❌ Reddit NSFW error: {str(e)[:100]}")
-            sources['reddit_nsfw'].failed_count += 1
-    
-    # 2. Adult Content Sources (only if safe search is disabled)
-    if not safe_search:
-        adult_sources = ['pornhub', 'xhamster', 'xvideos', 'motherless', 'imagefap', 'gelbooru', 'rule34', 'e621', 'danbooru']
-        
-        for adult_source in adult_sources:
-            if sources.get(adult_source, {}).enabled:
-                current_source += 1
-                base_progress = (current_source - 1) * (100 / source_count) if source_count > 0 else 0
-                
-                if progress_callback:
-                    progress_callback(f"🔞 {sources[adult_source].display_name} Search ({current_source}/{source_count})", int(base_progress), total_downloaded, total_images, total_videos)
-                
-                print(f"\n🔞 === {sources[adult_source].display_name.upper()} SEARCH ===")
-                try:
-                    adult_urls = []
-                    
-                    # Call appropriate search function based on source
-                    if adult_source == 'pornhub':
-                        adult_urls = enhanced_pornhub_search(query, max_results=max_content_per_source, progress_callback=progress_callback)
-                    elif adult_source == 'xhamster':
-                        adult_urls = enhanced_xhamster_search(query, max_results=max_content_per_source, progress_callback=progress_callback)
-                    elif adult_source == 'xvideos':
-                        adult_urls = enhanced_xvideos_search(query, max_results=max_content_per_source, progress_callback=progress_callback)
-                    elif adult_source == 'motherless':
-                        adult_urls = enhanced_motherless_search(query, max_results=max_content_per_source, progress_callback=progress_callback)
-                    elif adult_source == 'imagefap':
-                        adult_urls = enhanced_imagefap_search(query, max_results=max_content_per_source, progress_callback=progress_callback)
-                    elif adult_source == 'gelbooru':
-                        adult_urls = enhanced_gelbooru_search(query, max_results=max_content_per_source, progress_callback=progress_callback)
-                    elif adult_source == 'rule34':
-                        adult_urls = enhanced_rule34_search(query, max_results=max_content_per_source, progress_callback=progress_callback)
-                    elif adult_source == 'e621':
-                        adult_urls = enhanced_e621_search(query, max_results=max_content_per_source, progress_callback=progress_callback)
-                    elif adult_source == 'danbooru':
-                        adult_urls = enhanced_danbooru_search(query, max_results=max_content_per_source, progress_callback=progress_callback)
-                    
-                    for url in adult_urls:
-                        sources[adult_source].add_url(url)
-                    
-                    downloaded_result = download_urls_from_source(adult_urls[:max_content_per_source], 
-                                                               os.path.join(output_dir, adult_source), 
-                                                               sources[adult_source],
-                                                               progress_callback=progress_callback)
-                    
-                    results[adult_source] = sources[adult_source].get_stats()
-                    total_detected += sources[adult_source].detected_count
-                    total_downloaded += sources[adult_source].downloaded_count
-                    total_images += downloaded_result.get('images', 0)
-                    total_videos += downloaded_result.get('videos', 0)
-                    
-                except Exception as e:
-                    print(f"❌ {sources[adult_source].display_name} error: {str(e)[:100]}")
-                    sources[adult_source].failed_count += 1
-    
-    # 3. Regular Content Sources (always available)
-    regular_sources = ['bing_images', 'google_images', 'yandex_images', 'deviantart', 'imgur', 'tumblr', 'pinterest', 'flickr', 'unsplash', 'pexels']
-    
-    for regular_source in regular_sources:
-        if sources.get(regular_source, {}).enabled:
-            current_source += 1
-            base_progress = (current_source - 1) * (100 / source_count) if source_count > 0 else 0
-            
-            if progress_callback:
-                progress_callback(f"🌐 {sources[regular_source].display_name} Search ({current_source}/{source_count})", int(base_progress), total_downloaded, total_images, total_videos)
-            
-            print(f"\n🌐 === {sources[regular_source].display_name.upper()} SEARCH ===")
-            try:
-                regular_urls = []
-                
-                # Call appropriate search function
-                if regular_source == 'bing_images':
-                    regular_urls = enhanced_bing_search(query, max_results=max_content_per_source, safe_search=safe_search)
-                elif regular_source == 'google_images':
-                    regular_urls = enhanced_google_search(query, max_results=max_content_per_source, safe_search=safe_search)
-                elif regular_source == 'yandex_images':
-                    regular_urls = enhanced_yandex_search(query, max_results=max_content_per_source, safe_search=safe_search)
-                elif regular_source == 'deviantart':
-                    regular_urls = enhanced_deviantart_search(query, max_results=max_content_per_source, safe_search=safe_search)
-                elif regular_source == 'imgur':
-                    regular_urls = enhanced_imgur_search(query, max_results=max_content_per_source, safe_search=safe_search)
-                elif regular_source == 'tumblr':
-                    regular_urls = enhanced_tumblr_search(query, max_results=max_content_per_source, safe_search=safe_search)
-                elif regular_source == 'pinterest':
-                    regular_urls = enhanced_pinterest_search(query, max_results=max_content_per_source, safe_search=safe_search)
-                elif regular_source == 'flickr':
-                    regular_urls = enhanced_flickr_search(query, max_results=max_content_per_source, safe_search=safe_search)
-                elif regular_source == 'unsplash':
-                    regular_urls = enhanced_unsplash_search(query, max_results=max_content_per_source, safe_search=safe_search)
-                elif regular_source == 'pexels':
-                    regular_urls = enhanced_pexels_search(query, max_results=max_content_per_source, safe_search=safe_search)
-                
-                for url in regular_urls:
-                    sources[regular_source].add_url(url)
-                
-                downloaded_result = download_urls_from_source(regular_urls[:max_content_per_source], 
-                                                           os.path.join(output_dir, regular_source), 
-                                                           sources[regular_source],
-                                                           progress_callback=progress_callback)
-                
-                results[regular_source] = sources[regular_source].get_stats()
-                total_detected += sources[regular_source].detected_count
-                total_downloaded += sources[regular_source].downloaded_count
-                total_images += downloaded_result.get('images', 0)
-                total_videos += downloaded_result.get('videos', 0)
-                
-            except Exception as e:
-                print(f"❌ {sources[regular_source].display_name} error: {str(e)[:100]}")
-                sources[regular_source].failed_count += 1
-    
-    # 4. Social Media Sources (Instagram, Twitter, TikTok, YouTube)
-    social_sources = ['instagram', 'twitter', 'tiktok', 'youtube']
-    
-    for social_source in social_sources:
-        if sources.get(social_source, {}).enabled:
-            current_source += 1
-            base_progress = (current_source - 1) * (100 / source_count) if source_count > 0 else 0
-            
-            if progress_callback:
-                progress_callback(f"📱 {sources[social_source].display_name} Search ({current_source}/{source_count})", int(base_progress), total_downloaded, total_images, total_videos)
-            
-            print(f"\n📱 === {sources[social_source].display_name.upper()} SEARCH ===")
-            try:
-                # Social media sources typically require specific usernames or URLs
-                # For now, we'll attempt generic searches but note that results may be limited
-                social_urls = []
-                
-                if social_source == 'youtube':
-                    # Use yt-dlp for YouTube search
-                    social_urls = enhanced_youtube_search(query, max_results=max_content_per_source, progress_callback=progress_callback)
-                # Instagram, Twitter, TikTok would need specific implementations
-                
-                for url in social_urls:
-                    sources[social_source].add_url(url)
-                
-                downloaded_result = download_urls_from_source(social_urls[:max_content_per_source], 
-                                                           os.path.join(output_dir, social_source), 
-                                                           sources[social_source],
-                                                           progress_callback=progress_callback)
-                
-                results[social_source] = sources[social_source].get_stats()
-                total_detected += sources[social_source].detected_count
-                total_downloaded += sources[social_source].downloaded_count
-                total_images += downloaded_result.get('images', 0)
-                total_videos += downloaded_result.get('videos', 0)
-                
-            except Exception as e:
-                print(f"❌ {sources[social_source].display_name} error: {str(e)[:100]}")
-                sources[social_source].failed_count += 1
-    
-    # Final progress update
-    if progress_callback:
-        progress_callback(f"✅ Multi-source scrape complete! Total: {total_downloaded} files (Safe search: {'ON' if safe_search else 'OFF'})", 100, total_downloaded, total_images, total_videos)
-    
-    print(f"\n🎉 === COMPREHENSIVE SCRAPE COMPLETE ===")
-    print(f"🔍 Query: '{query}'")
-    print(f"🔒 Safe search: {'ENABLED' if safe_search else 'DISABLED'}")
-    print(f"📊 Total detected: {total_detected}")
-    print(f"💾 Total downloaded: {total_downloaded}")
-    print(f"🖼️ Images: {total_images}")
-    print(f"🎬 Videos: {total_videos}")
-    print(f"📂 Sources used: {len([s for s in sources.values() if s.enabled])}")
-    
-    return {
-        'query': query,
-        'safe_search': safe_search,
-        'total_detected': total_detected,
-        'total_downloaded': total_downloaded,
-        'total_images': total_images,
-        'total_videos': total_videos,
-        'sources': results,
-        'enabled_sources': enabled_source_names
-    }
-
-def enhanced_google_search(query, max_results=50, safe_search=True):
-    """Enhanced Google Images search with safe search controls and better extraction"""
-    print(f"🔍 === ENHANCED GOOGLE SEARCH ===")
-    print(f"🔍 Query: '{query}'")
-    print(f"📊 Max results: {max_results}")
-    print(f"🔒 Safe search: {'ON' if safe_search else 'OFF'}")
-    
-    found_urls = set()
-    headers = {
-        'User-Agent': random.choice(get_multiple_user_agents()),
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate',
-        'Referer': 'https://www.google.com/',
-        'DNT': '1'
-    }
-    
-    try:
-        # Build Google Images search URL with proper safe search parameter
-        search_params = {
-            'q': query,
-            'tbm': 'isch',  # Image search
-            'safe': 'strict' if safe_search else 'off',
-            'num': min(max_results, 100),
-            'hl': 'en',
-            'lr': 'lang_en'
-        }
-        
-        # Multiple strategies to find images
-        strategies = [
-            # Strategy 1: Standard search
-            "https://www.google.com/search",
-            # Strategy 2: Images direct
-            "https://images.google.com/search"
-        ]
-        
-        for i, base_url in enumerate(strategies, 1):
-            try:
-                response = requests.get(base_url, params=search_params, headers=headers, timeout=15)
-                print(f"🔍 Google strategy {i} response: {len(response.text)} chars")
-                
-                if response.status_code == 200:
-                    # Multiple extraction methods
-                    
-                    # Method 1: Look for image URLs in JSON data within script tags
-                    script_pattern = r'AF_initDataCallback\({[^}]*data:\s*(\[.+?\])\s*}\);'
-                    script_matches = re.findall(script_pattern, response.text, re.DOTALL)
-                    
-                    for script_content in script_matches:
-                        try:
-                            # Look for image URLs in the JSON data
-                            img_url_pattern = r'https?://[^"\s]+\.(?:jpg|jpeg|png|gif|webp|bmp)(?:\?[^"\s]*)?'
-                            img_urls = re.findall(img_url_pattern, script_content, re.IGNORECASE)
-                            
-                            for url in img_urls:
-                                if not any(skip in url.lower() for skip in ['logo', 'icon', 'button']):
-                                    found_urls.add(url)
-                        except:
-                            continue
-                    
-                    # Method 2: Parse HTML for img tags and data attributes
-                    soup = BeautifulSoup(response.text, 'html.parser')
-                    
-                    # Find img tags with various src attributes
-                    img_selectors = [
-                        'img[src*=".jpg"]',
-                        'img[src*=".jpeg"]', 
-                        'img[src*=".png"]',
-                        'img[src*=".gif"]',
-                        'img[src*=".webp"]',
-                        'img[data-src*=".jpg"]',
-                        'img[data-src*=".jpeg"]',
-                        'img[data-src*=".png"]',
-                        'img[data-original]'
-                    ]
-                    
-                    for selector in img_selectors:
-                        imgs = soup.select(selector)
-                        for img in imgs:
-                            img_url = img.get('src') or img.get('data-src') or img.get('data-original')
-                            if img_url and img_url.startswith(('http', '//')):
-                                if img_url.startswith('//'):
-                                    img_url = 'https:' + img_url
-                                found_urls.add(img_url)
-                    
-                    # Method 3: Look for encoded image URLs in the page
-                    # Google often encodes URLs in various formats
-                    encoded_patterns = [
-                        r'"ou":"([^"]+)"',  # Original URL pattern
-                        r'"rlsu":"([^"]+)"', # Result URL pattern  
-                        r'"ru":"([^"]+)"',   # Reference URL pattern
-                        r'imgurl=([^&]+)',   # Image URL parameter
-                        r'src="(https?://[^"]+\.(?:jpg|jpeg|png|gif|webp))"'
-                    ]
-                    
-                    for pattern in encoded_patterns:
-                        matches = re.findall(pattern, response.text, re.IGNORECASE)
-                        for match in matches:
-                            try:
-                                # Decode URL if needed
-                                import urllib.parse
-                                decoded_url = urllib.parse.unquote(match)
-                                if decoded_url.startswith(('http', '//')):
-                                    if decoded_url.startswith('//'):
-                                        decoded_url = 'https:' + decoded_url
-                                    found_urls.add(decoded_url)
-                            except:
-                                continue
-                    
-                    # Method 4: Look in all divs with image data
-                    all_divs = soup.find_all('div')
-                    for div in all_divs:
-                        div_str = str(div)
-                        # Look for data attributes that might contain image URLs
-                        data_patterns = [
-                            r'data-[^=]*="([^"]*https?://[^"]*\.(?:jpg|jpeg|png|gif|webp)[^"]*)"',
-                            r'url\(([^)]*\.(?:jpg|jpeg|png|gif|webp)[^)]*)\)'
-                        ]
-                        
-                        for pattern in data_patterns:
-                            matches = re.findall(pattern, div_str, re.IGNORECASE)
-                            for match in matches:
-                                if match.startswith(('http', '//')):
-                                    if match.startswith('//'):
-                                        match = 'https:' + match
-                                    found_urls.add(match)
-                
-                print(f"🔍 Google strategy {i} found: {len(found_urls)} URLs so far")
-                
-                if len(found_urls) >= max_results:
-                    break
-                    
-                time.sleep(random.uniform(1, 3))  # Rate limiting
-                
-            except Exception as e:
-                print(f"❌ Google strategy {i} error: {str(e)[:50]}")
-                continue
-    
-    except Exception as e:
-        print(f"❌ Google search error: {str(e)}")
-    
-    print(f"✅ Google search complete: {len(found_urls)} URLs")
-    return list(found_urls)[:max_results]
-
-def enhanced_deviantart_search(query, max_results=50, safe_search=True):
-    """
-    Enhanced DeviantArt search with proper safe search controls
-    """
-    print(f"🎨 === ENHANCED DEVIANTART SEARCH ===")
-    print(f"🔍 Query: '{query}'")
-    print(f"📊 Max results: {max_results}")
-    print(f"🔒 Safe search: {'ON' if safe_search else 'OFF'}")
-    
-    found_urls = set()
-    headers = {
-        'User-Agent': random.choice(get_multiple_user_agents()),
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate',
-        'DNT': '1',
-        'Connection': 'keep-alive'
-    }
-    
-    try:
-        per_page = min(24, max_results)  # DeviantArt shows 24 per page
-        
-        for page in range(1, (max_results // per_page) + 2):
-            search_url = f"https://www.deviantart.com/search/deviations?q={requests.utils.quote(query)}&page={page}"
-            
-            if not safe_search:
-                search_url += "&mature_content=true"
-            
-            print(f"📄 DeviantArt page {page}: Found {len(found_urls)} URLs so far")
-            
-            response = requests.get(search_url, headers=headers, timeout=10)
-            
-            if response.status_code == 200:
-                soup = BeautifulSoup(response.text, 'html.parser')
-                
-                # Find image containers
-                img_containers = soup.find_all(['img', 'a'], {'data-super-img': True}) + \
-                               soup.find_all('img', src=True) + \
-                               soup.find_all('a', href=True)
-                
-                for container in img_containers:
-                    img_url = None
-                    
-                    if container.name == 'img' and container.get('src'):
-                        img_url = container.get('src')
-                    elif container.name == 'a' and container.get('href'):
-                        href = container.get('href')
-                        if any(ext in href.lower() for ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp']):
-                            img_url = href
-                    
-                    if img_url and img_url.startswith(('http', '//')):
-                        if img_url.startswith('//'):
-                            img_url = 'https:' + img_url
-                        
-                        # Filter out very small images (like icons)
-                        if not any(skip in img_url.lower() for skip in ['avatar', 'icon', 'thumb', '150x', '50x']):
-                            found_urls.add(img_url)
-            
-            time.sleep(random.uniform(1, 2))  # Rate limiting
-            
-            if len(found_urls) >= max_results:
-                break
-                
-    except Exception as e:
-        print(f"❌ DeviantArt search error: {str(e)}")
-    
-    print(f"✅ DeviantArt search complete: {len(found_urls)} URLs")
-    return list(found_urls)[:max_results]
-
-def enhanced_xvideos_search(query, max_results=50, progress_callback=None):
-    """
-    Enhanced XVideos search
-    """
-    if progress_callback:
-        progress_callback(f"🔞 Searching XVideos for: {query}", 0, 0, 0, 0)
-    
-    print(f"🔞 === XVIDEOS SEARCH ===")
-    print(f"🔍 Query: '{query}'")
-    print(f"📊 Max results: {max_results}")
-    
-    found_urls = set()
-    headers = {
-        'User-Agent': random.choice(get_multiple_user_agents()),
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate',
-        'DNT': '1',
-        'Referer': 'https://www.xvideos.com/'
-    }
-    
-    try:
-        # Multiple pages to get more results
-        for page in range(0, min(3, (max_results // 24) + 1)):  # 24 videos per page typically
-            search_url = f"https://www.xvideos.com/?k={requests.utils.quote(query)}&p={page}"
-            
-            response = requests.get(search_url, headers=headers, timeout=15)
-            
-            if response.status_code == 200:
-                soup = BeautifulSoup(response.text, 'html.parser')
-                
-                # Find video thumbnails and preview images  
-                # XVideos uses various classes and structures
-                img_selectors = [
-                    'img[data-src]',  # Lazy loaded images
-                    'img.thumb',      # Thumbnail images
-                    'img.thumb-image', # Another thumbnail class
-                    'div.thumb img',   # Images inside thumb divs
-                    'div.mozaique img', # Gallery images
-                    'a.thumb img',     # Linked thumbnail images
-                ]
-                
-                for selector in img_selectors:
-                    imgs = soup.select(selector)
-                    for img in imgs:
-                        # Check both src and data-src attributes
-                        img_url = img.get('data-src') or img.get('src')
-                        if img_url:
-                            if img_url.startswith('//'):
-                                img_url = 'https:' + img_url
-                            elif img_url.startswith('/'):
-                                img_url = 'https://www.xvideos.com' + img_url
-                            
-                            # Filter for actual content images (not site icons)
-                            if img_url.startswith('https://') and not any(skip in img_url.lower() for skip in [
-                                'logo', 'icon', 'button', 'sprite', 'ui-', 'flag'
-                            ]):
-                                found_urls.add(img_url)
-                
-                # Also look for all img tags with src
-                all_imgs = soup.find_all('img', src=True)
-                for img in all_imgs:
-                    img_url = img.get('src')
-                    if img_url and img_url.startswith(('http', '//')):
-                        if img_url.startswith('//'):
-                            img_url = 'https:' + img_url
-                        
-                        # Filter for actual content images
-                        if any(term in img_url.lower() for term in ['thumb', 'preview', '.jpg', '.jpeg', '.png']):
-                            if not any(skip in img_url.lower() for skip in ['logo', 'icon', 'button', 'sprite']):
-                                found_urls.add(img_url)
-                
-                # Also look for background images in CSS
-                bg_images = re.findall(r'background-image:\s*url\(["\']?([^"\']+)["\']?\)', response.text)
-                for bg_url in bg_images:
-                    if bg_url.startswith('//'):
-                        bg_url = 'https:' + bg_url
-                    elif bg_url.startswith('/'):
-                        bg_url = 'https://www.xvideos.com' + bg_url
-                    
-                    if bg_url.startswith('https://') and any(ext in bg_url.lower() for ext in ['.jpg', '.jpeg', '.png', '.webp']):
-                        found_urls.add(bg_url)
-                
-                print(f"📄 XVideos page {page + 1}: Found {len(found_urls)} URLs so far")
-                
-                if len(found_urls) >= max_results:
-                    break
-                    
-                time.sleep(random.uniform(2, 4))  # Rate limiting
-                        
-    except Exception as e:
-        print(f"❌ XVideos search error: {str(e)}")
-    
-    if progress_callback:
-        progress_callback(f"✅ XVideos found: {len(found_urls)} URLs", 100, 0, 0, 0)
-    
-    print(f"✅ XVideos search complete: {len(found_urls)} URLs")
-    return list(found_urls)[:max_results]
-
-def enhanced_motherless_search(query, max_results=50, progress_callback=None):
-    """
-    Enhanced Motherless search with better content detection
-    """
-    if progress_callback:
-        progress_callback(f"🔞 Searching Motherless for: {query}", 0, 0, 0, 0)
-    
-    print(f"🔞 === MOTHERLESS SEARCH ===")
-    print(f"🔍 Query: '{query}'")
-    print(f"📊 Max results: {max_results}")
-    
-    found_urls = set()
-    headers = {
-        'User-Agent': random.choice(get_multiple_user_agents()),
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate',
-        'DNT': '1',
-        'Connection': 'keep-alive',
-        'Referer': 'https://motherless.com/',
-        'Cookie': 'theme=light; nsfw=1'  # Enable NSFW content
-    }
-    
-    try:
-        # Primary search strategy - use the main search page
-        search_query = quote_plus(query)
-        search_url = f"https://motherless.com/search/images?term={search_query}&sort=date&range=0"
-        
-        response = requests.get(search_url, headers=headers, timeout=15)
-        
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            
-            # Look for actual image content containers
-            # Motherless uses specific classes for content thumbnails
-            image_containers = soup.find_all(['div', 'a'], class_=[
-                'thumb-container', 'thumb', 'image-container', 'media-thumb'
-            ])
-            
-            # Also search by common image selectors
-            all_imgs = soup.find_all('img')
-            
-            for img in all_imgs:
-                img_url = img.get('src') or img.get('data-src') or img.get('data-original')
-                
-                if img_url:
-                    # Ensure full URL
-                    if img_url.startswith('//'):
-                        img_url = 'https:' + img_url
-                    elif img_url.startswith('/'):
-                        img_url = 'https://motherless.com' + img_url
-                    
-                    # Look for actual content images
-                    if img_url.startswith('https://') and any(
-                        indicator in img_url.lower() for indicator in [
-                            'thumb', 'content', 'media', 'upload', 'images', 'gallery'
-                        ]
-                    ):
-                        # Skip obvious site UI elements
-                        if not any(skip in img_url.lower() for skip in [
-                            'logo', 'icon', 'button', 'sprite', 'header', 'footer',
-                            'banner', 'nav', 'menu', 'ads', 'promo'
-                        ]):
-                            found_urls.add(img_url)
-                            print(f"📸 Found Motherless image: {img_url[:80]}...")
-            
-            # Alternative strategy: look for links to image pages and extract their thumbnails
-            image_links = soup.find_all('a', href=True)
-            for link in image_links:
-                href = link.get('href')
-                if href and '/G' in href:  # Motherless image page pattern
-                    try:
-                        img_tags = link.find_all('img')
-                        for img in img_tags:
-                            img_url = img.get('src') or img.get('data-src')
-                            if img_url and any(ext in img_url.lower() for ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp']):
-                                if img_url.startswith('//'):
-                                    img_url = 'https:' + img_url
-                                elif img_url.startswith('/'):
-                                    img_url = 'https://motherless.com' + img_url
-                                found_urls.add(img_url)
-                    except:
-                        continue
-            
-            print(f"🔍 Motherless search strategy found: {len(found_urls)} URLs")
-            
-        else:
-            print(f"❌ Motherless search failed: HTTP {response.status_code}")
-            
-        # Fallback strategy: try video search as it may have more content
-        if len(found_urls) < 5:
-            video_search_url = f"https://motherless.com/search/videos?term={search_query}&sort=date&range=0"
-            
-            try:
-                response = requests.get(video_search_url, headers=headers, timeout=15)
-                if response.status_code == 200:
-                    soup = BeautifulSoup(response.text, 'html.parser')
-                    
-                    video_thumbs = soup.find_all('img')
-                    for img in video_thumbs:
-                        img_url = img.get('src') or img.get('data-src')
-                        if img_url and 'thumb' in img_url.lower():
-                            if img_url.startswith('//'):
-                                img_url = 'https:' + img_url
-                            elif img_url.startswith('/'):
-                                img_url = 'https://motherless.com' + img_url
-                            found_urls.add(img_url)
-                            
-                    print(f"🔍 Motherless video search found additional: {len(found_urls)} total URLs")
-            except:
-                pass
-        
-    except Exception as e:
-        print(f"❌ Motherless search error: {str(e)}")
-    
-    if progress_callback:
-        progress_callback(f"✅ Motherless found: {len(found_urls)} URLs", 100, 0, 0, 0)
-    
-    print(f"✅ Motherless search complete: {len(found_urls)} URLs")
-    return list(found_urls)[:max_results]
-
-def enhanced_imagefap_search(query, max_results=50, progress_callback=None):
-    """
-    Enhanced ImageFap search with better content detection
-    """
-    if progress_callback:
-        progress_callback(f"🔞 Searching ImageFap for: {query}", 0, 0, 0, 0)
-    
-    print(f"🔞 === IMAGEFAP SEARCH ===")
-    print(f"🔍 Query: '{query}'")
-    print(f"📊 Max results: {max_results}")
-    
-    found_urls = set()
-    headers = {
-        'User-Agent': random.choice(get_multiple_user_agents()),
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Referer': 'https://www.imagefap.com/',
-        'Cookie': 'lang=en'
-    }
-    
-    try:
-        # ImageFap search URL with proper encoding
-        search_query = quote_plus(query)
-        search_url = f"https://www.imagefap.com/search/{search_query}"
-        
-        response = requests.get(search_url, headers=headers, timeout=15)
-        
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            
-            # Look for gallery thumbnails and content images
-            # ImageFap uses specific structures for content
-            
-            # Method 1: Look for gallery thumbnail containers
-            gallery_containers = soup.find_all(['div', 'a'], class_=[
-                'gal-thumb', 'gallery-thumb', 'thumb-container'
-            ])
-            
-            for container in gallery_containers:
-                imgs = container.find_all('img')
-                for img in imgs:
-                    img_url = img.get('src') or img.get('data-src')
-                    if img_url:
-                        if img_url.startswith('//'):
-                            img_url = 'https:' + img_url
-                        elif img_url.startswith('/'):
-                            img_url = 'https://www.imagefap.com' + img_url
-                        
-                        # Filter for actual content images (thumbnails)
-                        if any(indicator in img_url.lower() for indicator in [
-                            'thumb', 'gallery', 'content', 'pic', 'img'
-                        ]):
-                            if not any(skip in img_url.lower() for skip in [
-                                'logo', 'button', 'icon', 'sprite', 'banner'
-                            ]):
-                                found_urls.add(img_url)
-                                print(f"📸 Found ImageFap gallery thumb: {img_url[:80]}...")
-            
-            # Method 2: Look for direct image thumbnails in search results
-            img_tags = soup.find_all('img')
-            for img in img_tags:
-                img_url = img.get('src') or img.get('data-src')
-                
-                if img_url:
-                    if img_url.startswith('//'):
-                        img_url = 'https:' + img_url
-                    elif img_url.startswith('/'):
-                        img_url = 'https://www.imagefap.com' + img_url
-                    
-                    # Look for actual content images with specific patterns
-                    if any(pattern in img_url.lower() for pattern in [
-                        '/thumbs/', '/thumb/', '/gallery/', '/pic/', '/img/',
-                        'thumb.jpg', 'thumb.png', 'thumb.gif'
-                    ]):
-                        # Skip obvious UI elements
-                        if not any(skip in img_url.lower() for skip in [
-                            'logo', 'button', 'icon', 'sprite', 'banner', 'nav',
-                            'header', 'footer', 'menu', 'ad'
-                        ]):
-                            found_urls.add(img_url)
-                            print(f"📸 Found ImageFap image: {img_url[:80]}...")
-            
-            # Method 3: Look for links to galleries and extract their preview images
-            gallery_links = soup.find_all('a', href=True)
-            for link in gallery_links:
-                href = link.get('href')
-                if href and '/gallery/' in href:
-                    # Try to find images within gallery links
-                    try:
-                        img_in_link = link.find('img')
-                        if img_in_link:
-                            img_url = img_in_link.get('src') or img_in_link.get('data-src')
-                            if img_url and any(ext in img_url.lower() for ext in ['.jpg', '.jpeg', '.png', '.gif']):
-                                if img_url.startswith('//'):
-                                    img_url = 'https:' + img_url
-                                elif img_url.startswith('/'):
-                                    img_url = 'https://www.imagefap.com' + img_url
-                                
-                                if 'thumb' in img_url.lower() or 'gallery' in img_url.lower():
-                                    found_urls.add(img_url)
-                    except:
-                        continue
-            
-            # Method 4: Look for background images in CSS
-            bg_pattern = r'background-image:\s*url\(["\']?([^"\']+)["\']?\)'
-            bg_matches = re.findall(bg_pattern, response.text, re.IGNORECASE)
-            
-            for bg_url in bg_matches:
-                if any(ext in bg_url.lower() for ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp']):
-                    if bg_url.startswith('//'):
-                        bg_url = 'https:' + bg_url
-                    elif bg_url.startswith('/'):
-                        bg_url = 'https://www.imagefap.com' + bg_url
-                    
-                    if 'thumb' in bg_url.lower() or 'content' in bg_url.lower():
-                        found_urls.add(bg_url)
-        
-        else:
-            print(f"❌ ImageFap search failed: HTTP {response.status_code}")
-            
-    except Exception as e:
-        print(f"❌ ImageFap search error: {str(e)}")
-    
-    if progress_callback:
-        progress_callback(f"✅ ImageFap found: {len(found_urls)} URLs", 100, 0, 0, 0)
-    
-    print(f"✅ ImageFap search complete: {len(found_urls)} URLs")
-    return list(found_urls)[:max_results]
-
-def enhanced_danbooru_search(query, max_results=50, progress_callback=None):
-    """
-    Enhanced Danbooru search
-    """
-    if progress_callback:
-        progress_callback(f"🎨 Searching Danbooru for: {query}", 0, 0, 0, 0)
-    
-    print(f"🎨 === DANBOORU SEARCH ===")
-    print(f"🔍 Query: '{query}'")
-    print(f"📊 Max results: {max_results}")
-    
-    found_urls = set()
-    headers = {
-        'User-Agent': random.choice(get_multiple_user_agents()),
-        'Accept': 'application/json,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-    }
-    
-    try:
-        # Use Danbooru API
-        search_query = query.replace(' ', '_').lower()
-        api_url = f"https://danbooru.donmai.us/posts.json?tags={requests.utils.quote(search_query)}&limit={min(200, max_results)}"
-        
-        response = requests.get(api_url, headers=headers, timeout=10)
-        
-        if response.status_code == 200:
-            try:
-                data = response.json()
-                
-                for post in data:
-                    if isinstance(post, dict):
-                        # Try different URL fields
-                        for url_field in ['file_url', 'large_file_url', 'preview_file_url']:
-                            if url_field in post and post[url_field]:
-                                img_url = post[url_field]
-                                if img_url.startswith('//'):
-                                    img_url = 'https:' + img_url
-                                elif not img_url.startswith('http'):
-                                    img_url = 'https://danbooru.donmai.us' + img_url
-                                found_urls.add(img_url)
-                                break
-                                
-            except json.JSONDecodeError:
-                print("❌ Danbooru API returned invalid JSON")
-                
-    except Exception as e:
-        print(f"❌ Danbooru search error: {str(e)}")
-    
-    if progress_callback:
-        progress_callback(f"✅ Danbooru found: {len(found_urls)} URLs", 100, 0, 0, 0)
-    
-    print(f"✅ Danbooru search complete: {len(found_urls)} URLs")
-    return list(found_urls)[:max_results]
-
-def download_urls_from_source(urls, output_dir, source_obj, progress_callback=None, max_downloads=None):
-    """
-    Download images from a list of URLs with proper progress tracking
+    Args:
+        urls: List of URLs to download
+        output_dir: Output directory
+        source_obj: Source object
+        progress_callback: Progress callback function
+        max_downloads: Maximum number of downloads
+        filter_type: Type of content to download ('comprehensive', 'images', 'videos')
     """
     if not urls:
         return {'downloaded': 0, 'failed': 0, 'images': 0, 'videos': 0}
     
-    if max_downloads is None:
-        max_downloads = len(urls)
+    # Use handler's download_func if available
+    handler = getattr(source_obj, 'handler', None)
+    if handler and handler.get('download'):
+        return handler['download'](urls[:max_downloads] if max_downloads else urls, output_dir, progress_callback)
+    
+    # Check if this is a video source
+    if source_obj.category == 'video' or source_obj.name in ['videos', 'youtube', 'vimeo', 'dailymotion']:
+        # Use yt-dlp for video sources
+        return download_videos_with_ytdlp(urls[:max_downloads] if max_downloads else urls, output_dir, progress_callback)
+    
+    # Continue with regular download for non-video sources
+    if max_downloads:
+        urls = urls[:max_downloads]
+    
+    print(f"\n⬇️ Downloading from {source_obj.display_name}...")
+    print(f"📊 URLs to process: {len(urls)}")
+    print(f"🔍 Filter type: {filter_type}")
+    
+    # Create source-specific directory
+    source_dir = os.path.join(output_dir, source_obj.name)
+    os.makedirs(source_dir, exist_ok=True)
     
     downloaded_count = 0
     failed_count = 0
     image_count = 0
     video_count = 0
     
-    # Create source-specific directory
-    source_dir = os.path.join(output_dir, source_obj.name)
-    os.makedirs(source_dir, exist_ok=True)
+    session = requests.Session()
+    session.headers.update({
+        'User-Agent': random.choice(get_multiple_user_agents()),
+        'Accept': 'image/webp,image/apng,image/*,video/*,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate',
+        'DNT': '1',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1'
+    })
     
-    # Randomize order for variety
-    urls_list = list(urls)[:max_downloads]
-    random.shuffle(urls_list)
-    
-    if progress_callback:
-        progress_callback(f"📥 Downloading from {source_obj.display_name}...", 0, downloaded_count, image_count, video_count)
-    
-    for i, url in enumerate(urls_list):
-        if downloaded_count >= max_downloads:
+    for i, url in enumerate(urls):
+        if downloaded_count >= (max_downloads or len(urls)):
             break
             
+        progress_percent = int((i / len(urls)) * 100)
+        
+        if progress_callback:
+            progress_callback(f"⬇️ Downloading from {source_obj.display_name}...", progress_percent, downloaded_count, image_count, video_count)
+        
         try:
-            progress_percent = int((i / len(urls_list)) * 100)
+            # Skip if not a valid URL
+            if not url or not url.startswith(('http://', 'https://')):
+                failed_count += 1
+                continue
             
-            if progress_callback:
-                progress_callback(f"⬇️ {source_obj.display_name}: {downloaded_count + 1}/{max_downloads}", progress_percent, downloaded_count, image_count, video_count)
+            response = session.get(url, timeout=30, stream=True)
+            response.raise_for_status()
             
-            print(f"⬇️ Downloading {downloaded_count + 1}/{max_downloads} from {source_obj.display_name}: {url[:80]}...")
+            # Check content type
+            content_type = response.headers.get('Content-Type', '').lower()
+            content_length = int(response.headers.get('Content-Length', 0))
             
-            # Enhanced headers
-            headers = {
-                'User-Agent': random.choice(get_multiple_user_agents()),
-                'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.9',
-                'Referer': f"https://{urlparse(url).netloc}/",
-                'DNT': '1'
-            }
+            # Skip if too small (likely an error page)
+            if content_length < 5000 and content_length > 0:
+                failed_count += 1
+                source_obj.record_download(False)
+                continue
             
-            response = requests.get(url, headers=headers, timeout=15, allow_redirects=True)
-            
-            if response.status_code == 200 and response.content:
-                content_length = len(response.content)
-                content_type = response.headers.get('content-type', '').lower()
-                
-                # Determine if it's an image or video
-                is_image = any(img_type in content_type for img_type in ['image/', 'jpeg', 'png', 'gif', 'webp'])
-                is_video = any(vid_type in content_type for vid_type in ['video/', 'mp4', 'webm', 'avi'])
-                
-                # Check URL extension if content-type is unclear
-                if not is_image and not is_video:
-                    url_lower = url.lower()
-                    is_image = any(url_lower.endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp'])
-                    is_video = any(url_lower.endswith(ext) for ext in ['.mp4', '.webm', '.avi', '.mov'])
-                
-                # Default to image if uncertain but has reasonable size
-                if not is_image and not is_video and content_length > 5000:
-                    is_image = True
-                
-                if (is_image or is_video) and content_length > 5000:
-                    # Determine file extension
-                    if is_video:
-                        ext = '.mp4'
-                        if 'webm' in content_type:
-                            ext = '.webm'
-                        elif url.lower().endswith('.avi'):
-                            ext = '.avi'
-                        elif url.lower().endswith('.mov'):
-                            ext = '.mov'
-                        video_count += 1
-                    else:
-                        ext = '.jpg'  # Default
-                        if 'png' in content_type:
-                            ext = '.png'
-                        elif 'gif' in content_type:
-                            ext = '.gif'
-                        elif 'webp' in content_type:
-                            ext = '.webp'
-                        elif url.lower().endswith('.png'):
-                            ext = '.png'
-                        elif url.lower().endswith('.gif'):
-                            ext = '.gif'
-                        elif url.lower().endswith('.webp'):
-                            ext = '.webp'
-                        image_count += 1
+            # Check if it's a video URL that needs yt-dlp
+            if any(domain in url for domain in ['youtube.com', 'youtu.be', 'vimeo.com', 'twitter.com', 'x.com']):
+                # Handle video with yt-dlp
+                if filter_type == 'images':
+                    # Skip videos if we're only looking for images
+                    failed_count += 1
+                    continue
                     
-                    # Create filename
-                    filename = f"{source_obj.name}_{downloaded_count + 1}{ext}"
-                    filepath = os.path.join(source_dir, filename)
-                    
-                    # Write file
-                    with open(filepath, 'wb') as f:
-                        f.write(response.content)
-                    
+                video_result = download_videos_with_ytdlp([url], source_dir, progress_callback)
+                if video_result['downloaded'] > 0:
                     downloaded_count += 1
+                    video_count += 1
                     source_obj.record_download(True)
-                    print(f"✅ Downloaded: {filename} ({content_length} bytes)")
-                    
                 else:
                     failed_count += 1
                     source_obj.record_download(False)
-                    print(f"❌ Invalid content: {content_type} ({content_length} bytes)")
-                    
+                continue
+            
+            # Determine if content is valid image/video
+            if any(content_type.startswith(t) for t in ['image/', 'video/']):
+                # Determine file extension and type
+                ext = '.jpg'  # default
+                is_video = False
+                
+                if 'image/png' in content_type:
+                    ext = '.png'
+                elif 'image/gif' in content_type:
+                    ext = '.gif'
+                elif 'image/webp' in content_type:
+                    ext = '.webp'
+                elif 'video/mp4' in content_type:
+                    ext = '.mp4'
+                    is_video = True
+                elif 'video/webm' in content_type:
+                    ext = '.webm'
+                    is_video = True
+                else:
+                    # Try to guess from URL
+                    url_lower = url.lower()
+                    if url_lower.endswith('.png'):
+                        ext = '.png'
+                    elif url_lower.endswith('.gif'):
+                        ext = '.gif'
+                    elif url_lower.endswith('.webp'):
+                        ext = '.webp'
+                    elif url_lower.endswith(('.mp4', '.webm', '.avi', '.mov')):
+                        is_video = True
+                        ext = '.' + url_lower.split('.')[-1]
+                
+                # Apply filter
+                if filter_type == 'images' and is_video:
+                    # Skip videos if we're only looking for images
+                    failed_count += 1
+                    continue
+                elif filter_type == 'videos' and not is_video:
+                    # Skip images if we're only looking for videos
+                    failed_count += 1
+                    continue
+                
+                # Update counters
+                if is_video:
+                    video_count += 1
+                else:
+                    image_count += 1
+                
+                # Create filename
+                filename = f"{source_obj.name}_{downloaded_count + 1}{ext}"
+                filepath = os.path.join(source_dir, filename)
+                
+                # Write file
+                with open(filepath, 'wb') as f:
+                    f.write(response.content)
+                
+                downloaded_count += 1
+                source_obj.record_download(True)
+                print(f"✅ Downloaded: {filename} ({content_length} bytes)")
+                
+                # Report the downloaded file through progress callback for database tracking
+                if progress_callback:
+                    progress_callback(
+                        f"✅ Downloaded: {filename}", 
+                        progress_percent, 
+                        downloaded_count, 
+                        image_count, 
+                        video_count,
+                        filepath  # Pass the full file path as current_file
+                    )
+                
             else:
                 failed_count += 1
                 source_obj.record_download(False)
-                print(f"❌ HTTP {response.status_code}: {url[:50]}")
+                print(f"❌ Invalid content: {content_type} ({content_length} bytes)")
                 
         except Exception as e:
             failed_count += 1
             source_obj.record_download(False)
-            print(f"❌ Download error: {str(e)[:50]}")
+            print(f"❌ Download error: {str(e)}")
             
         # Rate limiting
         time.sleep(random.uniform(0.5, 1.5))
@@ -2624,7 +2392,7 @@ def enhanced_tumblr_search(query, max_results=50, safe_search=True):
                             found_urls.add(url)
     
     except Exception as e:
-        print(f"❌ Tumblr search error: {str(e)[:100]}")
+        print(f"❌ Tumblr search error: {str(e)}")
     
     print(f"✅ Tumblr search complete: {len(found_urls)} URLs")
     return list(found_urls)[:max_results]
@@ -2797,6 +2565,265 @@ def enhanced_pexels_search(query, max_results=50, safe_search=True):
     
     print(f"✅ Pexels search complete: {len(found_urls)} URLs")
     return list(found_urls)[:max_results]
+
+def enhanced_video_search(query, max_results=50, safe_search=True):
+    """
+    Enhanced video search across multiple video platforms
+    """
+    print(f"🎬 === ENHANCED VIDEO SEARCH ===")
+    print(f"🔍 Query: '{query}'")
+    print(f"📊 Max results: {max_results}")
+    print(f"🔒 Safe search: {'ON' if safe_search else 'OFF'}")
+    
+    found_urls = set()
+    headers = {
+        'User-Agent': random.choice(get_multiple_user_agents()),
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5'
+    }
+    
+    # Search YouTube
+    try:
+        youtube_search_url = f"https://www.youtube.com/results?search_query={requests.utils.quote(query)}"
+        response = requests.get(youtube_search_url, headers=headers, timeout=10)
+        
+        if response.status_code == 200:
+            # Extract video IDs from search results
+            video_ids = re.findall(r'/watch\?v=([a-zA-Z0-9_-]{11})', response.text)
+            for video_id in video_ids[:max_results//3]:  # Get 1/3 from YouTube
+                found_urls.add(f"https://www.youtube.com/watch?v={video_id}")
+                
+    except Exception as e:
+        print(f"❌ YouTube search error: {str(e)}")
+    
+    # Search Vimeo
+    try:
+        vimeo_search_url = f"https://vimeo.com/search?q={requests.utils.quote(query)}"
+        response = requests.get(vimeo_search_url, headers=headers, timeout=10)
+        
+        if response.status_code == 200:
+            # Extract Vimeo video URLs
+            vimeo_urls = re.findall(r'href="(/\d+)"', response.text)
+            for url in vimeo_urls[:max_results//3]:  # Get 1/3 from Vimeo
+                found_urls.add(f"https://vimeo.com{url}")
+                
+    except Exception as e:
+        print(f"❌ Vimeo search error: {str(e)}")
+    
+    # Search Internet Archive videos
+    try:
+        archive_search_url = f"https://archive.org/search.php?query={requests.utils.quote(query)}&mediatype=movies"
+        response = requests.get(archive_search_url, headers=headers, timeout=10)
+        
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            # Find video links
+            for link in soup.find_all('a', href=True):
+                href = link['href']
+                if '/details/' in href and not href.endswith('/'):
+                    found_urls.add(f"https://archive.org{href}")
+                    if len(found_urls) >= max_results:
+                        break
+                        
+    except Exception as e:
+        print(f"❌ Archive.org search error: {str(e)}")
+    
+    print(f"✅ Video search complete: {len(found_urls)} video URLs found")
+    return list(found_urls)[:max_results]
+
+def download_videos_with_ytdlp(urls, output_dir, progress_callback=None):
+    """
+    Enhanced video download using yt-dlp with multiple fallback methods
+    """
+    if not urls:
+        return {'downloaded': 0, 'failed': 0, 'videos': 0, 'images': 0}
+    
+    downloaded_count = 0
+    failed_count = 0
+    
+    # Create output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+    
+    for i, url in enumerate(urls):
+        try:
+            if progress_callback:
+                progress_percent = int((i / len(urls)) * 100)
+                progress_callback(f"📹 Downloading video {i+1}/{len(urls)}...", progress_percent, downloaded_count, 0, downloaded_count)
+            
+            # Try multiple quality options with fallbacks
+            quality_options = [
+                {
+                    'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]/best',
+                    'description': '720p with audio'
+                },
+                {
+                    'format': 'bestvideo[height<=480]+bestaudio/best[height<=480]/best',
+                    'description': '480p with audio'
+                },
+                {
+                    'format': 'best',
+                    'description': 'best available'
+                }
+            ]
+            
+            download_successful = False
+            
+            for quality_opt in quality_options:
+                try:
+                    # yt-dlp options with enhanced compatibility
+                    ydl_opts = {
+                        'outtmpl': os.path.join(output_dir, f'video_{downloaded_count + 1}_%(title)s.%(ext)s'),
+                        'quiet': False,  # Show output for debugging
+                        'no_warnings': False,
+                        'format': quality_opt['format'],
+                        'max_filesize': 200 * 1024 * 1024,  # 200MB max
+                        'ignoreerrors': False,
+                        'no_color': True,
+                        'extract_flat': False,
+                        'prefer_free_formats': True,
+                        'socket_timeout': 30,
+                        'retries': 3,
+                        'fragment_retries': 3,
+                        'concurrent_fragment_downloads': 1,
+                        # Remove problematic cookiesfrombrowser option
+                        # 'cookiesfrombrowser': 'chrome',  # This was causing the error
+                        'user_agent': random.choice(get_multiple_user_agents()),
+                        # Post-processing options
+                        'postprocessors': [{
+                            'key': 'FFmpegVideoConvertor',
+                            'preferedformat': 'mp4',  # Convert to mp4 for compatibility
+                        }],
+                        # Extract metadata for better filenames
+                        'writeinfojson': False,
+                        'writethumbnail': True,  # Download thumbnail too
+                        # Subtitle options
+                        'writesubtitles': False,
+                        'writeautomaticsub': False,
+                        # Progress hooks
+                        'progress_hooks': [],
+                        # Additional options for better compatibility
+                        'age_limit': None,  # Allow all content
+                        'geo_bypass': True,  # Bypass geo restrictions
+                    }
+                    
+                    # Special handling for different platforms
+                    if 'twitter.com' in url or 'x.com' in url:
+                        ydl_opts['format'] = 'best'
+                    elif 'instagram.com' in url:
+                        ydl_opts['format'] = 'best'
+                    elif 'tiktok.com' in url:
+                        ydl_opts['format'] = 'best'
+                        ydl_opts['http_headers'] = {
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                            'Referer': 'https://www.tiktok.com/'
+                        }
+                    
+                    print(f"🔄 Attempting to download: {url} with {quality_opt['description']}")
+                    
+                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                        # First extract info without downloading
+                        info = ydl.extract_info(url, download=False)
+                        
+                        if info:
+                            # Check if it's a playlist
+                            if info.get('_type') == 'playlist':
+                                # Download only the first video from playlist
+                                entries = info.get('entries', [])
+                                if entries:
+                                    url = entries[0].get('webpage_url', url)
+                                    info = ydl.extract_info(url, download=True)
+                            else:
+                                # Download the video
+                                info = ydl.extract_info(url, download=True)
+                            
+                            if info:
+                                downloaded_count += 1
+                                download_successful = True
+                                
+                                # Get the downloaded file path
+                                if 'requested_downloads' in info:
+                                    for download in info['requested_downloads']:
+                                        filepath = download.get('filepath', '')
+                                        if filepath and progress_callback:
+                                            # Report downloaded file
+                                            progress_callback(
+                                                f"✅ Downloaded: {os.path.basename(filepath)}", 
+                                                progress_percent, 
+                                                downloaded_count, 
+                                                0, 
+                                                downloaded_count,
+                                                filepath
+                                            )
+                                
+                                print(f"✅ Downloaded video {downloaded_count}: {info.get('title', 'Unknown')} [{quality_opt['description']}]")
+                                break
+                                
+                except yt_dlp.utils.DownloadError as e:
+                    error_msg = str(e)
+                    print(f"⚠️ yt-dlp error: {error_msg[:200]}")
+                    if "Private video" in error_msg or "unavailable" in error_msg:
+                        print(f"⚠️ Video unavailable: {url}")
+                        break  # Don't try other qualities for unavailable videos
+                    continue
+                except Exception as e:
+                    print(f"❌ Download attempt failed: {str(e)[:200]}")
+                    continue
+            
+            if not download_successful:
+                # Try alternative download method using requests for direct video URLs
+                if any(ext in url.lower() for ext in ['.mp4', '.webm', '.avi', '.mov', '.mkv']):
+                    try:
+                        print(f"🔄 Attempting direct download: {url}")
+                        response = requests.get(url, stream=True, timeout=30, headers={
+                            'User-Agent': random.choice(get_multiple_user_agents())
+                        })
+                        if response.status_code == 200:
+                            # Extract filename from URL or use generic name
+                            filename = url.split('/')[-1].split('?')[0]
+                            if not filename or '.' not in filename:
+                                filename = f'video_{downloaded_count + 1}.mp4'
+                            
+                            filepath = os.path.join(output_dir, filename)
+                            
+                            # Download the file
+                            with open(filepath, 'wb') as f:
+                                for chunk in response.iter_content(chunk_size=8192):
+                                    f.write(chunk)
+                            
+                            downloaded_count += 1
+                            download_successful = True
+                            
+                            if progress_callback:
+                                progress_callback(
+                                    f"✅ Direct download: {filename}", 
+                                    progress_percent, 
+                                    downloaded_count, 
+                                    0, 
+                                    downloaded_count,
+                                    filepath
+                                )
+                            
+                            print(f"✅ Direct download successful: {filename}")
+                    except Exception as e:
+                        print(f"❌ Direct download failed: {str(e)}")
+                
+                if not download_successful:
+                    failed_count += 1
+                    print(f"❌ Failed to download video: {url}")
+                    
+        except Exception as e:
+            failed_count += 1
+            print(f"❌ Video download error: {str(e)[:100]}")
+    
+    if progress_callback:
+        progress_callback(f"✅ Video download complete: {downloaded_count} videos", 100, downloaded_count, 0, downloaded_count)
+    
+    return {
+        'downloaded': downloaded_count,
+        'failed': failed_count,
+        'videos': downloaded_count,
+        'images': 0
+    }
 
 if __name__ == "__main__":
     # Run verification test
