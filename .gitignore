@@ -66,6 +66,7 @@ temp/
 logs/
 
 # Configuration files with sensitive data
+.env
 config.json
 secrets.json
 cookies.txt
