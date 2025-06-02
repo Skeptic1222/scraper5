@@ -30,3 +30,8 @@ flask-talisman==1.1.0
 # Environment and configuration
 python-dotenv==1.0.1
 openai>=0.27.0
+aiohttp
+numpy
+psutil
+pyodbc
+yt-dlp

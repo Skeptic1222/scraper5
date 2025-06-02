@@ -3,6 +3,7 @@ run = "python app.py"
 
 [nix]
 channel = "stable-24_05"
+packages = ["cargo", "libGL", "libGLU", "libiconv", "libxcrypt", "openssl", "pkg-config", "rustc", "unixODBC"]
 
 [deployment]
 run = ["sh", "-c", "python app.py"]
