@@ -55,11 +55,11 @@ app = Flask(__name__)
 # Configuration from environment variables
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', secrets.token_hex(32))
 
-# SQL Server Express Database Configuration
+# PostgreSQL Database Configuration for Replit
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 
-    'mssql+pyodbc://localhost\\SQLEXPRESS/Scraped?driver=ODBC+Driver+17+for+SQL+Server&trusted_connection=yes')
+    'postgresql://localhost/scraped_dev')
 print(f"🔍 DEBUG: Final SQLALCHEMY_DATABASE_URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
-print(f"🗄️  Database: SQL Server Express - Scraped")
+print(f"🗄️  Database: PostgreSQL")
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
@@ -1838,5 +1838,5 @@ if __name__ == '__main__':
     # Initialize database on startup
     create_tables()
     
-    # Run in debug mode for development
+    # Run in debug mode for development on Replit
     app.run(debug=True, host='0.0.0.0', port=5000)

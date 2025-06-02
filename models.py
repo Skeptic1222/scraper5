@@ -6,9 +6,10 @@ SQLAlchemy models for user management, job tracking, and asset management
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-from sqlalchemy.dialects.mssql import NVARCHAR, DATETIME2, BIT
+from sqlalchemy.dialects.postgresql import UUID, BYTEA
 import json
 import os
+import uuid
 
 db = SQLAlchemy()
 
@@ -455,7 +456,7 @@ class MediaBlob(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     asset_id = db.Column(db.Integer, db.ForeignKey('assets.id'), nullable=False, unique=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # Enforce user ownership
-    media_data = db.Column(db.LargeBinary, nullable=False)  # The actual file data
+    media_data = db.Column(BYTEA, nullable=False)  # The actual file data (PostgreSQL BYTEA)
     mime_type = db.Column(db.String(100), nullable=False)
     file_hash = db.Column(db.String(64))  # SHA-256 hash for deduplication
     compressed = db.Column(db.Boolean, default=False)  # Whether data is compressed
