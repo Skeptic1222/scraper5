@@ -56,10 +56,16 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', secrets.token_hex(32))
 
 # PostgreSQL Database Configuration for Replit
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 
-    'postgresql://localhost/scraped_dev')
+database_url = os.environ.get('DATABASE_URL')
+if not database_url:
+    # Default SQLite for Replit if PostgreSQL not available
+    database_url = 'sqlite:///scraped.db'
+    print("🗄️  Database: SQLite (fallback)")
+else:
+    print("🗄️  Database: PostgreSQL")
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 print(f"🔍 DEBUG: Final SQLALCHEMY_DATABASE_URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
-print(f"🗄️  Database: PostgreSQL")
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
@@ -1839,4 +1845,5 @@ if __name__ == '__main__':
     create_tables()
     
     # Run in debug mode for development on Replit
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=True, host='0.0.0.0', port=port)
