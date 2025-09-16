@@ -34,6 +34,9 @@
     
     <title>{% block title %}Enhanced Media Scraper{% endblock %}</title>
 
+    <!-- EMERGENCY FIX: Must load FIRST to prevent UI from disappearing -->
+    <script src="{{ url_for('static', filename='js/emergency-ui-fix.js') }}"></script>
+    
     <!-- EMERGENCY FIX: Must load FIRST to prevent white screen -->
     <script src="{{ url_for('static', filename='js/emergency-white-screen-fix.js') }}"></script>
 
