@@ -271,10 +271,15 @@ def load_user(user_id):
     """Load user by ID for Flask-Login (supports mem: IDs in dev)."""
     try:
         if isinstance(user_id, str) and user_id.startswith("mem:"):
-            return _MEM_USERS.get(user_id)
+            # Return the in-memory user
+            user = _MEM_USERS.get(user_id)
+            if user:
+                logger.info(f"Loaded memory user: {user.email}")
+            return user
         # Database-backed user
         return User.query.get(int(user_id))
-    except Exception:
+    except Exception as e:
+        logger.error(f"Error loading user {user_id}: {e}")
         return None
 
 
