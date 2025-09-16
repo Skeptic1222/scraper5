@@ -1017,6 +1017,59 @@ def test_admin_login_page():
     return render_template("test_admin_login.html")
 
 
+@auth_bp.route("/test-admin-quick")
+def test_admin_quick_login():
+    """Quick test admin login via GET (for testing only)"""
+    try:
+        # Check if test admin is enabled
+        if not os.environ.get("ENABLE_TEST_ADMIN", "false").lower() == "true":
+            flash("Test admin login is disabled", "error")
+            return redirect(url_for("index"))
+        
+        # Check password from query parameter
+        password = request.args.get("password", "")
+        test_admin_password = os.environ.get("TEST_ADMIN_PASSWORD", "admin123")
+        
+        if password != test_admin_password:
+            flash("Invalid test admin password", "error")
+            return redirect(url_for("auth.test_admin_login_page"))
+        
+        # Create or get test admin user
+        test_admin_email = "admin@test.local"
+        test_admin_name = "Test Admin"
+        test_admin_id = "test_admin_001"
+        mem_id = f"mem:{test_admin_id}"
+        
+        # Check if user exists in memory
+        user = _MEM_USERS.get(mem_id)
+        if not user:
+            # Create new test admin user
+            user = MemoryUser(
+                test_admin_id,
+                email=test_admin_email,
+                name=test_admin_name,
+                picture="https://ui-avatars.com/api/?name=Test+Admin&background=667eea&color=fff",
+                is_admin=True,
+                google_id=None
+            )
+            _MEM_USERS[mem_id] = user
+            logger.info(f"Created test admin user: {test_admin_email}")
+        
+        # Log the user in
+        session.permanent = True
+        login_user(user, remember=True, duration=timedelta(days=7))
+        
+        logger.info(f"Test admin quick login successful: {test_admin_email}")
+        flash(f"Logged in as Test Admin ({test_admin_email})", "success")
+        
+        return redirect(url_for("index"))
+        
+    except Exception as e:
+        logger.error(f"Test admin quick login error: {e}")
+        flash("Login failed", "error")
+        return redirect(url_for("index"))
+
+
 @auth_bp.route("/test-admin-login", methods=["POST"])
 def test_admin_login():
     """Handle test admin login (bypasses Google OAuth for testing)"""
