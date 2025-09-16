@@ -82,66 +82,47 @@ class SearchHandler {
                 formData.append('csrf_token', csrfToken);
             }
             
-            // Try the search endpoint with form data
-            const response = await fetch('/api/search', {
+            // Send as JSON to comprehensive-search endpoint
+            const response = await fetch('/api/comprehensive-search', {
                 method: 'POST',
                 credentials: 'same-origin',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    query: query,
+                    search_type: 'comprehensive',
+                    enabled_sources: selectedSources,
+                    max_content: 50,
+                    safe_search: true
+                })
             });
             
-            if (!response.ok) {
-                // Try comprehensive-search with JSON
-                const headers = {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                };
-                
-                if (csrfToken) {
-                    headers['X-CSRFToken'] = csrfToken;
-                }
-                
-                const jsonResponse = await fetch('/api/comprehensive-search', {
+            if (response.ok) {
+                const data = await response.json();
+                this.handleSearchResponse(data);
+            } else {
+                // Try bulletproof search as fallback
+                const fallbackResponse = await fetch('/api/bulletproof-search', {
                     method: 'POST',
                     credentials: 'same-origin',
-                    headers: headers,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
                     body: JSON.stringify({
                         query: query,
                         sources: selectedSources,
-                        limit: 50,
-                        safe_search: true
+                        maxResults: 50,
+                        safeSearch: true
                     })
                 });
                 
-                if (jsonResponse.ok) {
-                    const data = await jsonResponse.json();
+                if (fallbackResponse.ok) {
+                    const data = await fallbackResponse.json();
                     this.handleSearchResponse(data);
                 } else {
-                    // Try without CSRF as a last resort (development mode)
-                    const devResponse = await fetch('/api/bulletproof-search', {
-                        method: 'POST',
-                        credentials: 'same-origin',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: JSON.stringify({
-                            query: query,
-                            sources: selectedSources,
-                            limit: 50,
-                            safe_search: true
-                        })
-                    });
-                    
-                    if (devResponse.ok) {
-                        const data = await devResponse.json();
-                        this.handleSearchResponse(data);
-                    } else {
-                        throw new Error(`Search failed: ${devResponse.statusText}`);
-                    }
+                    throw new Error(`Search failed: ${fallbackResponse.statusText}`);
                 }
-            } else {
-                const data = await response.json();
-                this.handleSearchResponse(data);
             }
             
         } catch (error) {
