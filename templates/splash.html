@@ -171,7 +171,7 @@
         <p class="subtitle">Sign in to your account to continue</p>
         
         {% if google_configured %}
-            <a href="/scraper/auth/login" class="google-btn">
+            <a href="/auth/login" class="google-btn">
                 <svg class="google-icon" viewBox="0 0 24 24">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                     <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -195,7 +195,7 @@
         {% if test_admin_enabled %}
             <div class="divider">
                 <p class="test-note">Testing Only</p>
-                <a href="/scraper/auth/mock-login/admin@test.local" class="admin-btn">
+                <a href="/auth/mock-login/admin@test.local" class="admin-btn">
                     <svg style="width: 20px; height: 20px;" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"/>
                     </svg>
@@ -227,14 +227,14 @@
             }
             
             // Check if already authenticated
-            fetch('/scraper/auth/check')
+            fetch('/auth/check')
                 .then(res => res.json())
                 .then(data => {
                     if (data.authenticated) {
                         // User is already logged in, skip splash and go to main app
                         console.log('User authenticated, redirecting to main app...');
                         // Use replace to prevent back button loop
-                        window.location.replace('/scraper/index.html');
+                        window.location.replace('/index.html');
                     }
                 })
                 .catch((error) => {

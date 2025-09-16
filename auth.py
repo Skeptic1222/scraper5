@@ -1067,7 +1067,8 @@ def test_admin_quick_login():
         logger.info(f"Test admin quick login successful: {test_admin_email}")
         flash(f"Logged in as Test Admin ({test_admin_email})", "success")
         
-        return redirect(url_for("index"))
+        # Redirect to root to avoid double /scraper prefix
+        return redirect("/")
         
     except Exception as e:
         logger.error(f"Test admin quick login error: {e}")
@@ -1163,8 +1164,8 @@ def mock_login_dev(email=None):
         session.permanent = True
         login_user(user, remember=True, duration=timedelta(days=30))
         flash(f"Mock login successful for {email}", "success")
-        # Always use url_for to generate correct URLs
-        return redirect(url_for("index"))
+        # Redirect to root to avoid double /scraper prefix
+        return redirect("/")
     except Exception as e:
         logger.error(f"Mock login failed: {e}")
         flash("Mock login failed", "error")
