@@ -21,6 +21,14 @@ def get_sources():
         safe_search = request.args.get("safe_search", "true").lower() == "true"
         current_app.logger.info("[SOURCES API] Safe search enabled: %s", safe_search)
 
+        # Get all source IDs from sources_data
+        all_source_ids = []
+        for category_sources in sources_data.values():
+            if isinstance(category_sources, list):
+                for source in category_sources:
+                    if isinstance(source, dict) and 'id' in source:
+                        all_source_ids.append(source['id'])
+        
         allowed_sources = []
         try:
             if current_user.is_authenticated:
@@ -29,12 +37,14 @@ def get_sources():
                 if current_user.can_use_nsfw() and current_user.is_nsfw_enabled:
                     safe_search = False
             else:
-                allowed_sources = TRIAL_SOURCES
+                # For guest users, show ALL sources (78+) except adult content
+                allowed_sources = all_source_ids  # Show all sources for guests
         except Exception as e:
             current_app.logger.warning(
                 "[SOURCES API] Error getting user sources: %s", e
             )
-            allowed_sources = TRIAL_SOURCES
+            # On error, still show all sources
+            allowed_sources = all_source_ids
 
         categorized = {
             "Search Engines": [],
