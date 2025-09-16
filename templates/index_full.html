@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Media Scraper - Full Version</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            color: white;
+            position: fixed;
+            width: 250px;
+            overflow-y: auto;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        
+        .nav-link {
+            display: block;
+            width: 100%;
+            padding: 12px 15px;
+            margin: 5px 0;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-align: left;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .content-section {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .source-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+            padding: 15px 0;
+        }
+        
+        .source-item {
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .source-item:hover {
+            border-color: #007bff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .source-item.selected {
+            background: #007bff;
+            color: white;
+            border-color: #0056b3;
+        }
+        
+        .source-category {
+            margin-bottom: 30px;
+        }
+        
+        .source-category h5 {
+            color: #495057;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .assets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+        
+        .asset-card {
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.2s;
+            cursor: pointer;
+            background: white;
+        }
+        
+        .asset-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .asset-thumbnail {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: #f8f9fa;
+        }
+        
+        .asset-info {
+            padding: 10px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+        
+        .stat-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .search-results {
+            margin-top: 30px;
+        }
+        
+        .result-item {
+            margin: 10px 0;
+            padding: 15px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            background: white;
+        }
+        
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading-spinner.active {
+            display: block;
+        }
+        
+        .progress {
+            height: 25px;
+            margin-top: 10px;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .user-info {
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            margin-top: auto;
+            margin-bottom: 20px;
+        }
+        
+        .filter-buttons {
+            margin-bottom: 20px;
+        }
+        
+        .filter-btn {
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <i class="fas fa-globe"></i> Media Scraper
+        </div>
+        
+        <nav>
+            <button class="nav-link active" onclick="showSection('search')">
+                <i class="fas fa-search"></i> Search Media
+            </button>
+            <button class="nav-link" onclick="showSection('dashboard')">
+                <i class="fas fa-th-large"></i> Dashboard
+            </button>
+            <button class="nav-link" onclick="showSection('assets')">
+                <i class="fas fa-folder"></i> Asset Library
+            </button>
+            <button class="nav-link" onclick="showSection('settings')">
+                <i class="fas fa-cog"></i> Settings
+            </button>
+        </nav>
+        
+        <div class="user-info" id="userInfo">
+            <div id="userDisplay">Guest User</div>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <!-- Search Section -->
+        <div id="search" class="content-section active">
+            <h2><i class="fas fa-search"></i> Media Search</h2>
+            <p class="text-muted">Search across 78+ premium content sources</p>
+            
+            <form id="searchForm" onsubmit="performSearch(event)">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control form-control-lg" 
+                           placeholder="Enter your search query..." 
+                           id="searchInput" required>
+                    <button class="btn btn-primary btn-lg" type="submit">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </form>
+            
+            <div id="sourceCategories">
+                <!-- Sources will be loaded here dynamically -->
+            </div>
+            
+            <div class="loading-spinner" id="searchSpinner">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Searching...</span>
+                </div>
+                <p>Searching across selected sources...</p>
+                <div class="progress">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                         role="progressbar" style="width: 0%" id="searchProgress"></div>
+                </div>
+            </div>
+            
+            <div id="searchResults" class="search-results"></div>
+        </div>
+        
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="content-section">
+            <h2><i class="fas fa-th-large"></i> Dashboard</h2>
+            <p class="text-muted">Overview of your media scraping activity</p>
+            
+            <div class="row g-4">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-images fa-2x text-primary"></i></div>
+                        <div class="stat-number" id="totalAssets">0</div>
+                        <div class="stat-label">Total Assets</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-download fa-2x text-success"></i></div>
+                        <div class="stat-number" id="recentDownloads">0</div>
+                        <div class="stat-label">Recent Downloads</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-tasks fa-2x text-warning"></i></div>
+                        <div class="stat-number" id="activeJobs">0</div>
+                        <div class="stat-label">Active Jobs</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-database fa-2x text-info"></i></div>
+                        <div class="stat-number" id="storageUsed">0 MB</div>
+                        <div class="stat-label">Storage Used</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row g-4 mt-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-chart-line"></i> Activity Chart</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="activityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-clock"></i> Recent Activity</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="recentActivity">
+                                <p class="text-muted">No recent activity</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Assets Section -->
+        <div id="assets" class="content-section">
+            <h2><i class="fas fa-folder"></i> Asset Library</h2>
+            <p class="text-muted">Your downloaded media collection</p>
+            
+            <div class="filter-buttons">
+                <button class="btn btn-outline-primary filter-btn active" onclick="filterAssets('all')">
+                    <i class="fas fa-th"></i> All
+                </button>
+                <button class="btn btn-outline-primary filter-btn" onclick="filterAssets('images')">
+                    <i class="fas fa-image"></i> Images
+                </button>
+                <button class="btn btn-outline-primary filter-btn" onclick="filterAssets('videos')">
+                    <i class="fas fa-video"></i> Videos
+                </button>
+                <button class="btn btn-outline-primary filter-btn" onclick="filterAssets('documents')">
+                    <i class="fas fa-file"></i> Documents
+                </button>
+            </div>
+            
+            <div class="loading-spinner" id="assetsSpinner">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading assets...</span>
+                </div>
+            </div>
+            
+            <div class="assets-grid" id="assetsGrid">
+                <!-- Assets will be loaded here -->
+            </div>
+        </div>
+        
+        <!-- Settings Section -->
+        <div id="settings" class="content-section">
+            <h2><i class="fas fa-cog"></i> Settings</h2>
+            <p class="text-muted">Configure your scraper preferences</p>
+            
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Safe Search</h5>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="safeSearchToggle" checked>
+                        <label class="form-check-label" for="safeSearchToggle">
+                            Enable safe search filtering
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">Download Settings</h5>
+                    <div class="mb-3">
+                        <label for="downloadPath" class="form-label">Default Download Path</label>
+                        <input type="text" class="form-control" id="downloadPath" value="/downloads">
+                    </div>
+                    <div class="mb-3">
+                        <label for="maxConcurrent" class="form-label">Max Concurrent Downloads</label>
+                        <input type="number" class="form-control" id="maxConcurrent" value="5" min="1" max="10">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // State management
+        let selectedSources = new Set();
+        let currentFilter = 'all';
+        let allSources = {};
+        
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Enhanced Media Scraper - Full Version Loaded');
+            loadSources();
+            loadDashboardStats();
+            loadAssets();
+            checkAuthentication();
+        });
+        
+        // Navigation
+        function showSection(sectionName) {
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            const targetSection = document.getElementById(sectionName);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Load section-specific data
+            if (sectionName === 'assets') {
+                loadAssets();
+            } else if (sectionName === 'dashboard') {
+                loadDashboardStats();
+            }
+        }
+        
+        // Load sources from API
+        async function loadSources() {
+            try {
+                const response = await fetch('/api/sources');
+                const data = await response.json();
+                
+                const container = document.getElementById('sourceCategories');
+                container.innerHTML = '';
+                
+                // Process sources by category
+                const categories = {};
+                
+                if (data.sources && Array.isArray(data.sources)) {
+                    data.sources.forEach(source => {
+                        const category = source.category || 'Other';
+                        if (!categories[category]) {
+                            categories[category] = [];
+                        }
+                        categories[category].push(source);
+                        allSources[source.id] = source;
+                    });
+                } else if (data.categories) {
+                    Object.entries(data.categories).forEach(([cat, sources]) => {
+                        categories[cat] = sources;
+                        sources.forEach(source => {
+                            allSources[source.id] = source;
+                        });
+                    });
+                }
+                
+                // Render categories
+                Object.entries(categories).forEach(([categoryName, sources]) => {
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.className = 'source-category';
+                    
+                    categoryDiv.innerHTML = `
+                        <h5>${categoryName} (${sources.length})</h5>
+                        <div class="source-grid" id="cat-${categoryName}">
+                            ${sources.map(source => `
+                                <div class="source-item" data-source-id="${source.id}" onclick="toggleSource('${source.id}')">
+                                    <i class="fas fa-globe"></i> ${source.name}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    
+                    container.appendChild(categoryDiv);
+                });
+                
+                // Select recommended sources by default
+                ['google_images', 'bing_images', 'unsplash'].forEach(id => {
+                    if (allSources[id]) {
+                        selectedSources.add(id);
+                        const element = document.querySelector(`[data-source-id="${id}"]`);
+                        if (element) element.classList.add('selected');
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Error loading sources:', error);
+                document.getElementById('sourceCategories').innerHTML = 
+                    '<div class="alert alert-danger">Failed to load sources. Please refresh the page.</div>';
+            }
+        }
+        
+        // Toggle source selection
+        function toggleSource(sourceId) {
+            if (selectedSources.has(sourceId)) {
+                selectedSources.delete(sourceId);
+            } else {
+                selectedSources.add(sourceId);
+            }
+            
+            const element = document.querySelector(`[data-source-id="${sourceId}"]`);
+            if (element) {
+                element.classList.toggle('selected');
+            }
+        }
+        
+        // Perform search
+        async function performSearch(event) {
+            event.preventDefault();
+            
+            const query = document.getElementById('searchInput').value;
+            const sources = Array.from(selectedSources);
+            
+            if (sources.length === 0) {
+                alert('Please select at least one source');
+                return;
+            }
+            
+            const spinner = document.getElementById('searchSpinner');
+            const results = document.getElementById('searchResults');
+            spinner.classList.add('active');
+            results.innerHTML = '';
+            
+            // Simulate progress
+            let progress = 0;
+            const progressBar = document.getElementById('searchProgress');
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 20;
+                if (progress > 90) progress = 90;
+                progressBar.style.width = progress + '%';
+            }, 500);
+            
+            try {
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        sources: sources,
+                        limit: 50
+                    })
+                });
+                
+                const data = await response.json();
+                
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+                
+                setTimeout(() => {
+                    spinner.classList.remove('active');
+                    displaySearchResults(data.results || []);
+                }, 500);
+                
+            } catch (error) {
+                console.error('Search error:', error);
+                clearInterval(progressInterval);
+                spinner.classList.remove('active');
+                results.innerHTML = '<div class="alert alert-danger">Search failed. Please try again.</div>';
+            }
+        }
+        
+        // Display search results
+        function displaySearchResults(results) {
+            const container = document.getElementById('searchResults');
+            
+            if (results.length === 0) {
+                container.innerHTML = '<div class="alert alert-info">No results found. Try different keywords or sources.</div>';
+                return;
+            }
+            
+            container.innerHTML = `
+                <h4>Found ${results.length} results</h4>
+                <div class="row g-3">
+                    ${results.map(result => `
+                        <div class="col-md-3">
+                            <div class="card">
+                                <img src="${result.thumbnail || '/static/placeholder.jpg'}" class="card-img-top" alt="${result.title}">
+                                <div class="card-body">
+                                    <p class="card-text">${result.title || 'Untitled'}</p>
+                                    <button class="btn btn-sm btn-primary" onclick="downloadAsset('${result.url}')">
+                                        <i class="fas fa-download"></i> Download
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        // Load dashboard statistics
+        async function loadDashboardStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const stats = await response.json();
+                
+                document.getElementById('totalAssets').textContent = stats.total_assets || '0';
+                document.getElementById('recentDownloads').textContent = stats.recent_downloads || '0';
+                document.getElementById('activeJobs').textContent = stats.active_jobs || '0';
+                document.getElementById('storageUsed').textContent = (stats.storage_mb || 0) + ' MB';
+                
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+        
+        // Load assets
+        async function loadAssets() {
+            const spinner = document.getElementById('assetsSpinner');
+            const grid = document.getElementById('assetsGrid');
+            
+            if (spinner) spinner.classList.add('active');
+            
+            try {
+                const response = await fetch('/api/assets');
+                const assets = await response.json();
+                
+                if (spinner) spinner.classList.remove('active');
+                displayAssets(assets.assets || []);
+                
+            } catch (error) {
+                console.error('Error loading assets:', error);
+                if (spinner) spinner.classList.remove('active');
+                grid.innerHTML = '<div class="alert alert-danger">Failed to load assets.</div>';
+            }
+        }
+        
+        // Display assets
+        function displayAssets(assets) {
+            const grid = document.getElementById('assetsGrid');
+            
+            if (assets.length === 0) {
+                grid.innerHTML = '<div class="alert alert-info">No assets yet. Start searching and downloading media!</div>';
+                return;
+            }
+            
+            const filteredAssets = currentFilter === 'all' 
+                ? assets 
+                : assets.filter(asset => asset.type === currentFilter);
+            
+            grid.innerHTML = filteredAssets.map(asset => `
+                <div class="asset-card" onclick="viewAsset(${asset.id})">
+                    <img src="${asset.thumbnail || '/static/placeholder.jpg'}" class="asset-thumbnail" alt="${asset.name}">
+                    <div class="asset-info">
+                        <h6>${asset.name || 'Untitled'}</h6>
+                        <small class="text-muted">${asset.size || 'Unknown size'}</small>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Filter assets
+        function filterAssets(type) {
+            currentFilter = type;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            loadAssets();
+        }
+        
+        // Check authentication
+        async function checkAuthentication() {
+            try {
+                const response = await fetch('/auth/check');
+                const data = await response.json();
+                
+                const userDisplay = document.getElementById('userDisplay');
+                if (data.authenticated) {
+                    userDisplay.innerHTML = `
+                        <div><i class="fas fa-user"></i> ${data.user.email || 'User'}</div>
+                        <small>Premium Account</small>
+                    `;
+                } else {
+                    userDisplay.innerHTML = `
+                        <div><i class="fas fa-user"></i> Guest User</div>
+                        <small>Limited Access</small>
+                    `;
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+            }
+        }
+        
+        // Placeholder functions
+        function downloadAsset(url) {
+            alert('Download started for: ' + url);
+        }
+        
+        function viewAsset(id) {
+            alert('Viewing asset ID: ' + id);
+        }
+    </script>
+</body>
+</html>
