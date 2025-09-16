@@ -1,0 +1,79 @@
+/* Emergency UI Visibility Fix - Forces all main UI elements to be visible */
+
+/* Force all main sections to be visible */
+#dashboard-section,
+#search-section,
+#assets-section,
+#main-content,
+.content-section {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Ensure the active section is always shown */
+.content-section.active {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Force sidebar visibility if it exists */
+.sidebar,
+#sidebar {
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Ensure main container is visible */
+.container,
+.main-container,
+#app-container {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Force source categories and assets grid to be visible when needed */
+#source-categories {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+#assets-grid {
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Prevent any style attribute from hiding these critical elements */
+[id*="section"][style*="display: none"],
+[id*="section"][style*="visibility: hidden"],
+[id*="section"][style*="opacity: 0"] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Remove any transform that might push elements off-screen */
+.content-section,
+#main-content {
+    transform: none !important;
+    position: relative !important;
+}
+
+/* Ensure body and html are not hiding content */
+html, body {
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 100vh;
+}
+
+/* Make sure the main app wrapper is visible */
+#app,
+.app-wrapper,
+.main-wrapper {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
