@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Enhanced Media Scraper - Unified Platform{% endblock %}
+{% block content %}
+<style>
+/* Force all UI elements to be visible */
+#dashboard-section,
+#search-section,
+#assets-section,
+.content-section {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+.content-section.active {
+    display: block !important;
+}
+.content-section:not(.active) {
+    display: none !important;
+}
+</style>
+
+<!-- Main App Container -->
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        <!-- Sidebar Navigation -->
+        <div class="col-md-2 sidebar bg-light p-3">
+            <nav class="nav flex-column">
+                <button class="nav-link active" onclick="showSection('search')">
+                    <i class="fas fa-search"></i> Search
+                </button>
+                <button class="nav-link" onclick="showSection('dashboard')">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </button>
+                <button class="nav-link" onclick="showSection('assets')">
+                    <i class="fas fa-folder"></i> Assets
+                </button>
+            </nav>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="col-md-10 main-content">
+            <!-- Search Section -->
+            <section id="search-section" class="content-section active">
+                <div class="p-4">
+                    <h2>Enhanced Media Search</h2>
+                    <p>Search across 78+ sources</p>
+                    
+                    <!-- Search Form -->
+                    <form id="search-form" class="mb-4">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Enter search query...">
+                            <button class="btn btn-primary" type="submit">Search</button>
+                        </div>
+                    </form>
+
+                    <!-- Source Categories -->
+                    <div id="source-categories" class="mb-4">
+                        <h4>Select Sources</h4>
+                        <div class="source-grid">
+                            <!-- Sources will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- Search Results -->
+                    <div id="search-results">
+                        <!-- Results will appear here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dashboard Section -->
+            <section id="dashboard-section" class="content-section">
+                <div class="p-4">
+                    <h2>Dashboard</h2>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5>Total Assets</h5>
+                                    <p id="total-assets">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5>Recent Downloads</h5>
+                                    <p id="recent-downloads">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5>Active Jobs</h5>
+                                    <p id="active-jobs">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Assets Section -->
+            <section id="assets-section" class="content-section">
+                <div class="p-4">
+                    <h2>Media Assets</h2>
+                    <div id="assets-grid" class="assets-grid">
+                        <!-- Assets will be displayed here -->
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<script>
+// Simple section switching without complex JavaScript
+function showSection(sectionName) {
+    // Hide all sections
+    document.querySelectorAll('.content-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    // Show selected section
+    const targetSection = document.getElementById(sectionName + '-section');
+    if (targetSection) {
+        targetSection.classList.add('active');
+    }
+    
+    // Update nav buttons
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+    });
+    event.target.classList.add('active');
+}
+
+// Load sources on page load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page loaded - UI is stable');
+    // Basic initialization without complex scripts
+});
+</script>
+{% endblock %}
