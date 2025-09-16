@@ -1,1216 +1,233 @@
 {% extends "base.html" %}
 
-{% block title %}Enhanced Media Scraper - Unified Platform{% endblock %}
-
 {% block content %}
-{#
-  Enhanced Media Scraper - Main Index Page
-  Copyright (c) 2024 [Your Name/Org]
-  License: [Choose a license, e.g., MIT]
-  This is the main dashboard/search/assets/admin/settings page for the Enhanced Media Scraper web app.
-  For details, see the project README.
-#}
-<!-- Dashboard Section (Now merged with Downloads/Progress) -->
-<section id="dashboard-section" class="content-section" aria-labelledby="dashboard-heading">
-    <header class="section-header d-flex justify-content-between align-items-center mb-4">
-        <h1 id="dashboard-heading">
-            <i class="fas fa-tachometer-alt" aria-hidden="true"></i> 
-            Dashboard & Downloads
-        </h1>
-        <div class="d-flex gap-2">
-            <!-- Credits Display -->
-            <div class="credits-display" id="credits-display">
-                <i class="fas fa-coins text-warning"></i>
-                <span id="credits-count">0</span> Credits
-            </div>
-            
-            <!-- New Search Button -->
-            <button class="btn btn-primary" 
-                    type="button"
-                    data-section="search"
-                    aria-label="Start new search">
-                <i class="fas fa-plus" aria-hidden="true"></i> 
-                New Search
-            </button>
-        </div>
-    </header>
-    
-    <!-- Enhanced Statistics Grid -->
-    <div class="enhanced-stats-grid mb-4" role="region" aria-labelledby="stats-heading">
-        <h2 id="stats-heading" class="visually-hidden">Statistics Overview</h2>
-        
-        <article class="enhanced-stat-card" aria-labelledby="total-downloads-label">
-            <div class="stat-icon text-primary">
-                <i class="fas fa-download"></i>
-            </div>
-            <div class="stat-value-large" id="total-downloads">0</div>
-            <div class="stat-label" id="total-downloads-label">Total Downloads</div>
-            <div class="stat-change positive" id="downloads-change">+0 today</div>
-        </article>
-        
-        <article class="enhanced-stat-card" aria-labelledby="total-images-label">
-            <div class="stat-icon text-success">
-                <i class="fas fa-images"></i>
-            </div>
-            <div class="stat-value-large" id="total-images">0</div>
-            <div class="stat-label" id="total-images-label">Images</div>
-            <div class="stat-change positive" id="images-change">+0 today</div>
-        </article>
-        
-        <article class="enhanced-stat-card" aria-labelledby="total-videos-label">
-            <div class="stat-icon text-danger">
-                <i class="fas fa-video"></i>
-            </div>
-            <div class="stat-value-large" id="total-videos">0</div>
-            <div class="stat-label" id="total-videos-label">Videos</div>
-            <div class="stat-change positive" id="videos-change">+0 today</div>
-        </article>
-        
-        <article class="enhanced-stat-card" aria-labelledby="total-audio-label">
-            <div class="stat-icon text-warning">
-                <i class="fas fa-music"></i>
-            </div>
-            <div class="stat-value-large" id="total-audio">0</div>
-            <div class="stat-label" id="total-audio-label">Audio Files</div>
-            <div class="stat-change positive" id="audio-change">+0 today</div>
-        </article>
-        
-        <article class="enhanced-stat-card" aria-labelledby="success-rate-label">
-            <div class="stat-icon text-info">
-                <i class="fas fa-chart-line"></i>
-            </div>
-            <div class="stat-value-large" id="success-rate">0%</div>
-            <div class="stat-label" id="success-rate-label">Success Rate</div>
-            <div class="stat-change positive" id="success-change">+5% this week</div>
-        </article>
-        
-        <article class="enhanced-stat-card" aria-labelledby="total-size-label">
-            <div class="stat-icon text-secondary">
-                <i class="fas fa-hdd"></i>
-            </div>
-            <div class="stat-value-large" id="total-size">0 MB</div>
-            <div class="stat-label" id="total-size-label">Total Size</div>
-            <div class="stat-change positive" id="size-change">+0 MB today</div>
-        </article>
+<!-- Dashboard Section -->
+<section id="dashboard-section" class="content-section active">
+    <div class="section-header">
+        <h1><i class="fas fa-home"></i> Dashboard</h1>
     </div>
-
-    <!-- Command Center Dashboard -->
-    <div class="dashboard-command-center">
-        <!-- Left Column -->
-        <div class="dashboard-left">
-            <!-- Real-time Progress Panel -->
-            <div class="realtime-progress-panel">
-                <div class="progress-header">
-                    <div>
-                        <h3><i class="fas fa-download me-2"></i>Live Download Progress</h3>
-                        <small id="current-job-info">No active downloads</small>
-                    </div>
-                    <div class="progress-controls">
-                        <button class="btn btn-sm btn-light" id="pause-downloads" style="display: none;">
-                            <i class="fas fa-pause"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger" id="stop-downloads" style="display: none;">
-                            <i class="fas fa-stop"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="progress-body">
-                    <div class="progress-main">
-                        <div class="progress-bar-container">
-                            <div class="progress-bar-fill" id="live-progress-fill" style="width: 0%;">
-                                <div class="progress-bar-text" id="live-progress-text">0%</div>
-                            </div>
-                        </div>
-                        <div class="live-metrics-grid">
-                            <div class="metric-card">
-                                <div class="metric-value" id="live-detected">0</div>
-                                <div class="metric-label">Detected</div>
-                                <div class="metric-trend" id="detection-rate">0/min</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-value text-success" id="live-downloaded">0</div>
-                                <div class="metric-label">Downloaded</div>
-                                <div class="metric-trend" id="download-rate">0/min</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-value text-warning" id="live-bandwidth">0 KB/s</div>
-                                <div class="metric-label">Bandwidth</div>
-                                <div class="metric-trend" id="bandwidth-trend">Stable</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Thread Monitor -->
-                    <div class="thread-monitor">
-                        <h6><i class="fas fa-microchip me-2"></i>Thread Monitor</h6>
-                        <div id="thread-list">
-                            <div class="thread-item">
-                                <div class="thread-info">
-                                    <div class="thread-status idle"></div>
-                                    <span>Main Thread</span>
-                                </div>
-                                <span class="text-muted">Idle</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Queue Status -->
-            <div class="queue-status">
-                <h6><i class="fas fa-list me-2"></i>Download Queue</h6>
-                <div id="queue-list">
-                    <div class="text-muted text-center py-3">
-                        <i class="fas fa-inbox fa-2x mb-2"></i><br>
-                        No items in queue
-                    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-download fa-2x mb-2 text-primary"></i>
+                    <h5 class="card-title">Total Downloads</h5>
+                    <p class="h3 mb-0">0</p>
                 </div>
             </div>
         </div>
-        
-        <!-- Right Column -->
-        <div class="dashboard-right">
-            <!-- Activity Feed -->
-            <div class="activity-feed">
-                <div class="activity-header">
-                    <i class="fas fa-stream me-2"></i>Live Activity Feed
-                    <button class="btn btn-sm btn-outline-secondary ms-auto" id="clear-activity">
-                        Clear
-                    </button>
-                </div>
-                <div class="activity-body" id="activity-feed-body">
-                    <div class="activity-item">
-                        <div class="activity-icon info">
-                            <i class="fas fa-info"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-message">System ready and waiting for downloads</div>
-                            <div class="activity-time">Just now</div>
-                        </div>
-                    </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-images fa-2x mb-2 text-success"></i>
+                    <h5 class="card-title">Assets</h5>
+                    <p class="h3 mb-0" id="total-assets">0</p>
                 </div>
             </div>
-            
-            <!-- Bandwidth Chart -->
-            <div class="bandwidth-chart">
-                <h6><i class="fas fa-chart-area me-2"></i>Bandwidth Monitor</h6>
-                <canvas id="bandwidth-canvas" width="100%" height="120"></canvas>
-                <div class="text-center mt-2">
-                    <small class="text-muted">Real-time download speed</small>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-layer-group fa-2x mb-2 text-warning"></i>
+                    <h5 class="card-title">Sources</h5>
+                    <p class="h3 mb-0">118+</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-tasks fa-2x mb-2 text-info"></i>
+                    <h5 class="card-title">Active Jobs</h5>
+                    <p class="h3 mb-0">0</p>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Recent Activity -->
-    <section class="card mb-4" aria-labelledby="recent-activity-heading">
-        <header class="card-header">
-            <h2 id="recent-activity-heading" class="h5">
-                <i class="fas fa-clock" aria-hidden="true"></i> 
-                Recent Activity
-            </h2>
-        </header>
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="fas fa-clock"></i> Recent Activity</h2>
+        </div>
         <div class="card-body">
-            <div id="recent-activity" role="log" aria-live="polite" aria-atomic="false">
-                <div class="text-muted text-center py-3">
-                    <i class="fas fa-rocket fa-2x mb-2" aria-hidden="true"></i><br>
-                    System ready! Start a search to see activity updates here.
-                </div>
+            <div class="text-center text-muted p-4">
+                <i class="fas fa-inbox fa-3x mb-3"></i>
+                <p>No recent activity</p>
+                <button class="btn btn-primary" onclick="window.navManager.showSection('search-section')">
+                    Start Searching
+                </button>
             </div>
         </div>
-    </section>
-    
-    <!-- Recent Downloads Preview -->
-    <section class="card" aria-labelledby="recent-downloads-heading">
-        <header class="card-header">
-            <h2 id="recent-downloads-heading" class="h5">
-                <i class="fas fa-download" aria-hidden="true"></i> 
-                Recent Downloads
-            </h2>
-        </header>
-        <div class="card-body">
-            <div id="recent-downloads" class="asset-grid" role="region" aria-live="polite">
-                <div class="text-muted text-center py-3">
-                    <i class="fas fa-images fa-2x mb-2" aria-hidden="true"></i><br>
-                    No downloads yet. Use Search & Download to start collecting content.
-                </div>
-            </div>
-        </div>
-    </section>
+    </div>
 </section>
 
 <!-- Search Section -->
-<section id="search-section" class="content-section active" aria-labelledby="search-heading">
-    <header class="section-header mb-4">
-        <h1 id="search-heading">
-            <i class="fas fa-search" aria-hidden="true"></i> 
-            Search & Download
-        </h1>
-    </header>
+<section id="search-section" class="content-section">
+    <div class="section-header">
+        <h1><i class="fas fa-search"></i> Search & Download</h1>
+    </div>
     
-    <div class="search-controls">
-        <form id="search-form" novalidate aria-labelledby="search-form-heading">
-            <h2 id="search-form-heading" class="visually-hidden">Search Configuration</h2>
-            
-            <!-- Main Search Input -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <label for="search-query" class="form-label fw-bold">
-                        <i class="fas fa-search" aria-hidden="true"></i> 
-                        Search Query
-                    </label>
-                    <div class="input-group input-group-lg">
+    <div class="card">
+        <div class="card-header">
+            <h2>Search Configuration</h2>
+        </div>
+        <div class="card-body">
+            <form id="search-form" novalidate>
+                <div class="mb-3">
+                    <label for="search-query" class="form-label">Search Query</label>
+                    <div class="input-group">
                         <input type="text" 
-                               class="form-control" 
+                               class="form-control form-control-lg" 
                                id="search-query" 
                                name="search-query"
-                               placeholder="Enter keywords, @username, or URL to search..." 
-                               required
-                               aria-describedby="search-query-help">
-                        <button type="submit" 
-                                class="btn btn-primary px-4"
-                                aria-label="Start search">
-                            <i class="fas fa-rocket" aria-hidden="true"></i> 
-                            Search
+                               placeholder="Enter keywords to search..." 
+                               required>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Search
                         </button>
                     </div>
-                    <!-- Hidden field for compatibility -->
                     <input type="hidden" id="search-type" name="search-type" value="comprehensive">
-                    <div id="search-query-help" class="form-text">
-                        Enter search terms, social media usernames, or direct URLs
-                    </div>
                 </div>
-            </div>
-            
-            <!-- Content Type Selection -->
-            <div class="row mt-4">
-                <div class="col-md-6">
-                    <fieldset aria-labelledby="content-type-legend">
-                        <legend id="content-type-legend" class="form-label">
-                            <i class="fas fa-file-alt" aria-hidden="true"></i> 
-                            Content Types
-                        </legend>
-                        <div class="content-type-grid">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="content-images" name="content-types" value="images" checked>
-                                <label class="form-check-label" for="content-images">
-                                    <i class="fas fa-images text-primary"></i> Images
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="content-videos" name="content-types" value="videos" checked>
-                                <label class="form-check-label" for="content-videos">
-                                    <i class="fas fa-video text-danger"></i> Videos
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="content-audio" name="content-types" value="audio">
-                                <label class="form-check-label" for="content-audio">
-                                    <i class="fas fa-music text-warning"></i> Audio
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="prevent-duplicates" name="prevent-duplicates" checked>
-                                <label class="form-check-label" for="prevent-duplicates">
-                                    <i class="fas fa-shield-alt text-success"></i> Prevent Duplicates
-                                </label>
-                            </div>
-                        </div>
-                    </fieldset>
-                </div>
-                <div class="col-md-6">
-                    <fieldset aria-labelledby="limits-legend">
-                        <legend id="limits-legend" class="form-label">
-                            <i class="fas fa-sliders-h" aria-hidden="true"></i> 
-                            Basic Limits
-                        </legend>
-                        <div class="row">
-                            <div class="col-6">
-                                <label for="max-items" class="form-label">Max Items</label>
-                                <input type="number" 
-                                       class="form-control" 
-                                       id="max-items" 
-                                       name="max-items"
-                                       value="25" 
-                                       min="5" 
-                                       max="500"
-                                       aria-describedby="max-items-help">
-                            </div>
-                            <div class="col-6">
-                                <label for="download-quality" class="form-label">Quality</label>
-                                <select class="form-select" id="download-quality" name="download-quality">
-                                    <option value="best">Best Available</option>
-                                    <option value="high">High Quality</option>
-                                    <option value="medium" selected>Medium Quality</option>
-                                    <option value="low">Low Quality</option>
-                                </select>
-                            </div>
-                        </div>
-                    </fieldset>
-                </div>
-            </div>
-            
-            <!-- Advanced Filters -->
-            <div class="row mt-4">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h6 class="mb-0">
-                                <button class="btn btn-link text-decoration-none p-0" type="button" data-bs-toggle="collapse" data-bs-target="#advanced-filters" aria-expanded="false">
-                                    <i class="fas fa-cog me-2"></i>Advanced Filters
-                                    <i class="fas fa-chevron-down ms-2"></i>
-                                </button>
-                            </h6>
-                        </div>
-                        <div class="collapse" id="advanced-filters">
-                            <div class="card-body">
-                                <div class="row">
-                                    <!-- Keyword Filters -->
-                                    <div class="col-md-6">
-                                        <fieldset>
-                                            <legend class="form-label">
-                                                <i class="fas fa-filter me-2"></i>Keyword Filters
-                                            </legend>
-                                            <div class="mb-3">
-                                                <label for="include-keywords" class="form-label">Must Include Keywords</label>
-                                                <input type="text" class="form-control" id="include-keywords" 
-                                                       placeholder="e.g., nature, landscape" 
-                                                       data-bs-toggle="tooltip" 
-                                                       title="Comma-separated keywords that must be present">
-                                                <div class="form-text">Separate multiple keywords with commas</div>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="exclude-keywords" class="form-label">Exclude Keywords</label>
-                                                <input type="text" class="form-control" id="exclude-keywords" 
-                                                       placeholder="e.g., blurry, watermark, low quality" 
-                                                       data-bs-toggle="tooltip" 
-                                                       title="Comma-separated keywords to exclude">
-                                                <div class="form-text">Files containing these words will be skipped</div>
-                                            </div>
-                                        </fieldset>
-                                    </div>
-                                    
-                                    <!-- File Size Filters -->
-                                    <div class="col-md-6">
-                                        <fieldset>
-                                            <legend class="form-label">
-                                                <i class="fas fa-weight-hanging me-2"></i>File Size Filters
-                                            </legend>
-                                            
-                                            <!-- Image Size Filters -->
-                                            <div class="mb-3">
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" id="enable-image-size-filter">
-                                                    <label class="form-check-label fw-bold" for="enable-image-size-filter">
-                                                        <i class="fas fa-images me-1"></i>Image Size Limits
-                                                    </label>
-                                                </div>
-                                                <div class="size-filter-inputs mt-2" id="image-size-filters" style="display: none;">
-                                                    <div class="row g-2">
-                                                        <div class="col-6">
-                                                            <label class="form-label small">Min Size</label>
-                                                            <div class="input-group input-group-sm">
-                                                                <input type="number" class="form-control" id="min-image-size" value="100" min="1">
-                                                                <select class="form-select" id="min-image-unit" style="max-width: 80px;">
-                                                                    <option value="KB" selected>KB</option>
-                                                                    <option value="MB">MB</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-6">
-                                                            <label class="form-label small">Max Size</label>
-                                                            <div class="input-group input-group-sm">
-                                                                <input type="number" class="form-control" id="max-image-size" value="10" min="1">
-                                                                <select class="form-select" id="max-image-unit" style="max-width: 80px;">
-                                                                    <option value="KB">KB</option>
-                                                                    <option value="MB" selected>MB</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <!-- Video Size Filters -->
-                                            <div class="mb-3">
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" id="enable-video-size-filter">
-                                                    <label class="form-check-label fw-bold" for="enable-video-size-filter">
-                                                        <i class="fas fa-video me-1"></i>Video Size Limits
-                                                    </label>
-                                                </div>
-                                                <div class="size-filter-inputs mt-2" id="video-size-filters" style="display: none;">
-                                                    <div class="row g-2">
-                                                        <div class="col-6">
-                                                            <label class="form-label small">Min Size</label>
-                                                            <div class="input-group input-group-sm">
-                                                                <input type="number" class="form-control" id="min-video-size" value="1" min="1">
-                                                                <select class="form-select" id="min-video-unit" style="max-width: 80px;">
-                                                                    <option value="KB">KB</option>
-                                                                    <option value="MB" selected>MB</option>
-                                                                    <option value="GB">GB</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-6">
-                                                            <label class="form-label small">Max Size</label>
-                                                            <div class="input-group input-group-sm">
-                                                                <input type="number" class="form-control" id="max-video-size" value="100" min="1">
-                                                                <select class="form-select" id="max-video-unit" style="max-width: 80px;">
-                                                                    <option value="KB">KB</option>
-                                                                    <option value="MB" selected>MB</option>
-                                                                    <option value="GB">GB</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <!-- Audio Size Filters -->
-                                            <div class="mb-3">
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" id="enable-audio-size-filter">
-                                                    <label class="form-check-label fw-bold" for="enable-audio-size-filter">
-                                                        <i class="fas fa-music me-1"></i>Audio Size Limits
-                                                    </label>
-                                                </div>
-                                                <div class="size-filter-inputs mt-2" id="audio-size-filters" style="display: none;">
-                                                    <div class="row g-2">
-                                                        <div class="col-6">
-                                                            <label class="form-label small">Min Size</label>
-                                                            <div class="input-group input-group-sm">
-                                                                <input type="number" class="form-control" id="min-audio-size" value="500" min="1">
-                                                                <select class="form-select" id="min-audio-unit" style="max-width: 80px;">
-                                                                    <option value="KB" selected>KB</option>
-                                                                    <option value="MB">MB</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-6">
-                                                            <label class="form-label small">Max Size</label>
-                                                            <div class="input-group input-group-sm">
-                                                                <input type="number" class="form-control" id="max-audio-size" value="50" min="1">
-                                                                <select class="form-select" id="max-audio-unit" style="max-width: 80px;">
-                                                                    <option value="KB">KB</option>
-                                                                    <option value="MB" selected>MB</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </fieldset>
-                                    </div>
-                                </div>
-                                
-                                <div class="row mt-3">
-                                    <!-- Duration Filters (for videos/audio) -->
-                                    <div class="col-md-6">
-                                        <fieldset>
-                                            <legend class="form-label">
-                                                <i class="fas fa-clock me-2"></i>Duration Filters
-                                            </legend>
-                                            <div class="form-check mb-2">
-                                                <input class="form-check-input" type="checkbox" id="enable-duration-filter">
-                                                <label class="form-check-label" for="enable-duration-filter">
-                                                    Enable duration filtering for videos/audio
-                                                </label>
-                                            </div>
-                                            <div id="duration-filter-inputs" style="display: none;">
-                                                <div class="row g-2">
-                                                    <div class="col-6">
-                                                        <label class="form-label small">Min Duration</label>
-                                                        <div class="input-group input-group-sm">
-                                                            <input type="number" class="form-control" id="min-duration" value="30" min="1">
-                                                            <span class="input-group-text">sec</span>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <label class="form-label small">Max Duration</label>
-                                                        <div class="input-group input-group-sm">
-                                                            <input type="number" class="form-control" id="max-duration" value="600" min="1">
-                                                            <span class="input-group-text">sec</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </fieldset>
-                                    </div>
-                                    
-                                    <!-- Resolution Filters -->
-                                    <div class="col-md-6">
-                                        <fieldset>
-                                            <legend class="form-label">
-                                                <i class="fas fa-expand-arrows-alt me-2"></i>Resolution Filters
-                                            </legend>
-                                            <div class="form-check mb-2">
-                                                <input class="form-check-input" type="checkbox" id="enable-resolution-filter">
-                                                <label class="form-check-label" for="enable-resolution-filter">
-                                                    Enable minimum resolution filtering
-                                                </label>
-                                            </div>
-                                            <div id="resolution-filter-inputs" style="display: none;">
-                                                <label class="form-label small">Minimum Resolution</label>
-                                                <select class="form-select form-select-sm" id="min-resolution">
-                                                    <option value="480p">480p (Standard)</option>
-                                                    <option value="720p" selected>720p (HD)</option>
-                                                    <option value="1080p">1080p (Full HD)</option>
-                                                    <option value="1440p">1440p (2K)</option>
-                                                    <option value="2160p">2160p (4K)</option>
-                                                </select>
-                                            </div>
-                                        </fieldset>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Safe Search and Sources -->
-            <div class="row mt-3">
-                <div class="col-md-6">
-                    <fieldset aria-labelledby="safe-search-legend">
-                        <legend id="safe-search-legend" class="form-label">
-                            <i class="fas fa-shield-alt" aria-hidden="true"></i> 
-                            Safe Search
-                        </legend>
-                        <div class="safe-search-container d-flex align-items-center gap-3">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" 
-                                       type="checkbox" 
-                                       role="switch"
-                                       id="safe-search-toggle" 
-                                       name="safe-search-toggle"
-                                       checked>
-                                <label class="form-check-label" for="safe-search-toggle">
-                                    Enable Safe Search
-                                </label>
-                            </div>
-                            <span class="safe-search-status badge bg-success" 
-                                  id="safe-search-status"
-                                  role="status"
-                                  aria-live="polite">
-                                ON
-                            </span>
-                        </div>
-                        <div id="safe-search-help" class="form-text">
-                            <i class="fas fa-info-circle" aria-hidden="true"></i> 
-                            When disabled, adult content sources will be available (18+ only)
-                        </div>
-                    </fieldset>
-                </div>
-                <div class="col-md-6">
-                    <fieldset aria-labelledby="sources-legend">
-                        <legend id="sources-legend" class="form-label">
-                            <i class="fas fa-layer-group" aria-hidden="true"></i> 
-                            Content Sources
-                            <span class="source-count badge bg-info" id="source-count">(Loading...)</span>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label mb-0">
+                            <i class="fas fa-layer-group"></i> Content Sources
                             <span class="badge bg-secondary ms-2" id="selected-sources-count">0 selected</span>
-                        </legend>
-                        
-                        <div id="source-categories" 
-                             class="source-categories"
-                             role="group"
-                             aria-labelledby="sources-legend"
-                             style="min-height: 200px; border: 2px dashed #007bff; padding: 20px; background: #f8f9fa; margin-bottom: 20px;">
-                            <div class="text-center text-muted">
-                                <i class="fas fa-spinner fa-spin fa-3x mb-3"></i>
-                                <h4>Loading Content Sources...</h4>
-                                <p>Please wait while we load available content sources.</p>
-                                <button class="btn btn-primary mt-2" onclick="if(window.createSourcesHTML) window.createSourcesHTML(); else location.reload();">
-                                    <i class="fas fa-sync"></i> Refresh Sources
-                                </button>
-                            </div>
-                        </div>
-                        {% if server_sources_json %}
-                        <script id="server-sources" type="application/json">{{ server_sources_json|safe }}</script>
-                        {% endif %}
-                        
-                        <!-- NSFW Sources Toggle (Fixed) -->
-                        <div id="nsfw-sources-section" class="nsfw-sources-section mt-3" style="display: none;">
-                            <div class="d-flex align-items-center gap-3 mb-2">
-                                <label class="form-label mb-0">
-                                    <i class="fas fa-exclamation-triangle text-warning"></i>
-                                    Adult Content Sources (18+)
-                                </label>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" 
-                                           type="checkbox" 
-                                           role="switch"
-                                           id="nsfw-sources-toggle">
-                                    <label class="form-check-label" for="nsfw-sources-toggle">
-                                        Show NSFW Sources
-                                    </label>
-                                </div>
-                            </div>
-                            <div id="nsfw-sources-list" style="display: none;">
-                                <div class="nsfw-sources-content mt-2 p-3 border border-warning rounded bg-warning bg-opacity-10">
-                                    <div class="alert alert-warning alert-sm">
-                                        <i class="fas fa-exclamation-triangle"></i>
-                                        <strong>Adults Only (18+):</strong> These sources contain adult content. 
-                                        <a href="#" class="alert-link">Upgrade to unlock</a>
-                                    </div>
-                                    <div id="nsfw-sources-container">
-                                        <!-- NSFW sources will be populated here -->
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="source-controls mt-3">
-                            <button type="button" 
-                                    class="btn btn-primary btn-sm"
-                                    id="select-recommended-sources"
-                                    aria-label="Select recommended sources">
-                                <i class="fas fa-star" aria-hidden="true"></i> 
-                                Select Recommended
-                            </button>
-                            <button type="button" 
-                                    class="btn btn-outline-primary btn-sm"
-                                    id="select-all-sources"
-                                    aria-label="Select all sources">
-                                <i class="fas fa-check-square" aria-hidden="true"></i> 
+                        </label>
+                        <div>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="select-all-sources">
                                 Select All
                             </button>
-                            <button type="button" 
-                                    class="btn btn-outline-secondary btn-sm"
-                                    id="deselect-all-sources"
-                                    aria-label="Deselect all sources">
-                                <i class="fas fa-square" aria-hidden="true"></i> 
-                                Deselect All
-                            </button>
-                            <button type="button" 
-                                    class="btn btn-outline-info btn-sm"
-                                    id="refresh-sources"
-                                    aria-label="Refresh sources list">
-                                <i class="fas fa-sync-alt" aria-hidden="true"></i> 
-                                Refresh
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="deselect-all-sources">
+                                Clear
                             </button>
                         </div>
-                    </fieldset>
+                    </div>
+                    
+                    <div id="source-categories" class="border rounded p-3" style="background: #f8f9fa;">
+                        <div class="text-center text-muted">
+                            <div class="spinner-border mb-3" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p>Loading content sources...</p>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
     
     <!-- Search Progress -->
-    <div id="search-progress" style="display: none; margin-top: 20px;">
+    <div id="search-progress" style="display: none;" class="mt-3">
     </div>
     
     <!-- Search Results -->
     <div id="search-results" class="mt-4">
     </div>
-    
-    <!-- Progress Panel -->
-    <aside id="progress-panel" 
-           class="card status-panel" 
-           style="display: none;"
-           role="status"
-           aria-live="polite"
-           aria-labelledby="progress-heading">
-        <header class="card-header">
-            <h2 id="progress-heading" class="h5 mb-0">
-                <i class="fas fa-tasks" aria-hidden="true"></i> 
-                Download Progress
-            </h2>
-        </header>
-        <div class="card-body">
-            <!-- Progress Bar -->
-            <div class="progress mb-3" style="height: 20px;">
-                <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                     id="progress-bar"
-                     role="progressbar" 
-                     style="width: 0%;" 
-                     aria-valuenow="0" 
-                     aria-valuemin="0" 
-                     aria-valuemax="100">
-                    0%
-                </div>
-            </div>
-            
-            <!-- Status Message -->
-            <div class="alert alert-info mb-3" id="progress-message" role="status">
-                <i class="fas fa-info-circle me-2"></i>
-                <span id="progress-text">Initializing search...</span>
-            </div>
-            
-            <!-- Statistics Grid -->
-            <div class="row text-center">
-                <div class="col-3">
-                    <div class="stat-box">
-                        <div class="stat-number" id="progress-detected">0</div>
-                        <div class="stat-label">Detected</div>
-                    </div>
-                </div>
-                <div class="col-3">
-                    <div class="stat-box">
-                        <div class="stat-number text-success" id="progress-downloaded">0</div>
-                        <div class="stat-label">Downloaded</div>
-                    </div>
-                </div>
-                <div class="col-3">
-                    <div class="stat-box">
-                        <div class="stat-number text-primary" id="progress-images">0</div>
-                        <div class="stat-label">Images</div>
-                    </div>
-                </div>
-                <div class="col-3">
-                    <div class="stat-box">
-                        <div class="stat-number text-danger" id="progress-videos">0</div>
-                        <div class="stat-label">Videos</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Active Sources -->
-            <div class="mt-3">
-                <h6><i class="fas fa-layer-group me-2"></i>Active Sources</h6>
-                <div id="active-sources-list" class="small text-muted">
-                    No sources active
-                </div>
-            </div>
-            
-            <!-- Current File -->
-            <div class="mt-2" id="current-file-info" style="display: none;">
-                <h6><i class="fas fa-download me-2"></i>Current Download</h6>
-                <div class="small text-muted" id="current-file-name">-</div>
-            </div>
-            
-            <!-- Action Buttons -->
-            <div class="d-flex justify-content-between mt-3">
-                <button type="button" class="btn btn-outline-secondary btn-sm" id="progress-pause" style="display: none;">
-                    <i class="fas fa-pause"></i> Pause
-                </button>
-                <button type="button" class="btn btn-outline-danger btn-sm" id="progress-cancel" style="display: none;">
-                    <i class="fas fa-stop"></i> Cancel
-                </button>
-                <button type="button" class="btn btn-outline-primary btn-sm" id="progress-details" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
-                    <i class="fas fa-info-circle"></i> Details
-                </button>
-            </div>
-            
-            <!-- Detailed Log (Initially Hidden) -->
-            <div class="mt-3" id="progress-log" style="display: none;">
-                <h6>Progress Log</h6>
-                <div class="bg-light p-3 rounded" style="max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 0.8rem;" id="progress-log-content">
-                    <div class="text-muted">Log will appear here...</div>
-                </div>
-            </div>
-        </div>
-    </aside>
 </section>
 
 <!-- Assets Section -->
-<section id="assets-section" class="content-section" aria-labelledby="assets-heading">
-    <header class="section-header d-flex justify-content-between align-items-center mb-4">
-        <h1 id="assets-heading">
-            <i class="fas fa-images" aria-hidden="true"></i> 
-            Assets Library
-            <span class="badge bg-primary ms-2" id="total-assets-badge">0</span>
-        </h1>
-        <div class="d-flex gap-2">
-            <button class="btn btn-outline-primary" 
-                    type="button"
-                    id="refresh-assets-btn"
-                    aria-label="Refresh assets">
-                <i class="fas fa-sync" aria-hidden="true"></i> 
-                Refresh
-            </button>
-            <button class="btn btn-outline-success" 
-                    type="button"
-                    id="bulk-download-btn"
-                    aria-label="Download selected assets"
-                    style="display: none;">
-                <i class="fas fa-download" aria-hidden="true"></i> 
-                Download Selected (<span id="selected-count">0</span>)
-            </button>
-            <button class="btn btn-outline-warning" 
-                    type="button"
-                    id="delete-selected-btn"
-                    aria-label="Delete selected assets"
-                    style="display: none;">
-                <i class="fas fa-trash" aria-hidden="true"></i> 
-                Delete Selected (<span id="delete-selected-count">0</span>)
-            </button>
-            <button class="btn btn-outline-danger" 
-                    type="button"
-                    id="cleanup-assets-btn"
-                    aria-label="Clean up broken assets">
-                <i class="fas fa-broom" aria-hidden="true"></i> 
-                Cleanup
-            </button>
-            <button class="btn btn-danger" 
-                    type="button"
-                    id="delete-all-btn"
-                    aria-label="Delete all assets">
-                <i class="fas fa-trash-alt" aria-hidden="true"></i> 
-                Delete All
-            </button>
-        </div>
-    </header>
-
-    <!-- Asset Controls -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <!-- Filter Controls -->
-                    <div class="btn-group" role="group" aria-label="Asset type filters">
-                        <input type="radio" class="btn-check" name="asset-filter" id="filter-all" value="all" checked>
-                        <label class="btn btn-outline-primary" for="filter-all">
-                            <i class="fas fa-th"></i> All (<span id="count-all">0</span>)
-                        </label>
-
-                        <input type="radio" class="btn-check" name="asset-filter" id="filter-images" value="images">
-                        <label class="btn btn-outline-success" for="filter-images">
-                            <i class="fas fa-images"></i> Images (<span id="count-images">0</span>)
-                        </label>
-
-                        <input type="radio" class="btn-check" name="asset-filter" id="filter-videos" value="videos">
-                        <label class="btn btn-outline-danger" for="filter-videos">
-                            <i class="fas fa-video"></i> Videos (<span id="count-videos">0</span>)
-                        </label>
-                        
-                        <input type="radio" class="btn-check" name="asset-filter" id="filter-audio" value="audio">
-                        <label class="btn btn-outline-warning" for="filter-audio">
-                            <i class="fas fa-music"></i> Audio (<span id="count-audio">0</span>)
-                        </label>
-                    </div>
-                </div>
-                <div class="col-md-6 text-end">
-                    <!-- View Options -->
-                    <div class="btn-group" role="group" aria-label="View options">
-                        <input type="radio" class="btn-check" name="view-size" id="view-small" value="small">
-                        <label class="btn btn-outline-secondary btn-sm" for="view-small">
-                            <i class="fas fa-th"></i>
-                        </label>
-                        
-                        <input type="radio" class="btn-check" name="view-size" id="view-medium" value="medium" checked>
-                        <label class="btn btn-outline-secondary btn-sm" for="view-medium">
-                            <i class="fas fa-th-large"></i>
-                        </label>
-                        
-                        <input type="radio" class="btn-check" name="view-size" id="view-large" value="large">
-                        <label class="btn btn-outline-secondary btn-sm" for="view-large">
-                            <i class="fas fa-square"></i>
-                        </label>
-                    </div>
-
-                    <!-- Master Select -->
-                    <div class="form-check form-check-inline ms-3">
-                        <input class="form-check-input" type="checkbox" id="select-all-assets">
-                        <label class="form-check-label" for="select-all-assets">
-                            Select All
-                        </label>
-                    </div>
-                </div>
-            </div>
-        </div>
+<section id="assets-section" class="content-section">
+    <div class="section-header">
+        <h1><i class="fas fa-folder"></i> Asset Library</h1>
     </div>
-
-    <!-- Assets Grid Container -->
-    <div class="assets-container">
-        <!-- Loading State -->
-        <div id="assets-loading" class="text-center py-5" style="display: none;">
-            <div class="spinner-border text-primary mb-3" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <h4>Loading Your Assets...</h4>
-            <p class="text-muted">Fetching your downloaded content from the database</p>
-        </div>
-
-        <!-- Error State -->
-        <div id="assets-error" class="text-center py-5" style="display: none;">
-            <div class="text-danger mb-3">
-                <i class="fas fa-exclamation-triangle fa-3x"></i>
-            </div>
-            <h4>Error Loading Assets</h4>
-            <p class="text-muted" id="error-message">Failed to load your assets. Please try again.</p>
-            <button class="btn btn-primary" id="retry-loading-btn">
-                <i class="fas fa-redo"></i> Retry
+    
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2>Your Assets</h2>
+            <button class="btn btn-sm btn-outline-primary" id="refresh-assets">
+                <i class="fas fa-sync"></i> Refresh
             </button>
         </div>
-
-        <!-- Empty State -->
-        <div id="assets-empty" class="text-center py-5" style="display: none;">
-            <div class="text-muted mb-3">
-                <i class="fas fa-folder-open fa-3x"></i>
-            </div>
-            <h4>No Assets Found</h4>
-            <p class="text-muted">You haven't downloaded any content yet. Start by searching for images and videos.</p>
-            <button class="btn btn-primary" onclick="(window.app && window.app.showSection) ? window.app.showSection('search') : null">
-                <i class="fas fa-search"></i> Start Searching
-            </button>
-        </div>
-
-        <!-- Assets Grid -->
-        <div id="assets-grid" class="assets-grid" style="display: none;">
-            <!-- Dynamic assets will be inserted here -->
-        </div>
-    </div>
-
-    <!-- Pagination -->
-    <nav aria-label="Assets pagination" class="mt-4" id="assets-pagination" style="display: none;">
-        <ul class="pagination justify-content-center">
-            <li class="page-item" id="prev-page">
-                <a class="page-link" href="#" aria-label="Previous">
-                    <span aria-hidden="true">&laquo;</span>
-                </a>
-            </li>
-            <li class="page-item active" id="current-page">
-                <a class="page-link" href="#">1</a>
-            </li>
-            <li class="page-item" id="next-page">
-                <a class="page-link" href="#" aria-label="Next">
-                    <span aria-hidden="true">&raquo;</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</section>
-
-<!-- Admin Section -->
-<section id="admin-section" class="content-section" aria-labelledby="admin-heading">
-    <header class="section-header d-flex justify-content-between align-items-center mb-4">
-        <h1 id="admin-heading">
-            <i class="fas fa-users-cog" aria-hidden="true"></i> 
-            Admin Panel
-        </h1>
-        <div class="d-flex gap-2">
-            <button class="btn btn-outline-primary" 
-                    type="button"
-                    onclick="window.mediaScraperApp.refreshAdminData()"
-                    aria-label="Refresh admin data">
-                <i class="fas fa-sync" aria-hidden="true"></i> 
-                Refresh
-            </button>
-            <button class="btn btn-outline-warning" 
-                    type="button"
-                    onclick="window.mediaScraperApp.performSystemCleanup()"
-                    aria-label="System cleanup">
-                <i class="fas fa-broom" aria-hidden="true"></i> 
-                Cleanup
-            </button>
-        </div>
-    </header>
-
-    <!-- Admin Stats -->
-    <div class="stats-grid mb-4" role="region" aria-labelledby="admin-stats-heading">
-        <h2 id="admin-stats-heading" class="visually-hidden">Admin Statistics</h2>
-        
-        <article class="stat-card" aria-labelledby="total-users-label">
-            <div class="stat-value" id="admin-total-users">0</div>
-            <div class="stat-label" id="total-users-label">Total Users</div>
-        </article>
-        
-        <article class="stat-card" aria-labelledby="active-jobs-label">
-            <div class="stat-value" id="admin-active-jobs">0</div>
-            <div class="stat-label" id="active-jobs-label">Active Jobs</div>
-        </article>
-        
-        <article class="stat-card" aria-labelledby="system-storage-label">
-            <div class="stat-value" id="admin-storage">0 GB</div>
-            <div class="stat-label" id="system-storage-label">Storage Used</div>
-        </article>
-        
-        <article class="stat-card" aria-labelledby="server-uptime-label">
-            <div class="stat-value" id="admin-uptime">--</div>
-            <div class="stat-label" id="server-uptime-label">Server Uptime</div>
-        </article>
-    </div>
-
-    <!-- Admin Tables -->
-    <div class="row">
-        <div class="col-md-6">
-            <section class="card" aria-labelledby="user-management-heading">
-                <header class="card-header">
-                    <h2 id="user-management-heading" class="h5">
-                        <i class="fas fa-users" aria-hidden="true"></i> 
-                        User Management
-                    </h2>
-                </header>
-                <div class="card-body">
-                    <div id="admin-users-list" class="table-responsive">
-                        <div class="text-muted text-center py-3">
-                            <i class="fas fa-users fa-2x mb-2" aria-hidden="true"></i><br>
-                            Loading users...
-                        </div>
+        <div class="card-body">
+            <div id="asset-grid">
+                <div class="text-center text-muted p-4">
+                    <div class="spinner-border mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
                     </div>
+                    <p>Loading assets...</p>
                 </div>
-            </section>
-        </div>
-        <div class="col-md-6">
-            <section class="card" aria-labelledby="system-settings-heading">
-                <header class="card-header">
-                    <h2 id="system-settings-heading" class="h5">
-                        <i class="fas fa-cogs" aria-hidden="true"></i> 
-                        System Settings
-                    </h2>
-                </header>
-                <div class="card-body">
-                    <div id="admin-settings-list">
-                        <div class="text-muted text-center py-3">
-                            <i class="fas fa-cogs fa-2x mb-2" aria-hidden="true"></i><br>
-                            Loading settings...
-                        </div>
-                    </div>
-                </div>
-            </section>
+            </div>
         </div>
     </div>
 </section>
 
 <!-- Settings Section -->
-<section id="settings-section" class="content-section" aria-labelledby="settings-heading">
-    <header class="section-header mb-4">
-        <h1 id="settings-heading">
-            <i class="fas fa-sliders-h" aria-hidden="true"></i> 
-            Settings
-        </h1>
-    </header>
+<section id="settings-section" class="content-section">
+    <div class="section-header">
+        <h1><i class="fas fa-cog"></i> Settings</h1>
+    </div>
     
-    <div class="row">
-        <div class="col-md-6">
-            <section class="card" aria-labelledby="safety-settings-heading">
-                <header class="card-header">
-                    <h2 id="safety-settings-heading" class="h5">
-                        <i class="fas fa-shield-alt" aria-hidden="true"></i> 
-                        Safety Settings
-                    </h2>
-                </header>
-                <div class="card-body">
-                    <div class="form-group mb-3">
-                        <label for="default-safe-search" class="form-label">
-                            Default Safe Search
-                        </label>
-                        <select class="form-select" id="default-safe-search">
-                            <option value="true">Enabled (Hide adult content)</option>
-                            <option value="false">Disabled (Show all content)</option>
-                        </select>
-                    </div>
-                    <div class="form-group mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" 
-                                   type="checkbox" 
-                                   id="require-age-verification" 
-                                   checked>
-                            <label class="form-check-label" for="require-age-verification">
-                                Require age verification for adult content
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </section>
+    <div class="card">
+        <div class="card-header">
+            <h2>Application Settings</h2>
         </div>
-        <div class="col-md-6">
-            <section class="card" aria-labelledby="download-settings-heading">
-                <header class="card-header">
-                    <h2 id="download-settings-heading" class="h5">
-                        <i class="fas fa-download" aria-hidden="true"></i> 
-                        Download Settings
-                    </h2>
-                </header>
-                <div class="card-body">
-                    <div class="form-group mb-3">
-                        <label for="default-max-items" class="form-label">
-                            Default Max Items
-                        </label>
-                        <input type="number" 
-                               class="form-control" 
-                               id="default-max-items" 
-                               value="25" 
-                               min="1" 
-                               max="500">
-                    </div>
-                    <div class="form-group mb-3">
-                        <label for="download-quality" class="form-label">
-                            Download Quality
-                        </label>
-                        <select class="form-select" id="download-quality">
-                            <option value="high">High Quality</option>
-                            <option value="medium" selected>Medium Quality</option>
-                            <option value="low">Low Quality</option>
-                        </select>
-                    </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label">Safe Search</label>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="safe-search-toggle" checked>
+                    <label class="form-check-label" for="safe-search-toggle">
+                        Enable Safe Search (filters adult content)
+                    </label>
                 </div>
-            </section>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Download Quality</label>
+                <select class="form-select">
+                    <option value="high">High Quality</option>
+                    <option value="medium" selected>Medium Quality</option>
+                    <option value="low">Low Quality</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Concurrent Downloads</label>
+                <input type="number" class="form-control" value="5" min="1" max="20">
+                <div class="form-text">Number of simultaneous downloads (1-20)</div>
+            </div>
+            
+            <button class="btn btn-primary">Save Settings</button>
         </div>
     </div>
     
-    <!-- Admin Subscription Simulation (Admin Only) -->
-    <div class="row mt-4 admin-only" style="display: none;">
-        <div class="col-12">
-            <section class="card border-warning" aria-labelledby="admin-sim-heading">
-                <header class="card-header bg-warning text-dark">
-                    <h2 id="admin-sim-heading" class="h5 mb-0">
-                        <i class="fas fa-user-cog" aria-hidden="true"></i> 
-                        Admin: Subscription Simulation
-                    </h2>
-                </header>
-                <div class="card-body">
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <strong>Admin Mode:</strong> Simulate different subscription levels to test user experience
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-4">
-                            <label for="simulate-subscription" class="form-label">
-                                <i class="fas fa-crown"></i> Simulate Subscription Level
-                            </label>
-                            <select class="form-select" id="simulate-subscription">
-                                <option value="trial">Trial (Free)</option>
-                                <option value="basic">Basic Plan</option>
-                                <option value="pro">Pro Plan</option>
-                                <option value="ultra">Ultra Plan</option>
-                                <option value="admin" selected>Admin (All Access)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="simulate-credits" class="form-label">
-                                <i class="fas fa-coins"></i> Simulate Credits
-                            </label>
-                            <input type="number" 
-                                   class="form-control" 
-                                   id="simulate-credits" 
-                                   value="999" 
-                                   min="0" 
-                                   max="9999">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">
-                                <i class="fas fa-cog"></i> Actions
-                            </label>
-                            <div class="d-flex gap-2">
-                                <button type="button" 
-                                        class="btn btn-warning btn-sm" 
-                                        id="apply-simulation">
-                                    <i class="fas fa-play"></i> Apply
-                                </button>
-                                <button type="button" 
-                                        class="btn btn-secondary btn-sm" 
-                                        id="reset-simulation">
-                                    <i class="fas fa-undo"></i> Reset
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-3">
-                        <small class="text-muted">
-                            <i class="fas fa-info-circle"></i>
-                            Changes will affect source availability and credit display until page refresh or reset.
-                        </small>
-                    </div>
-                </div>
-            </section>
+    <div class="card mt-3">
+        <div class="card-header">
+            <h2>Account Information</h2>
+        </div>
+        <div class="card-body">
+            <p><strong>User:</strong> Guest Mode</p>
+            <p><strong>Status:</strong> Active</p>
+            <p><strong>Authentication:</strong> Bypass Mode (Testing)</p>
         </div>
     </div>
 </section>
+{% endblock %}
 
-<!-- AI Assistant included in base.html -->
+{% block scripts %}
+<!-- Navigation Manager -->
+<script src="{{ url_for('static', filename='js/modules/nav.js') }}"></script>
 
+<!-- Enhanced Search UI -->
+<script src="{{ url_for('static', filename='js/modules/enhanced-search-ui.js') }}"></script>
+
+<!-- Search Handler -->
+<script src="{{ url_for('static', filename='js/modules/search-handler.js') }}"></script>
+
+<!-- Asset Library -->
+<script src="{{ url_for('static', filename='js/modules/asset-library.js') }}"></script>
+
+<script>
+// Initialize modules when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    // Search UI will be initialized when search section is shown
+    // Asset Library will be initialized when assets section is shown
+    
+    // Log that everything is loaded
+    console.log('Enhanced Media Scraper UI initialized');
+});
+</script>
 {% endblock %}
