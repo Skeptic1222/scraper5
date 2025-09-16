@@ -34,6 +34,10 @@
     
     <title>{% block title %}Enhanced Media Scraper{% endblock %}</title>
 
+    <!-- UI STABILIZER: Clean and simple UI fix -->
+    <script src="{{ url_for('static', filename='js/fixes/ui-stabilizer.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/fixes/section-visibility-fix.js') }}"></script>
+    
     <!-- EMERGENCY FIX: Must load FIRST to prevent UI from disappearing -->
     <script src="{{ url_for('static', filename='js/emergency-ui-fix.js') }}"></script>
     
@@ -116,6 +120,7 @@
     
     <!-- EMERGENCY UI VISIBILITY FIX - MUST BE ABSOLUTE LAST CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ui-visibility-fix.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fixes/force-ui-visible.css') }}">
 </head>
 
 <body>

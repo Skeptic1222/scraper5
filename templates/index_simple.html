@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+/* Ensure sections are visible */
+.content-section {
+    display: none;
+}
+.content-section.active {
+    display: block !important;
+}
+#dashboard-section {
+    display: block !important;
+}
+</style>
+
+<!-- Sidebar Navigation -->
+<div class="sidebar" id="sidebar" style="display: flex; visibility: visible; opacity: 1; position: fixed; left: 0; top: 60px; bottom: 0; width: 250px; background-color: var(--sidebar-bg, #f8f9fa); z-index: 1000;">
+    <div class="sidebar-content">
+        <nav class="sidebar-nav">
+            <ul class="nav-list">
+                <li><a href="#" class="nav-item active" data-section="dashboard" onclick="showSection('dashboard'); return false;">📊 Dashboard</a></li>
+                <li><a href="#" class="nav-item" data-section="search" onclick="showSection('search'); return false;">🔍 Search</a></li>
+                <li><a href="#" class="nav-item" data-section="assets" onclick="showSection('assets'); return false;">📁 Asset Library</a></li>
+                {% if session.get('is_admin') %}
+                <li><a href="#" class="nav-item" data-section="admin" onclick="showSection('admin'); return false;">⚙️ Admin</a></li>
+                {% endif %}
+                <li><a href="#" class="nav-item" data-section="settings" onclick="showSection('settings'); return false;">⚙️ Settings</a></li>
+            </ul>
+        </nav>
+        
+        <!-- User Profile Section -->
+        <div class="user-profile mt-auto p-3">
+            {% if session.get('user') %}
+                <div class="user-info">
+                    <img src="{{ session.user.picture or '/static/img/default-avatar.png' }}" alt="User" class="user-avatar">
+                    <div class="user-details">
+                        <div class="user-name">{{ session.user.name or 'Guest' }}</div>
+                        <div class="user-email">{{ session.user.email or '' }}</div>
+                    </div>
+                </div>
+                <a href="/logout" class="btn btn-sm btn-outline-danger mt-2">Logout</a>
+            {% else %}
+                <button onclick="handleGoogleSignIn()" class="btn btn-primary w-100">
+                    Sign in with Google
+                </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Area -->
+<div id="main-content" class="content-area" style="margin-left: 250px; padding: 20px;">
+    
+    <!-- Dashboard Section -->
+    <section id="dashboard-section" class="content-section active">
+        <h2>📊 Dashboard</h2>
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <h5>Total Downloads</h5>
+                    <p class="stat-value" id="total-downloads">0</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <h5>Images</h5>
+                    <p class="stat-value" id="total-images">0</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <h5>Videos</h5>
+                    <p class="stat-value" id="total-videos">0</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <h5>Success Rate</h5>
+                    <p class="stat-value" id="success-rate">85%</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <h3>Quick Actions</h3>
+            <div class="btn-group" role="group">
+                <button class="btn btn-primary" onclick="showSection('search')">Start New Search</button>
+                <button class="btn btn-secondary" onclick="showSection('assets')">View Asset Library</button>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <h3>Recent Activity</h3>
+            <div class="activity-log">
+                <p class="text-muted">No recent activity</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Search Section -->
+    <section id="search-section" class="content-section">
+        <h2>🔍 Enhanced Search</h2>
+        <form id="search-form" class="mt-4">
+            <div class="form-group">
+                <label for="search-query">Search Query</label>
+                <input type="text" class="form-control" id="search-query" placeholder="Enter your search terms...">
+            </div>
+            
+            <div class="form-group">
+                <label>Select Sources ({{ sources|length if sources else 118 }} available)</label>
+                <div class="source-selection">
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="selectAllSources()">Select All</button>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="deselectAllSources()">Deselect All</button>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="selectRecommended()">Select Recommended</button>
+                </div>
+                
+                <div id="source-categories" class="mt-3">
+                    <!-- Sources will be loaded here -->
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">🔍 Start Search</button>
+        </form>
+        
+        <div id="search-results" class="mt-4">
+            <!-- Search results will appear here -->
+        </div>
+    </section>
+
+    <!-- Assets Section -->
+    <section id="assets-section" class="content-section">
+        <h2>📁 Asset Library</h2>
+        <div class="asset-filters mt-3">
+            <button class="btn btn-sm btn-outline-primary active" data-filter="all">All</button>
+            <button class="btn btn-sm btn-outline-primary" data-filter="images">Images</button>
+            <button class="btn btn-sm btn-outline-primary" data-filter="videos">Videos</button>
+        </div>
+        
+        <div id="assets-grid" class="assets-grid mt-4">
+            <!-- Assets will be loaded here -->
+        </div>
+    </section>
+
+    <!-- Admin Section -->
+    {% if session.get('is_admin') %}
+    <section id="admin-section" class="content-section">
+        <h2>⚙️ Admin Panel</h2>
+        <div class="admin-controls mt-4">
+            <h3>System Controls</h3>
+            <button class="btn btn-warning" onclick="clearCache()">Clear Cache</button>
+            <button class="btn btn-danger" onclick="resetDatabase()">Reset Database</button>
+            
+            <h3 class="mt-4">Statistics</h3>
+            <div id="admin-stats">
+                <!-- Admin stats will be loaded here -->
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Settings Section -->
+    <section id="settings-section" class="content-section">
+        <h2>⚙️ Settings</h2>
+        <div class="settings-content mt-4">
+            <h3>Preferences</h3>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="safe-search" checked>
+                <label class="form-check-label" for="safe-search">
+                    Enable Safe Search
+                </label>
+            </div>
+            
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="auto-download">
+                <label class="form-check-label" for="auto-download">
+                    Auto-download results
+                </label>
+            </div>
+            
+            <button class="btn btn-primary mt-3" onclick="saveSettings()">Save Settings</button>
+        </div>
+    </section>
+</div>
+
+<script>
+// Simple section switching
+function showSection(sectionName) {
+    console.log('Switching to section:', sectionName);
+    
+    // Hide all sections
+    const sections = document.querySelectorAll('.content-section');
+    sections.forEach(section => {
+        section.classList.remove('active');
+        section.style.display = 'none';
+    });
+    
+    // Show requested section
+    const targetSection = document.getElementById(sectionName + '-section');
+    if (targetSection) {
+        targetSection.classList.add('active');
+        targetSection.style.display = 'block';
+    }
+    
+    // Update navigation
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        item.classList.remove('active');
+        if (item.dataset.section === sectionName) {
+            item.classList.add('active');
+        }
+    });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Load dashboard stats
+    fetch('/api/stats')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.stats) {
+                document.getElementById('total-downloads').textContent = data.stats.total_downloads || 0;
+                document.getElementById('total-images').textContent = data.stats.total_images || 0;
+                document.getElementById('total-videos').textContent = data.stats.total_videos || 0;
+                document.getElementById('success-rate').textContent = (data.stats.success_rate || 85) + '%';
+            }
+        });
+    
+    // Load sources
+    fetch('/api/sources')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('Loaded', data.sources ? data.sources.length : 0, 'source categories');
+            }
+        });
+    
+    // Show dashboard by default
+    showSection('dashboard');
+});
+
+function handleGoogleSignIn() {
+    window.location.href = '/auth/google';
+}
+
+function selectAllSources() {
+    const checkboxes = document.querySelectorAll('.source-checkbox');
+    checkboxes.forEach(cb => cb.checked = true);
+}
+
+function deselectAllSources() {
+    const checkboxes = document.querySelectorAll('.source-checkbox');
+    checkboxes.forEach(cb => cb.checked = false);
+}
+
+function selectRecommended() {
+    deselectAllSources();
+    // Select recommended sources
+    const recommended = ['google_images', 'bing_images', 'unsplash', 'pixabay'];
+    recommended.forEach(id => {
+        const checkbox = document.querySelector(`[data-source="${id}"]`);
+        if (checkbox) checkbox.checked = true;
+    });
+}
+</script>
+{% endblock %}
