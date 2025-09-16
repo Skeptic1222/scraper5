@@ -20,6 +20,26 @@ class SearchHandler {
         }
     }
 
+    getCsrfToken() {
+        // Try to get CSRF token from meta tag
+        const metaTag = document.querySelector('meta[name="csrf-token"]');
+        if (metaTag) {
+            return metaTag.content;
+        }
+        
+        // Try to get from cookie
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'csrf_token') {
+                return decodeURIComponent(value);
+            }
+        }
+        
+        // If no CSRF token found, return null
+        return null;
+    }
+
     async handleSearch(e) {
         e.preventDefault();
         
@@ -49,40 +69,75 @@ class SearchHandler {
         this.showProgress('Starting search...');
         
         try {
-            // Use form data for simpler CSRF handling
+            // Get CSRF token
+            const csrfToken = this.getCsrfToken();
+            
+            // Try with FormData first (works better with Flask-WTF)
             const formData = new FormData();
             formData.append('search-query', query);
             formData.append('search-type', 'comprehensive');
             formData.append('sources', selectedSources.join(','));
             formData.append('limit', '50');
+            if (csrfToken) {
+                formData.append('csrf_token', csrfToken);
+            }
             
-            const response = await fetch('/api/comprehensive-search', {
+            // Try the search endpoint with form data
+            const response = await fetch('/api/search', {
                 method: 'POST',
                 credentials: 'same-origin',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({
-                    query: query,
-                    sources: selectedSources,
-                    limit: 50,
-                    safe_search: true
-                })
+                body: formData
             });
             
             if (!response.ok) {
-                // Try alternative endpoint with form data
-                const altResponse = await fetch('/api/search', {
+                // Try comprehensive-search with JSON
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                };
+                
+                if (csrfToken) {
+                    headers['X-CSRFToken'] = csrfToken;
+                }
+                
+                const jsonResponse = await fetch('/api/comprehensive-search', {
                     method: 'POST',
                     credentials: 'same-origin',
-                    body: formData
+                    headers: headers,
+                    body: JSON.stringify({
+                        query: query,
+                        sources: selectedSources,
+                        limit: 50,
+                        safe_search: true
+                    })
                 });
                 
-                if (altResponse.ok) {
-                    const data = await altResponse.json();
+                if (jsonResponse.ok) {
+                    const data = await jsonResponse.json();
                     this.handleSearchResponse(data);
                 } else {
-                    throw new Error(`Search failed: ${altResponse.statusText}`);
+                    // Try without CSRF as a last resort (development mode)
+                    const devResponse = await fetch('/api/bulletproof-search', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            query: query,
+                            sources: selectedSources,
+                            limit: 50,
+                            safe_search: true
+                        })
+                    });
+                    
+                    if (devResponse.ok) {
+                        const data = await devResponse.json();
+                        this.handleSearchResponse(data);
+                    } else {
+                        throw new Error(`Search failed: ${devResponse.statusText}`);
+                    }
                 }
             } else {
                 const data = await response.json();

@@ -250,7 +250,7 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_pre_ping": True,
     "pool_recycle": 300,
 }
-app.config["WTF_CSRF_ENABLED"] = True
+app.config["WTF_CSRF_ENABLED"] = os.environ.get("FLASK_ENV") == "production"  # Only enable CSRF in production
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SECURE"] = os.environ.get("FLASK_ENV") == "production"
 app.config["SESSION_COOKIE_DOMAIN"] = None  # Don't restrict domain
