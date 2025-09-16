@@ -97,9 +97,47 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
         
+        .admin-btn {
+            width: 100%;
+            padding: 12px 16px;
+            background: #f97316;
+            border: 2px solid #f97316;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            color: white;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .admin-btn:hover {
+            background: #ea580c;
+            border-color: #ea580c;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+        }
+        
         .google-icon {
             width: 20px;
             height: 20px;
+        }
+        
+        .divider {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .test-note {
+            font-size: 12px;
+            color: #9ca3af;
+            text-align: center;
+            margin-bottom: 12px;
         }
         
         .footer {
@@ -152,6 +190,18 @@
                 </svg>
                 Google Sign-in Not Configured
             </button>
+        {% endif %}
+        
+        {% if test_admin_enabled %}
+            <div class="divider">
+                <p class="test-note">Testing Only</p>
+                <a href="/scraper/auth/mock-login/admin@test.local" class="admin-btn">
+                    <svg style="width: 20px; height: 20px;" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"/>
+                    </svg>
+                    Login as Test Admin
+                </a>
+            </div>
         {% endif %}
         
         <div class="footer">

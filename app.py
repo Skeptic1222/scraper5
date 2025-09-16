@@ -590,7 +590,8 @@ def index():
     # If login is required and user is not authenticated, show splash page
     if login_required_setting and not current_user.is_authenticated:
         google_configured = bool(os.getenv("GOOGLE_CLIENT_ID")) and bool(os.getenv("GOOGLE_CLIENT_SECRET"))
-        return render_template("splash.html", google_configured=google_configured)
+        test_admin_enabled = os.getenv("ENABLE_TEST_ADMIN", "false").lower() == "true" or os.getenv("ALLOW_MOCK_LOGIN", "false").lower() == "true"
+        return render_template("splash.html", google_configured=google_configured, test_admin_enabled=test_admin_enabled)
 
     # Otherwise show the main application
     user_info = get_current_user_info()
