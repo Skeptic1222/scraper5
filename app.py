@@ -638,7 +638,7 @@ def index():
         server_sources_json = json.dumps({"categories": {}})
 
     return render_template(
-        "index_full.html", user_info=user_info, config={"DEBUG": app.debug}, server_sources_json=server_sources_json
+        "index.html", user_info=user_info, config={"DEBUG": app.debug}, server_sources_json=server_sources_json
     )
 
 
@@ -698,7 +698,7 @@ def index_direct():
         server_sources_json = json.dumps({"categories": {}})
 
     return render_template(
-        "index_full.html", user_info=user_info, config={"DEBUG": app.debug}, server_sources_json=server_sources_json
+        "index.html", user_info=user_info, config={"DEBUG": app.debug}, server_sources_json=server_sources_json
     )
 
 
