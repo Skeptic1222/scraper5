@@ -1,361 +1,105 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Enhanced Media Scraper - Download and manage media content from 78+ sources">
-    <meta name="author" content="Enhanced Media Scraper">
-    <meta name="app-prefix" content="{{ APP_BASE }}">
+    <meta name="description" content="Enhanced Media Scraper - Download and manage media content from 118+ sources">
+    <title>{% block title %}Enhanced Media Scraper v3.0{% endblock %}</title>
     
-    <!-- Theme Detection Script (Must be first to prevent flash) -->
-    <script>
-        // ⚠️ CRITICAL: NEVER ADD PORTS TO URLS! ⚠️
-        // The application runs behind IIS proxy - use /scraper for all paths
-        // Windows: localhost/scraper (NO PORT!)
-        // WSL: internalip/scraper (NO PORT!)
-        // DO NOT USE: localhost:5050, localhost:5000, or ANY port numbers!
-        window.APP_BASE = '{{ APP_BASE }}';  // NEVER add :port here!
-        
-        (function() {
-            // Get theme from localStorage immediately
-            const savedTheme = localStorage.getItem('theme');
-            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const theme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
-            
-            // Set theme on HTML element immediately
-            document.documentElement.setAttribute('data-theme', theme);
-            
-            // Store the theme if it wasn't already stored
-            if (!savedTheme) {
-                localStorage.setItem('theme', theme);
-            }
-        })();
-    </script>
-    
-    <title>{% block title %}Enhanced Media Scraper{% endblock %}</title>
-
-    <!-- UI STABILIZER: Clean and simple UI fix -->
-    <script src="{{ url_for('static', filename='js/fixes/ui-stabilizer.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/fixes/section-visibility-fix.js') }}"></script>
-    
-    <!-- EMERGENCY FIX: Must load FIRST to prevent UI from disappearing -->
-    <script src="{{ url_for('static', filename='js/emergency-ui-fix.js') }}"></script>
-    
-    <!-- EMERGENCY FIX: Must load FIRST to prevent white screen -->
-    <script src="{{ url_for('static', filename='js/emergency-white-screen-fix.js') }}"></script>
-
-    <!-- External CSS Dependencies -->
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Custom CSS Modules -->
+    <!-- Core CSS Files Only -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base/variables.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base/reset.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base/typography.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/navbar.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/sidebar.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/forms.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/cards.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/asset-grid.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/media-viewer.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/sources.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/enhanced-sources.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/ai-assistant-enhanced.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/enhanced-dashboard.css') }}">
-    <!-- Removed duplicate dashboard-live.css - functionality merged into main dashboard -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/working-asset-system.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes/responsive.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/utilities/helpers.css') }}">
     
-    <!-- CSS Fixes -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fixes/checkbox-square.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fixes/google-signin.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fixes/google-indicator-fix.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fixes/force-show-sources.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fixes/modal-zindex-fix.css') }}">
-    <!-- Simple dropdown hide fix -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dropdown-hide.css') }}">
-    <!-- User avatar and navbar positioning fixes -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fixes/user-avatar-fix.css') }}">
-    <!-- Asset Library Styles Fix -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fixes/asset-library-styles.css') }}">
-    <!-- Dashboard Navigation Position Fix -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fixes/dashboard-navigation-fix.css') }}">
-    <!-- Comprehensive UI/UX Fix - MUST LOAD LAST -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fixes/comprehensive-ui-fix.css') }}">
-    <!-- Dashboard Layout Override - ABSOLUTE FINAL FIX -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fixes/dashboard-layout-override.css') }}">
-    <!-- Source Selection UI Fix -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fixes/source-selection-fix.css') }}">
-    <!-- UI Cleanup Fix - Fixes double scrollbars and excessive whitespace -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fixes/ui-cleanup-fix.css') }}">
-    <!-- Sidebar Visibility Fix - CRITICAL: Ensures sidebar is always visible -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fixes/sidebar-visibility-fix.css') }}">
-    <!-- Force Visibility Fix - OVERRIDES JavaScript hiding of sidebar and dashboard -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fixes/force-visibility-fix.css') }}">
-    <!-- Sidebar Scroll Fix - Ensures sidebar starts at top with all items visible -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fixes/sidebar-scroll-fix.css') }}">
-    <!-- Sidebar No Scroll Fix - COMPREHENSIVE: Removes all unnecessary content, ensures no scrollbar -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fixes/sidebar-no-scroll-fix.css') }}">
-    <!-- Google Badge Final Override - ABSOLUTE LAST CSS TO ENSURE BADGE VISIBILITY -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fixes/google-badge-final-override.css') }}">
-
-    <!-- CRITICAL FIXES - HIGHEST PRIORITY - LOAD LAST TO OVERRIDE ALL OTHER STYLES -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fixes/critical-sidebar-fix.css') }}">
-
-    <!-- Additional page-specific CSS -->
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .main-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background: #f8f9fa;
+            padding: 1rem;
+        }
+        .content-area {
+            flex: 1;
+            padding: 2rem;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+    </style>
+    
     {% block extra_css %}{% endblock %}
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    
-    <!-- Preload critical resources -->
-    <link rel="preload" href="{{ url_for('static', filename='js/utils/api.js') }}" as="script">
-    <link rel="preload" href="{{ url_for('static', filename='js/utils/security.js') }}" as="script">
-    <link rel="preload" href="{{ url_for('static', filename='js/utils/helpers.js') }}" as="script">
-    <!-- UNIFIED SCROLLBAR FIX - Single solution for all scrollbar issues -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fixes/unified-scrollbar-fix.css') }}">
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fixes/sidebar-force-visible.css') }}">
-    
-    <!-- EMERGENCY UI VISIBILITY FIX - MUST BE ABSOLUTE LAST CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui-visibility-fix.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fixes/force-ui-visible.css') }}">
 </head>
 
 <body>
-    <!-- CRITICAL FIXES - MUST LOAD FIRST TO ENSURE FUNCTIONALITY -->
-    <script src="{{ url_for('static', filename='js/fixes/critical-sidebar-init.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/fixes/api-path-critical-fix.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/fixes/oauth-callback-fix.js') }}"></script>
-
-    <!-- UNIFIED FUNCTIONALITY - Single solution for all JavaScript functionality -->
-    <script src="{{ url_for('static', filename='js/fixes/unified-functionality.js') }}"></script>
-
-    <!-- Simple dropdown fix that runs immediately -->
-    <script src="{{ url_for('static', filename='js/simple-init.js') }}"></script>
-    
-    <!-- Navigation Components -->
+    <!-- Navigation Bar -->
     {% include 'components/navbar.html' %}
     
-    <!-- Main Container with Sidebar and Content -->
+    <!-- Main Container -->
     <div class="main-container">
+        <!-- Sidebar -->
         {% include 'components/sidebar-simple.html' %}
         
-        <!-- Main Content Area -->
-        <main id="main-content" class="content-area" role="main">
-            <!-- Page Content -->
+        <!-- Content Area -->
+        <main class="content-area">
             {% block content %}{% endblock %}
-            
-            <!-- Toast Notifications Container -->
-            <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
-                <!-- Toasts will be dynamically inserted here -->
-            </div>
         </main>
     </div>
     
-    <!-- Modals and Components -->
-    {% include 'components/media-viewer.html' %}
-    {% include 'components/ai-assistant.html' %}
-    
-    <!-- External JavaScript Dependencies -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Base path helper (must load before any module using fetch) -->
-    <script src="{{ url_for('static', filename='js/utils/base-path.js') }}?v={{ STATIC_VER }}"></script>
     
-    <!-- API Path Fix (must load before any API calls) -->
-    <script src="{{ url_for('static', filename='js/fixes/api-path-fix.js') }}?v={{ STATIC_VER }}"></script>
-    
-    <!-- Modal Display Fix (must load early to prevent auto-showing) -->
-    <script src="{{ url_for('static', filename='js/modal-display-fix.js') }}?v={{ STATIC_VER }}"></script>
-    
-    
-    
-    <!-- Utility Modules (Load First) -->
-    <script src="{{ url_for('static', filename='js/utils/security.js') }}?v={{ STATIC_VER }}"></script>
-    <script src="{{ url_for('static', filename='js/utils/helpers.js') }}?v={{ STATIC_VER }}"></script>
-    <script src="{{ url_for('static', filename='js/utils/api.js') }}?v={{ STATIC_VER }}"></script>
-    
-    
-    
-    <!-- Core Application Modules - Direct script tags for IIS compatibility -->
-    <script src="{{ url_for('static', filename='js/modules/media-viewer.js') }}?v={{ STATIC_VER }}"></script>
-    <script src="{{ url_for('static', filename='js/modules/enhanced-search.js') }}?v={{ STATIC_VER }}"></script>
-    <script src="{{ url_for('static', filename='js/modules/simple-asset-manager.js') }}?v={{ STATIC_VER }}"></script>
-    <!-- REMOVED: real-time-dashboard.js - Duplicate functionality that was pushing sidebar down -->
-    <script src="{{ url_for('static', filename='js/modules/ai-assistant.js') }}?v={{ STATIC_VER }}"></script>
-    <script src="{{ url_for('static', filename='js/modules/app.js') }}?v={{ STATIC_VER }}"></script>
-    <script src="{{ url_for('static', filename='js/enhanced-ai-assistant-update.js') }}?v={{ STATIC_VER }}"></script>
-    
-    <!-- Section Switch Fix - MUST load after app.js -->
-    <script src="{{ url_for('static', filename='js/fixes/section-switch-fix.js') }}?v={{ STATIC_VER }}"></script>
-    
-    <!-- Application Initialization -->
+    <!-- Minimal Core Scripts Only -->
     <script>
-        // Global application instance
-        let app;
-        
-        console.log('🚀 Starting Enhanced Media Scraper...');
-        
-        // Initialize application directly
-        async function initializeApp() {
-            console.log('🔄 Initializing application...');
-            
-            // Verify all required classes are available
-            const requiredClasses = ['MediaScraperApp', 'EnhancedSearchManager'];
-            const missingClasses = requiredClasses.filter(className => !window[className]);
-            
-            if (missingClasses.length > 0) {
-                console.warn('⚠️ Missing classes, retrying in 200ms:', missingClasses);
-                setTimeout(initializeApp, 200);
-                return;
-            }
-            
-            console.log('✅ All required classes confirmed available');
-            
-            setTimeout(async () => {
-                try {
-                    console.log('🚀 Creating MediaScraperApp instance...');
-                    
-                    // Create and initialize main application
-                    app = new MediaScraperApp();
-                    await app.init();
-                    
-                    // Make app globally accessible for debugging
-                    window.app = app;
-                    
-                    console.log('✅ Enhanced Media Scraper initialized successfully');
-                    console.log('🎯 Navigation should now be working');
-                    
-                    // Add global debug functions
-                    window.debugApp = function() {
-                        console.log('📊 Application State:', app.state);
-                        console.log('🔧 Modules:', app.modules);
-                        console.log('⚙️ Config:', app.config);
-                    };
-                    
-                    window.refreshSources = async function() {
-                        console.log('🔄 Refreshing sources...');
-                        if (app.modules.searchManager) {
-                            await app.modules.searchManager.loadSources();
-                        } else {
-                            await app.loadSources();
-                        }
-                        console.log('✅ Sources refreshed');
-                    };
-                    
-                    window.refreshAssets = async function() {
-                        console.log('🔄 Refreshing assets...');
-                        if (app.modules.assetManager) {
-                            await app.modules.assetManager.loadAssets();
-                        } else {
-                            await app.loadAssets();
-                        }
-                        console.log('✅ Assets refreshed');
-                    };
-                    
-                } catch (error) {
-                    console.error('❌ Failed to initialize Enhanced Media Scraper:', error);
-                    
-                    // Show fallback error message
-                    document.body.innerHTML = `
-                        <div class="container mt-5">
-                            <div class="alert alert-danger" role="alert">
-                                <h4 class="alert-heading">Application Error</h4>
-                                <p>Failed to initialize the Enhanced Media Scraper application.</p>
-                                <hr>
-                                <p class="mb-0">Please refresh the page or contact support if the problem persists.</p>
-                                <details class="mt-2">
-                                    <summary>Error Details</summary>
-                                    <pre>${error.message}</pre>
-                                </details>
-                            </div>
-                        </div>
-                    `;
-                }
-            }, 100);
-        }
-        
-        // Start initialization when DOM is ready
+        // Simple navigation handler
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('📄 DOM ready, initializing application...');
-            initializeApp();
-        });
-        
-        // Global error handling
-        window.addEventListener('error', function(event) {
-            console.error('Global JavaScript Error:', event.error);
-        });
-        
-        window.addEventListener('unhandledrejection', function(event) {
-            console.error('Unhandled Promise Rejection:', event.reason);
-        });
-        
-        // Add missing global functions
-        window.showAccountSettings = function() {
-            console.log('Account settings clicked');
-            // If app is initialized, use its method
-            if (window.app && window.app.showSection) {
-                window.app.showSection('settings');
-            } else {
-                // Fallback: navigate to settings page
-                window.location.href = window.APP_BASE + '/settings';
+            const navLinks = document.querySelectorAll('[data-section]');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const section = this.dataset.section;
+                    
+                    // Hide all sections
+                    document.querySelectorAll('.content-section').forEach(s => {
+                        s.classList.remove('active');
+                    });
+                    
+                    // Show target section
+                    const target = document.getElementById(section + '-section');
+                    if (target) {
+                        target.classList.add('active');
+                    }
+                    
+                    // Update nav active state
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Show dashboard by default
+            const dashboard = document.getElementById('dashboard-section');
+            if (dashboard) {
+                dashboard.classList.add('active');
             }
-        };
+        });
     </script>
     
-    <!-- All fixes consolidated into unified-functionality.js loaded at top of body -->
-    
-    <!-- Page-specific JavaScript -->
     {% block extra_js %}{% endblock %}
-    
-    <!-- Analytics and tracking -->
-    {% block analytics %}{% endblock %}
-    <!-- Enhanced Application (commented out to prevent conflicts) -->
-    <!-- <script src="{{ url_for('static', filename='js/enhanced-app.js') }}"></script> -->
-    <script src="{{ url_for('static', filename='js/advanced-filters.js') }}"></script>
-    
-    <!-- Logout Fix -->
-    <script src="{{ url_for('static', filename='js/logout-fix.js') }}"></script>
-    
-    <!-- Search and Download Fix -->
-    <script src="{{ url_for('static', filename='js/search-download-fix.js') }}"></script>
-    
-    <!-- Fix Checkbox Selection -->
-    <script src="{{ url_for('static', filename='js/fix-checkbox-selection.js') }}"></script>
-    
-    <!-- Removed duplicate dashboard-live.js - functionality merged into real-time-dashboard.js -->
-    
-    <!-- Working Asset System -->
-    <script src="{{ url_for('static', filename='js/working-asset-system.js') }}"></script>
-    
-    <!-- UI Fixes removed - may conflict with dropdown handling -->
-    
-    <!-- Navbar Avatar and Dropdown Fix removed - conflicting with dropdown-handler -->
-    
-    <!-- OAuth URL Fix removed - Flask's url_for() already handles the prefix correctly -->
-    <!-- <script src="{{ url_for('static', filename='js/fix-oauth-urls.js') }}"></script> -->
-
-    <!-- OAuth Restoration Fix - Fixes Google badge display and authentication -->
-    <script src="{{ url_for('static', filename='js/oauth-restore-fix.js') }}"></script>
-
-    <!-- Sidebar Dashboard Persistence Fix - CRITICAL: Prevents sidebar and dashboard from disappearing -->
-    <script src="{{ url_for('static', filename='js/fixes/sidebar-dashboard-persist.js') }}"></script>
-    
-    <!-- Sidebar Scroll Reset - Ensures sidebar starts at top with all navigation visible -->
-    <script src="{{ url_for('static', filename='js/fixes/sidebar-scroll-reset.js') }}"></script>
-    
-    <!-- Sidebar Simplify - Removes unnecessary content to prevent scrollbar -->
-    <script src="{{ url_for('static', filename='js/fixes/sidebar-simplify.js') }}"></script>
-
-    <!-- Force Sidebar & OAuth Fix - CRITICAL: Ensures sidebar is visible and OAuth works -->
-    <script src="{{ url_for('static', filename='js/fixes/force-sidebar-oauth-fix.js') }}"></script>
-
-    <!-- Complete UI Revamp - Rebuilds sidebar and fixes Google badge -->
-    <script src="{{ url_for('static', filename='js/fixes/complete-ui-revamp.js') }}"></script>
-
-    <!-- Final UI Fix - Complete working solution -->
-    <script src="{{ url_for('static', filename='js/final-ui-fix.js') }}?v={{ range(1000, 9999) | random }}"></script>
 </body>
 </html>

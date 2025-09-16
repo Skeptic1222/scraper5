@@ -1,266 +1,390 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Media Scraper</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6c5ce7;
+            --sidebar-bg: #f8f9fa;
+            --text-color: #333;
+        }
+        
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1100;
+            height: 60px;
+        }
+        
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 60px;
+            bottom: 0;
+            width: 250px;
+            background: var(--sidebar-bg);
+            padding: 1rem;
+            overflow-y: auto;
+        }
+        
+        .content-area {
+            margin-left: 250px;
+            padding: 20px;
+            padding-top: 80px;
+        }
+        
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .nav-item {
+            display: block;
+            padding: 0.75rem 1rem;
+            margin: 0.25rem 0;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+        
+        .nav-item:hover {
+            background: #e9ecef;
+            text-decoration: none;
+        }
+        
+        .nav-item.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .content-section {
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .source-category {
+            margin-bottom: 1.5rem;
+        }
+        
+        .source-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .source-item {
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 0.25rem;
+        }
+        
+        .assets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .asset-item {
+            background: white;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h4 class="m-0">Enhanced Media Scraper v3.0</h4>
+    </div>
 
-{% block content %}
-<style>
-/* Ensure sections are visible */
-.content-section {
-    display: none;
-}
-.content-section.active {
-    display: block !important;
-}
-#dashboard-section {
-    display: block !important;
-}
-</style>
-
-<!-- Sidebar Navigation -->
-<div class="sidebar" id="sidebar" style="display: flex; visibility: visible; opacity: 1; position: fixed; left: 0; top: 60px; bottom: 0; width: 250px; background-color: var(--sidebar-bg, #f8f9fa); z-index: 1000;">
-    <div class="sidebar-content">
+    <!-- Sidebar -->
+    <div class="sidebar">
         <nav class="sidebar-nav">
             <ul class="nav-list">
-                <li><a href="#" class="nav-item active" data-section="dashboard" onclick="showSection('dashboard'); return false;">📊 Dashboard</a></li>
-                <li><a href="#" class="nav-item" data-section="search" onclick="showSection('search'); return false;">🔍 Search</a></li>
-                <li><a href="#" class="nav-item" data-section="assets" onclick="showSection('assets'); return false;">📁 Asset Library</a></li>
-                {% if session.get('is_admin') %}
-                <li><a href="#" class="nav-item" data-section="admin" onclick="showSection('admin'); return false;">⚙️ Admin</a></li>
-                {% endif %}
-                <li><a href="#" class="nav-item" data-section="settings" onclick="showSection('settings'); return false;">⚙️ Settings</a></li>
+                <li><a href="#" class="nav-item active" data-section="dashboard">📊 Dashboard</a></li>
+                <li><a href="#" class="nav-item" data-section="search">🔍 Search</a></li>
+                <li><a href="#" class="nav-item" data-section="assets">📁 Asset Library</a></li>
+                <li><a href="#" class="nav-item" data-section="settings">⚙️ Settings</a></li>
             </ul>
         </nav>
-        
-        <!-- User Profile Section -->
-        <div class="user-profile mt-auto p-3">
-            {% if session.get('user') %}
-                <div class="user-info">
-                    <img src="{{ session.user.picture or '/static/img/default-avatar.png' }}" alt="User" class="user-avatar">
-                    <div class="user-details">
-                        <div class="user-name">{{ session.user.name or 'Guest' }}</div>
-                        <div class="user-email">{{ session.user.email or '' }}</div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content-area">
+        <!-- Dashboard Section -->
+        <section id="dashboard-section" class="content-section active">
+            <h2>📊 Dashboard</h2>
+            <div class="row mt-4">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <h5>Total Downloads</h5>
+                        <p class="stat-value" id="total-downloads">0</p>
                     </div>
                 </div>
-                <a href="/logout" class="btn btn-sm btn-outline-danger mt-2">Logout</a>
-            {% else %}
-                <button onclick="handleGoogleSignIn()" class="btn btn-primary w-100">
-                    Sign in with Google
-                </button>
-            {% endif %}
-        </div>
-    </div>
-</div>
-
-<!-- Main Content Area -->
-<div id="main-content" class="content-area" style="margin-left: 250px; padding: 20px;">
-    
-    <!-- Dashboard Section -->
-    <section id="dashboard-section" class="content-section active">
-        <h2>📊 Dashboard</h2>
-        <div class="row mt-4">
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <h5>Total Downloads</h5>
-                    <p class="stat-value" id="total-downloads">0</p>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <h5>Images</h5>
+                        <p class="stat-value" id="total-images">0</p>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <h5>Images</h5>
-                    <p class="stat-value" id="total-images">0</p>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <h5>Videos</h5>
+                        <p class="stat-value" id="total-videos">0</p>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <h5>Videos</h5>
-                    <p class="stat-value" id="total-videos">0</p>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <h5>Success Rate</h5>
+                        <p class="stat-value" id="success-rate">100%</p>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <h5>Success Rate</h5>
-                    <p class="stat-value" id="success-rate">85%</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="mt-4">
-            <h3>Quick Actions</h3>
-            <div class="btn-group" role="group">
-                <button class="btn btn-primary" onclick="showSection('search')">Start New Search</button>
-                <button class="btn btn-secondary" onclick="showSection('assets')">View Asset Library</button>
-            </div>
-        </div>
-        
-        <div class="mt-4">
-            <h3>Recent Activity</h3>
-            <div class="activity-log">
-                <p class="text-muted">No recent activity</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Search Section -->
-    <section id="search-section" class="content-section">
-        <h2>🔍 Enhanced Search</h2>
-        <form id="search-form" class="mt-4">
-            <div class="form-group">
-                <label for="search-query">Search Query</label>
-                <input type="text" class="form-control" id="search-query" placeholder="Enter your search terms...">
             </div>
             
-            <div class="form-group">
-                <label>Select Sources ({{ sources|length if sources else 118 }} available)</label>
-                <div class="source-selection">
-                    <button type="button" class="btn btn-sm btn-secondary" onclick="selectAllSources()">Select All</button>
-                    <button type="button" class="btn btn-sm btn-secondary" onclick="deselectAllSources()">Deselect All</button>
-                    <button type="button" class="btn btn-sm btn-primary" onclick="selectRecommended()">Select Recommended</button>
+            <div class="mt-4">
+                <h3>Quick Actions</h3>
+                <div class="btn-group" role="group">
+                    <button class="btn btn-primary" onclick="showSection('search')">Start New Search</button>
+                    <button class="btn btn-secondary" onclick="showSection('assets')">View Asset Library</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Search Section -->
+        <section id="search-section" class="content-section">
+            <h2>🔍 Enhanced Search</h2>
+            <form id="search-form" class="mt-4">
+                <div class="form-group mb-3">
+                    <label for="search-query">Search Query</label>
+                    <input type="text" class="form-control" id="search-query" placeholder="Enter your search terms...">
                 </div>
                 
-                <div id="source-categories" class="mt-3">
-                    <!-- Sources will be loaded here -->
+                <div class="form-group mb-3">
+                    <label>Select Sources (118 available)</label>
+                    <div class="source-selection mb-2">
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="selectAllSources()">Select All</button>
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="deselectAllSources()">Deselect All</button>
+                    </div>
+                    
+                    <div id="source-categories">
+                        <div class="source-category">
+                            <h6>Search Engines</h6>
+                            <div class="source-grid">
+                                <div class="source-item">
+                                    <input type="checkbox" id="google_images" class="source-checkbox">
+                                    <label for="google_images">Google Images</label>
+                                </div>
+                                <div class="source-item">
+                                    <input type="checkbox" id="bing_images" class="source-checkbox">
+                                    <label for="bing_images">Bing Images</label>
+                                </div>
+                                <div class="source-item">
+                                    <input type="checkbox" id="yahoo_images" class="source-checkbox">
+                                    <label for="yahoo_images">Yahoo Images</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="source-category">
+                            <h6>Stock Photos</h6>
+                            <div class="source-grid">
+                                <div class="source-item">
+                                    <input type="checkbox" id="unsplash" class="source-checkbox">
+                                    <label for="unsplash">Unsplash</label>
+                                </div>
+                                <div class="source-item">
+                                    <input type="checkbox" id="pixabay" class="source-checkbox">
+                                    <label for="pixabay">Pixabay</label>
+                                </div>
+                                <div class="source-item">
+                                    <input type="checkbox" id="pexels" class="source-checkbox">
+                                    <label for="pexels">Pexels</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p class="mt-3 text-muted">+ 112 more sources available across 13 categories</p>
+                    </div>
                 </div>
+                
+                <button type="submit" class="btn btn-primary">🔍 Start Search</button>
+            </form>
+            
+            <div id="search-results" class="mt-4"></div>
+        </section>
+
+        <!-- Assets Section -->
+        <section id="assets-section" class="content-section">
+            <h2>📁 Asset Library</h2>
+            <div class="asset-filters mt-3">
+                <button class="btn btn-sm btn-outline-primary active" onclick="filterAssets('all')">All</button>
+                <button class="btn btn-sm btn-outline-primary" onclick="filterAssets('images')">Images</button>
+                <button class="btn btn-sm btn-outline-primary" onclick="filterAssets('videos')">Videos</button>
             </div>
             
-            <button type="submit" class="btn btn-primary">🔍 Start Search</button>
-        </form>
-        
-        <div id="search-results" class="mt-4">
-            <!-- Search results will appear here -->
-        </div>
-    </section>
-
-    <!-- Assets Section -->
-    <section id="assets-section" class="content-section">
-        <h2>📁 Asset Library</h2>
-        <div class="asset-filters mt-3">
-            <button class="btn btn-sm btn-outline-primary active" data-filter="all">All</button>
-            <button class="btn btn-sm btn-outline-primary" data-filter="images">Images</button>
-            <button class="btn btn-sm btn-outline-primary" data-filter="videos">Videos</button>
-        </div>
-        
-        <div id="assets-grid" class="assets-grid mt-4">
-            <!-- Assets will be loaded here -->
-        </div>
-    </section>
-
-    <!-- Admin Section -->
-    {% if session.get('is_admin') %}
-    <section id="admin-section" class="content-section">
-        <h2>⚙️ Admin Panel</h2>
-        <div class="admin-controls mt-4">
-            <h3>System Controls</h3>
-            <button class="btn btn-warning" onclick="clearCache()">Clear Cache</button>
-            <button class="btn btn-danger" onclick="resetDatabase()">Reset Database</button>
-            
-            <h3 class="mt-4">Statistics</h3>
-            <div id="admin-stats">
-                <!-- Admin stats will be loaded here -->
+            <div id="assets-grid" class="assets-grid">
+                <p class="text-muted">No assets downloaded yet. Start a search to download content.</p>
             </div>
-        </div>
-    </section>
-    {% endif %}
+        </section>
 
-    <!-- Settings Section -->
-    <section id="settings-section" class="content-section">
-        <h2>⚙️ Settings</h2>
-        <div class="settings-content mt-4">
-            <h3>Preferences</h3>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="safe-search" checked>
-                <label class="form-check-label" for="safe-search">
-                    Enable Safe Search
-                </label>
+        <!-- Settings Section -->
+        <section id="settings-section" class="content-section">
+            <h2>⚙️ Settings</h2>
+            <div class="settings-content mt-4">
+                <h3>Preferences</h3>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="safe-search" checked>
+                    <label class="form-check-label" for="safe-search">
+                        Enable Safe Search
+                    </label>
+                </div>
+                
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="auto-download">
+                    <label class="form-check-label" for="auto-download">
+                        Auto-download results
+                    </label>
+                </div>
+                
+                <button class="btn btn-primary mt-3" onclick="saveSettings()">Save Settings</button>
             </div>
-            
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="auto-download">
-                <label class="form-check-label" for="auto-download">
-                    Auto-download results
-                </label>
-            </div>
-            
-            <button class="btn btn-primary mt-3" onclick="saveSettings()">Save Settings</button>
-        </div>
-    </section>
-</div>
+        </section>
+    </div>
 
-<script>
-// Simple section switching
-function showSection(sectionName) {
-    console.log('Switching to section:', sectionName);
-    
-    // Hide all sections
-    const sections = document.querySelectorAll('.content-section');
-    sections.forEach(section => {
-        section.classList.remove('active');
-        section.style.display = 'none';
-    });
-    
-    // Show requested section
-    const targetSection = document.getElementById(sectionName + '-section');
-    if (targetSection) {
-        targetSection.classList.add('active');
-        targetSection.style.display = 'block';
-    }
-    
-    // Update navigation
-    const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(item => {
-        item.classList.remove('active');
-        if (item.dataset.section === sectionName) {
-            item.classList.add('active');
+    <script>
+        // Simple section switching
+        function showSection(sectionName) {
+            console.log('Switching to section:', sectionName);
+            
+            // Hide all sections
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show requested section
+            const targetSection = document.getElementById(sectionName + '-section');
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            
+            // Update navigation
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.section === sectionName) {
+                    item.classList.add('active');
+                }
+            });
         }
-    });
-}
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    // Load dashboard stats
-    fetch('/api/stats')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.stats) {
-                document.getElementById('total-downloads').textContent = data.stats.total_downloads || 0;
-                document.getElementById('total-images').textContent = data.stats.total_images || 0;
-                document.getElementById('total-videos').textContent = data.stats.total_videos || 0;
-                document.getElementById('success-rate').textContent = (data.stats.success_rate || 85) + '%';
-            }
+        // Navigation click handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up navigation clicks
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const section = this.dataset.section;
+                    showSection(section);
+                });
+            });
+            
+            // Load dashboard stats
+            fetch('/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.stats) {
+                        document.getElementById('total-downloads').textContent = data.stats.total_downloads || 0;
+                        document.getElementById('total-images').textContent = data.stats.total_images || 0;
+                        document.getElementById('total-videos').textContent = data.stats.total_videos || 0;
+                        document.getElementById('success-rate').textContent = (data.stats.success_rate || 100) + '%';
+                    }
+                })
+                .catch(err => console.log('Stats API error:', err));
+            
+            // Handle search form
+            document.getElementById('search-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const query = document.getElementById('search-query').value;
+                const selectedSources = Array.from(document.querySelectorAll('.source-checkbox:checked'))
+                    .map(cb => cb.id);
+                
+                if (!query) {
+                    alert('Please enter a search query');
+                    return;
+                }
+                
+                if (selectedSources.length === 0) {
+                    alert('Please select at least one source');
+                    return;
+                }
+                
+                document.getElementById('search-results').innerHTML = '<div class="alert alert-info">Searching...</div>';
+                
+                // Here you would make the actual search API call
+                console.log('Searching for:', query, 'in sources:', selectedSources);
+            });
         });
-    
-    // Load sources
-    fetch('/api/sources')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                console.log('Loaded', data.sources ? data.sources.length : 0, 'source categories');
-            }
-        });
-    
-    // Show dashboard by default
-    showSection('dashboard');
-});
 
-function handleGoogleSignIn() {
-    window.location.href = '/auth/google';
-}
+        function selectAllSources() {
+            const checkboxes = document.querySelectorAll('.source-checkbox');
+            checkboxes.forEach(cb => cb.checked = true);
+        }
 
-function selectAllSources() {
-    const checkboxes = document.querySelectorAll('.source-checkbox');
-    checkboxes.forEach(cb => cb.checked = true);
-}
+        function deselectAllSources() {
+            const checkboxes = document.querySelectorAll('.source-checkbox');
+            checkboxes.forEach(cb => cb.checked = false);
+        }
 
-function deselectAllSources() {
-    const checkboxes = document.querySelectorAll('.source-checkbox');
-    checkboxes.forEach(cb => cb.checked = false);
-}
+        function filterAssets(type) {
+            console.log('Filtering assets by:', type);
+            const buttons = document.querySelectorAll('.asset-filters button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
 
-function selectRecommended() {
-    deselectAllSources();
-    // Select recommended sources
-    const recommended = ['google_images', 'bing_images', 'unsplash', 'pixabay'];
-    recommended.forEach(id => {
-        const checkbox = document.querySelector(`[data-source="${id}"]`);
-        if (checkbox) checkbox.checked = true;
-    });
-}
-</script>
-{% endblock %}
+        function saveSettings() {
+            const safeSearch = document.getElementById('safe-search').checked;
+            const autoDownload = document.getElementById('auto-download').checked;
+            console.log('Saving settings:', { safeSearch, autoDownload });
+            alert('Settings saved!');
+        }
+    </script>
+</body>
+</html>
