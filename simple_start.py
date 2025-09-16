@@ -8,7 +8,8 @@ import sys
 
 # Set environment variables if not set
 os.environ.setdefault('FLASK_ENV', 'development')
-os.environ.setdefault('DATABASE_URL', 'sqlite:///instance/scraper.db')
+# Use PostgreSQL from environment (already provisioned by Replit)
+# DATABASE_URL is already set by Replit's PostgreSQL provisioning
 os.environ.setdefault('SECRET_KEY', 'dev-secret-key-change-in-production')
 os.environ.setdefault('OAUTHLIB_INSECURE_TRANSPORT', '1')
 

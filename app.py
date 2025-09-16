@@ -194,21 +194,27 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 app.config["APPLICATION_ROOT"] = "/scraper"
 
 
-# Custom middleware to inject /scraper prefix when behind IIS
-class ScraperPrefixMiddleware:
+# Custom middleware to handle /scraper prefix properly
+class PrefixPathMiddleware:
+    """Middleware that strips APP_BASE prefix from PATH_INFO and sets SCRIPT_NAME"""
     def __init__(self, app):
         self.app = app
 
     def __call__(self, environ, start_response):
-        # Check if we're behind IIS proxy
-        if environ.get("HTTP_X_FORWARDED_HOST"):
-            # Inject SCRIPT_NAME for proper URL generation
+        path_info = environ.get("PATH_INFO", "")
+        
+        # If path starts with APP_BASE (e.g., /scraper), strip it for routing
+        if path_info.startswith(APP_BASE):
+            # Set SCRIPT_NAME for proper URL generation
             environ["SCRIPT_NAME"] = APP_BASE
+            # Strip the prefix from PATH_INFO so Flask can match routes correctly
+            environ["PATH_INFO"] = path_info[len(APP_BASE):] or "/"
+        
         return self.app(environ, start_response)
 
 
-# Apply the middleware AFTER ProxyFix
-app.wsgi_app = ScraperPrefixMiddleware(app.wsgi_app)
+# Apply the middleware AFTER ProxyFix to handle /scraper prefix
+app.wsgi_app = PrefixPathMiddleware(app.wsgi_app)
 
 # Force /scraper prefix to match Google OAuth configuration AFTER ProxyFix
 # DISABLED: This strips the prefix and breaks routing
