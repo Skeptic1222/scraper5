@@ -1,0 +1,169 @@
+/* Force Visibility Fix - Ensures sidebar and content are always visible */
+
+/* Force sidebar to be visible */
+.sidebar,
+#sidebar,
+aside.sidebar,
+[class*="sidebar"] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: sticky !important;
+    position: -webkit-sticky !important;
+    top: 60px !important;
+    left: 0 !important;
+    width: 260px !important;
+    min-width: 260px !important;
+    max-width: 260px !important;
+    height: calc(100vh - 60px) !important;
+    z-index: 1000 !important;
+    background: #2c3e50 !important;
+    color: #ecf0f1 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    transform: translateX(0) !important;
+    transition: none !important;
+}
+
+/* Force all sections to be visible by default */
+.content-section,
+#dashboard-section,
+#search-section,
+#assets-section,
+#settings-section,
+#admin-section {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Hide non-active sections */
+.content-section:not(.active) {
+    display: none !important;
+}
+
+/* Force dashboard to be visible if it's active */
+#dashboard-section.active,
+.content-section.active {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    animation: none !important;
+}
+
+/* Main container layout fix */
+.main-container {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 0 !important;
+    margin-top: 60px !important;
+    min-height: calc(100vh - 60px) !important;
+}
+
+/* Content area positioning */
+.content-area,
+main.content-area {
+    flex: 1 !important;
+    margin-left: 260px !important;
+    padding: 20px !important;
+    width: calc(100% - 260px) !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Navigation items always visible */
+.nav-item,
+.sidebar-nav .nav-item {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Ensure sidebar sections are visible */
+.sidebar-header,
+.sidebar-nav,
+.system-status,
+.user-profile,
+.sidebar-footer {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Override any JavaScript-set styles */
+[style*="display: none"],
+[style*="display:none"] {
+    display: block !important;
+}
+
+[style*="visibility: hidden"],
+[style*="visibility:hidden"] {
+    visibility: visible !important;
+}
+
+[style*="opacity: 0"],
+[style*="opacity:0"] {
+    opacity: 1 !important;
+}
+
+/* Specific fix for dashboard content */
+#dashboard-section,
+.dashboard-content,
+.enhanced-stats-grid,
+.dashboard-container {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Prevent flash/flicker */
+* {
+    -webkit-animation-duration: 0s !important;
+    animation-duration: 0s !important;
+    -webkit-animation-delay: 0s !important;
+    animation-delay: 0s !important;
+}
+
+/* Override any transform that might hide elements */
+.sidebar,
+#sidebar,
+.content-section,
+.dashboard-section {
+    transform: none !important;
+    -webkit-transform: none !important;
+}
+
+/* Z-index hierarchy */
+.navbar {
+    z-index: 1050 !important;
+}
+
+.sidebar {
+    z-index: 1000 !important;
+}
+
+.content-area {
+    z-index: 1 !important;
+}
+
+/* Mobile responsiveness - keep sidebar visible on larger screens */
+@media (min-width: 768px) {
+    .sidebar {
+        display: block !important;
+        transform: translateX(0) !important;
+    }
+    
+    .content-area {
+        margin-left: 260px !important;
+    }
+}
+
+/* Debug - add borders to verify elements are present */
+.sidebar {
+    border-right: 2px solid #34495e !important;
+}
+
+.content-section.active {
+    border: 2px solid transparent !important;
+}

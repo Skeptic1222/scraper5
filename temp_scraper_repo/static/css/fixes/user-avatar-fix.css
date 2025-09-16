@@ -1,0 +1,239 @@
+/**
+ * User Avatar and Navbar Layout Fixes
+ * Positions user avatar properly in top right corner
+ */
+
+/* === REMOVED - Was hiding the Google badge === */
+/* .google-account-badge class removed to allow badge display */
+
+/* === USER AVATAR POSITIONING === */
+.user-avatar-badge {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    text-transform: uppercase !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    position: relative !important;
+    top: 0 !important;
+    margin: 0 !important;
+}
+
+.user-avatar-badge:hover {
+    transform: scale(1.1) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* === USER AVATAR IMAGE === */
+.user-avatar-image {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    transition: all 0.3s ease !important;
+}
+
+.user-avatar-image:hover {
+    transform: scale(1.1) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* === GOOGLE INDICATOR (SMALL BADGE) === */
+.google-indicator {
+    position: absolute !important;
+    bottom: -2px !important;
+    right: -2px !important;
+    background: white !important;
+    border-radius: 50% !important;
+    width: 18px !important;
+    height: 18px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+.google-indicator img {
+    width: 12px !important;
+    height: 12px !important;
+}
+
+/* === NAVBAR LAYOUT FIX === */
+.navbar {
+    display: flex !important;
+    align-items: center !important;
+    padding: 10px 20px !important;
+    min-height: 60px !important;
+}
+
+.navbar .container-fluid {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    padding: 0 !important;
+}
+
+/* === USER SECTION ALIGNMENT === */
+.navbar .d-flex.align-items-center.gap-3 {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+}
+
+/* === DROPDOWN BUTTON === */
+.dropdown button.btn {
+    position: relative !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.dropdown button.btn:focus {
+    outline: 2px solid rgba(102, 126, 234, 0.5) !important;
+    outline-offset: 2px !important;
+}
+
+/* === CREDITS DISPLAY === */
+.credits-display {
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    color: white !important;
+    padding: 6px 14px !important;
+    border-radius: 20px !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+    margin: 0 !important;
+    position: relative !important;
+    top: 0 !important;
+}
+
+/* === SUBSCRIPTION BADGE === */
+.subscription-badge {
+    padding: 6px 14px !important;
+    border-radius: 20px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    border: 2px solid !important;
+    margin: 0 !important;
+    position: relative !important;
+    top: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+/* === THEME TOGGLE === */
+#theme-toggle-btn {
+    margin-left: 16px !important;
+    margin-right: auto !important;
+    position: relative !important;
+    top: 0 !important;
+}
+
+/* === DROPDOWN MENU === */
+.dropdown-menu {
+    position: absolute !important;
+    top: calc(100% + 8px) !important;
+    right: 0 !important;
+    margin: 0 !important;
+}
+
+/* === DARK THEME === */
+[data-theme="dark"] .user-avatar-badge {
+    background: linear-gradient(135deg, #9f7aea, #667eea) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="dark"] .google-indicator {
+    background: #f8f9fa !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="dark"] .credits-display {
+    background: linear-gradient(135deg, #9f7aea, #667eea) !important;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+    .user-avatar-badge,
+    .user-avatar-image {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 12px !important;
+    }
+    
+    .google-indicator {
+        width: 16px !important;
+        height: 16px !important;
+    }
+    
+    .google-indicator img {
+        width: 10px !important;
+        height: 10px !important;
+    }
+    
+    .credits-display {
+        font-size: 11px !important;
+        padding: 5px 10px !important;
+    }
+    
+    .subscription-badge {
+        display: none !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .user-avatar-badge,
+    .user-avatar-image {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 11px !important;
+    }
+    
+    .credits-display .credits-count {
+        font-size: 12px !important;
+    }
+    
+    #theme-toggle-btn {
+        display: none !important;
+    }
+}
+
+/* === Z-INDEX HIERARCHY === */
+.navbar {
+    z-index: 2000 !important;
+}
+
+.dropdown button {
+    z-index: 2001 !important;
+}
+
+.google-indicator {
+    z-index: 2002 !important;
+}
+
+.dropdown-menu {
+    z-index: 2020 !important;
+}

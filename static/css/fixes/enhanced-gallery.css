@@ -1,0 +1,334 @@
+/**
+ * Enhanced Gallery Styles
+ * Based on TwerkWorld's clean, modern gallery design
+ */
+
+/* === ASSET LIBRARY ENHANCEMENTS === */
+.asset-library-container,
+#asset-library {
+    background: #0a0a0a !important;
+    color: #fff !important;
+    padding: 2rem !important;
+    border-radius: 15px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Gallery Header */
+.asset-library-header,
+.gallery-header {
+    text-align: center !important;
+    margin-bottom: 3rem !important;
+}
+
+.asset-library-header h2,
+.gallery-header h1 {
+    font-size: 3rem !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    margin-bottom: 1rem !important;
+    font-weight: 900 !important;
+}
+
+.asset-library-header p,
+.gallery-header p {
+    color: #999 !important;
+    font-size: 1.2rem !important;
+}
+
+/* === STATS BAR === */
+.stats-bar,
+.asset-stats {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(10px) !important;
+    padding: 1.5rem !important;
+    border-radius: 15px !important;
+    margin-bottom: 2rem !important;
+    display: flex !important;
+    justify-content: space-around !important;
+    flex-wrap: wrap !important;
+    gap: 1rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.stat-item {
+    text-align: center !important;
+}
+
+.stat-value {
+    font-size: 2rem !important;
+    font-weight: bold !important;
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+}
+
+.stat-label {
+    font-size: 0.875rem !important;
+    color: #999 !important;
+    text-transform: uppercase !important;
+    margin-top: 0.25rem !important;
+}
+
+/* === GALLERY CONTROLS === */
+.gallery-controls,
+.asset-controls {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 2rem !important;
+    flex-wrap: wrap !important;
+    gap: 1rem !important;
+}
+
+.filter-buttons {
+    display: flex !important;
+    gap: 0.5rem !important;
+    flex-wrap: wrap !important;
+}
+
+.filter-btn {
+    padding: 0.75rem 1.5rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #fff !important;
+    border-radius: 25px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    font-weight: 600 !important;
+}
+
+.filter-btn:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: #667eea !important;
+    transform: translateY(-2px) !important;
+}
+
+.filter-btn.active {
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    border-color: transparent !important;
+}
+
+/* === ASSET GRID === */
+.asset-grid,
+.gallery-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) !important;
+    gap: 1.5rem !important;
+    margin-top: 2rem !important;
+}
+
+.asset-item,
+.gallery-item {
+    position: relative !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    transition: all 0.3s ease !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    cursor: pointer !important;
+}
+
+.asset-item:hover,
+.gallery-item:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3) !important;
+    border-color: #667eea !important;
+}
+
+.asset-item img,
+.gallery-item img,
+.asset-item video,
+.gallery-item video {
+    width: 100% !important;
+    height: 200px !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+/* Asset Info Overlay */
+.asset-info,
+.gallery-info {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent) !important;
+    padding: 1rem !important;
+    color: white !important;
+    transform: translateY(100%) !important;
+    transition: transform 0.3s ease !important;
+}
+
+.asset-item:hover .asset-info,
+.gallery-item:hover .gallery-info {
+    transform: translateY(0) !important;
+}
+
+.asset-title {
+    font-weight: 600 !important;
+    margin-bottom: 0.25rem !important;
+    font-size: 0.9rem !important;
+}
+
+.asset-meta {
+    font-size: 0.75rem !important;
+    color: #999 !important;
+}
+
+/* === SOURCE SELECTION FIX === */
+.source-checkbox,
+.source-checkbox-enhanced,
+input[type="checkbox"][name="sources"] {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    opacity: 1 !important;
+    width: 18px !important;
+    height: 18px !important;
+    accent-color: #667eea !important;
+}
+
+.source-checkbox:hover,
+.source-checkbox-enhanced:hover {
+    transform: scale(1.1) !important;
+}
+
+.source-item,
+.source-card {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    opacity: 1 !important;
+    transition: all 0.3s ease !important;
+    padding: 1rem !important;
+    border-radius: 10px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.source-item:hover,
+.source-card:hover {
+    background: rgba(102, 126, 234, 0.1) !important;
+    border-color: #667eea !important;
+    transform: translateY(-2px) !important;
+}
+
+.source-item.selected,
+.source-card.selected {
+    background: rgba(102, 126, 234, 0.2) !important;
+    border-color: #667eea !important;
+}
+
+/* === SEARCH SECTION IMPROVEMENTS === */
+#search-section {
+    background: #0a0a0a !important;
+    padding: 2rem !important;
+    border-radius: 15px !important;
+    margin-bottom: 2rem !important;
+}
+
+#search-form .form-control,
+#search-form .form-select {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+}
+
+#search-form .form-control:focus,
+#search-form .form-select:focus {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25) !important;
+    color: white !important;
+}
+
+#search-form .btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    border: none !important;
+    font-weight: 600 !important;
+    padding: 0.75rem 2rem !important;
+    transition: all 0.3s ease !important;
+}
+
+#search-form .btn-primary:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4) !important;
+}
+
+/* === LOADING STATES === */
+.loading-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(10, 10, 10, 0.95) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 9999 !important;
+}
+
+.loading-spinner {
+    width: 60px !important;
+    height: 60px !important;
+    border: 3px solid rgba(255, 255, 255, 0.1) !important;
+    border-top-color: #667eea !important;
+    border-radius: 50% !important;
+    animation: spin 1s linear infinite !important;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* === RESPONSIVE DESIGN === */
+@media (max-width: 768px) {
+    .asset-grid,
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+        gap: 1rem !important;
+    }
+    
+    .asset-library-header h2,
+    .gallery-header h1 {
+        font-size: 2rem !important;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem !important;
+    }
+}
+
+/* === DARK THEME ADJUSTMENTS === */
+[data-theme="dark"] {
+    .asset-library-container,
+    #asset-library {
+        background: #1a1a1a !important;
+    }
+    
+    .asset-item,
+    .gallery-item {
+        background: rgba(255, 255, 255, 0.03) !important;
+    }
+}
+
+/* === ANIMATIONS === */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-up {
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}

@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Critical Fixes Test - Enhanced Media Scraper</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .test-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .test-status {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 12px;
+        }
+
+        .test-status.pass {
+            background: #28a745;
+        }
+
+        .test-status.fail {
+            background: #dc3545;
+        }
+
+        .test-status.pending {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .test-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .test-button:hover {
+            background: #5a6fd8;
+        }
+
+        .test-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .log-output {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .summary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="summary">
+            <h1>🚨 Critical Fixes Test Suite</h1>
+            <p>Comprehensive testing for sidebar visibility, API routing, and OAuth functionality</p>
+            <div id="overall-status">
+                <span id="pass-count">0</span> passed,
+                <span id="fail-count">0</span> failed,
+                <span id="pending-count">0</span> pending
+            </div>
+        </div>
+
+        <!-- Sidebar Tests -->
+        <div class="test-section">
+            <h3>🔧 Sidebar Visibility Tests</h3>
+
+            <div class="test-item">
+                <div class="test-status pending" id="status-sidebar-exists">?</div>
+                <div>
+                    <strong>Sidebar Element Exists</strong>
+                    <div>Check if sidebar element is present in DOM</div>
+                </div>
+            </div>
+
+            <div class="test-item">
+                <div class="test-status pending" id="status-sidebar-visible">?</div>
+                <div>
+                    <strong>Sidebar is Visible</strong>
+                    <div>Check if sidebar has proper visibility styles</div>
+                </div>
+            </div>
+
+            <div class="test-item">
+                <div class="test-status pending" id="status-sidebar-positioned">?</div>
+                <div>
+                    <strong>Sidebar is Properly Positioned</strong>
+                    <div>Check if sidebar has correct position and dimensions</div>
+                </div>
+            </div>
+
+            <div class="test-item">
+                <div class="test-status pending" id="status-nav-items">?</div>
+                <div>
+                    <strong>Navigation Items Exist</strong>
+                    <div>Check if navigation items are present and clickable</div>
+                </div>
+            </div>
+
+            <button class="test-button" onclick="testSidebar()">Run Sidebar Tests</button>
+        </div>
+
+        <!-- API Tests -->
+        <div class="test-section">
+            <h3>🌐 API Routing Tests</h3>
+
+            <div class="test-item">
+                <div class="test-status pending" id="status-api-assets">?</div>
+                <div>
+                    <strong>Assets API (/scraper/api/assets)</strong>
+                    <div>Test if assets endpoint returns successful response</div>
+                </div>
+            </div>
+
+            <div class="test-item">
+                <div class="test-status pending" id="status-api-sources">?</div>
+                <div>
+                    <strong>Sources API (/scraper/api/sources)</strong>
+                    <div>Test if sources endpoint returns successful response</div>
+                </div>
+            </div>
+
+            <div class="test-item">
+                <div class="test-status pending" id="status-api-stats">?</div>
+                <div>
+                    <strong>Stats API (/scraper/api/stats)</strong>
+                    <div>Test if stats endpoint returns successful response</div>
+                </div>
+            </div>
+
+            <button class="test-button" onclick="testAPIs()">Run API Tests</button>
+        </div>
+
+        <!-- OAuth Tests -->
+        <div class="test-section">
+            <h3>🔐 OAuth Authentication Tests</h3>
+
+            <div class="test-item">
+                <div class="test-status pending" id="status-auth-check">?</div>
+                <div>
+                    <strong>Auth Check Endpoint</strong>
+                    <div>Test if authentication check endpoint is reachable</div>
+                </div>
+            </div>
+
+            <div class="test-item">
+                <div class="test-status pending" id="status-google-btn">?</div>
+                <div>
+                    <strong>Google Sign-in Button</strong>
+                    <div>Check if Google sign-in button is properly configured</div>
+                </div>
+            </div>
+
+            <div class="test-item">
+                <div class="test-status pending" id="status-oauth-manager">?</div>
+                <div>
+                    <strong>OAuth Manager Available</strong>
+                    <div>Check if OAuth manager is properly initialized</div>
+                </div>
+            </div>
+
+            <button class="test-button" onclick="testOAuth()">Run OAuth Tests</button>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="test-section">
+            <h3>🎛️ Test Control Panel</h3>
+            <button class="test-button" onclick="runAllTests()">🚀 Run All Tests</button>
+            <button class="test-button" onclick="clearResults()">🗑️ Clear Results</button>
+            <button class="test-button" onclick="showConsole()">📊 Show Console</button>
+            <button class="test-button" onclick="window.location.href='/scraper/'">🏠 Back to App</button>
+        </div>
+
+        <!-- Log Output -->
+        <div class="log-output" id="log-output" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Test state
+        let testResults = {
+            pass: 0,
+            fail: 0,
+            pending: 0
+        };
+
+        // Logging
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logOutput = document.getElementById('log-output');
+            const color = type === 'error' ? '#ff4444' : type === 'success' ? '#44ff44' : '#00ff00';
+            logOutput.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            logOutput.scrollTop = logOutput.scrollHeight;
+            console.log(`[TEST] ${message}`);
+        }
+
+        function updateStatus(testId, status) {
+            const element = document.getElementById(`status-${testId}`);
+            element.className = `test-status ${status}`;
+            element.textContent = status === 'pass' ? '✓' : status === 'fail' ? '✗' : '?';
+
+            updateCounts();
+        }
+
+        function updateCounts() {
+            const passElements = document.querySelectorAll('.test-status.pass');
+            const failElements = document.querySelectorAll('.test-status.fail');
+            const pendingElements = document.querySelectorAll('.test-status.pending');
+
+            document.getElementById('pass-count').textContent = passElements.length;
+            document.getElementById('fail-count').textContent = failElements.length;
+            document.getElementById('pending-count').textContent = pendingElements.length;
+        }
+
+        // Sidebar Tests
+        async function testSidebar() {
+            log('🔧 Starting sidebar tests...', 'info');
+
+            // Test 1: Sidebar element exists
+            const sidebar = document.querySelector('.sidebar, #sidebar, aside.sidebar');
+            if (sidebar) {
+                updateStatus('sidebar-exists', 'pass');
+                log('✅ Sidebar element found', 'success');
+            } else {
+                updateStatus('sidebar-exists', 'fail');
+                log('❌ Sidebar element not found', 'error');
+                return;
+            }
+
+            // Test 2: Sidebar is visible
+            const computedStyle = window.getComputedStyle(sidebar);
+            const isVisible = computedStyle.display !== 'none' &&
+                            computedStyle.visibility !== 'hidden' &&
+                            parseFloat(computedStyle.opacity) > 0;
+
+            if (isVisible) {
+                updateStatus('sidebar-visible', 'pass');
+                log('✅ Sidebar is visible', 'success');
+            } else {
+                updateStatus('sidebar-visible', 'fail');
+                log(`❌ Sidebar not visible: display=${computedStyle.display}, visibility=${computedStyle.visibility}, opacity=${computedStyle.opacity}`, 'error');
+            }
+
+            // Test 3: Sidebar positioning
+            const rect = sidebar.getBoundingClientRect();
+            const isPositioned = rect.left >= 0 && rect.width > 200 && rect.height > 400;
+
+            if (isPositioned) {
+                updateStatus('sidebar-positioned', 'pass');
+                log(`✅ Sidebar properly positioned: left=${rect.left}, width=${rect.width}, height=${rect.height}`, 'success');
+            } else {
+                updateStatus('sidebar-positioned', 'fail');
+                log(`❌ Sidebar positioning issues: left=${rect.left}, width=${rect.width}, height=${rect.height}`, 'error');
+            }
+
+            // Test 4: Navigation items
+            const navItems = sidebar.querySelectorAll('.nav-item[data-section]');
+            if (navItems.length >= 3) {
+                updateStatus('nav-items', 'pass');
+                log(`✅ Found ${navItems.length} navigation items`, 'success');
+            } else {
+                updateStatus('nav-items', 'fail');
+                log(`❌ Insufficient navigation items: ${navItems.length}`, 'error');
+            }
+
+            log('🔧 Sidebar tests completed', 'info');
+        }
+
+        // API Tests
+        async function testAPIs() {
+            log('🌐 Starting API tests...', 'info');
+
+            const appBase = window.APP_BASE || '/scraper';
+
+            // Test Assets API
+            try {
+                const response = await fetch(`${appBase}/api/assets`, {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (response.ok) {
+                    updateStatus('api-assets', 'pass');
+                    log(`✅ Assets API successful: ${response.status}`, 'success');
+                } else {
+                    updateStatus('api-assets', 'fail');
+                    log(`❌ Assets API failed: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                updateStatus('api-assets', 'fail');
+                log(`❌ Assets API error: ${error.message}`, 'error');
+            }
+
+            // Test Sources API
+            try {
+                const response = await fetch(`${appBase}/api/sources?safe_search=true`, {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (response.ok) {
+                    updateStatus('api-sources', 'pass');
+                    log(`✅ Sources API successful: ${response.status}`, 'success');
+                } else {
+                    updateStatus('api-sources', 'fail');
+                    log(`❌ Sources API failed: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                updateStatus('api-sources', 'fail');
+                log(`❌ Sources API error: ${error.message}`, 'error');
+            }
+
+            // Test Stats API
+            try {
+                const response = await fetch(`${appBase}/api/stats`, {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (response.ok) {
+                    updateStatus('api-stats', 'pass');
+                    log(`✅ Stats API successful: ${response.status}`, 'success');
+                } else {
+                    updateStatus('api-stats', 'fail');
+                    log(`❌ Stats API failed: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                updateStatus('api-stats', 'fail');
+                log(`❌ Stats API error: ${error.message}`, 'error');
+            }
+
+            log('🌐 API tests completed', 'info');
+        }
+
+        // OAuth Tests
+        async function testOAuth() {
+            log('🔐 Starting OAuth tests...', 'info');
+
+            const appBase = window.APP_BASE || '/scraper';
+
+            // Test Auth Check Endpoint
+            try {
+                const response = await fetch(`${appBase}/auth/check`, {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (response.ok) {
+                    updateStatus('auth-check', 'pass');
+                    log(`✅ Auth check endpoint accessible: ${response.status}`, 'success');
+                } else {
+                    updateStatus('auth-check', 'fail');
+                    log(`❌ Auth check failed: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                updateStatus('auth-check', 'fail');
+                log(`❌ Auth check error: ${error.message}`, 'error');
+            }
+
+            // Test Google Sign-in Button (if on splash page)
+            const googleBtn = document.querySelector('.google-btn, [href*="/auth/login"]');
+            if (googleBtn) {
+                updateStatus('google-btn', 'pass');
+                log('✅ Google sign-in button found', 'success');
+            } else {
+                updateStatus('google-btn', 'fail');
+                log('❌ Google sign-in button not found', 'error');
+            }
+
+            // Test OAuth Manager
+            if (window.authManager) {
+                updateStatus('oauth-manager', 'pass');
+                log('✅ OAuth manager available', 'success');
+            } else {
+                updateStatus('oauth-manager', 'fail');
+                log('❌ OAuth manager not available', 'error');
+            }
+
+            log('🔐 OAuth tests completed', 'info');
+        }
+
+        // Control functions
+        async function runAllTests() {
+            log('🚀 Running all tests...', 'info');
+            clearResults();
+            await testSidebar();
+            await testAPIs();
+            await testOAuth();
+            log('🏁 All tests completed', 'info');
+        }
+
+        function clearResults() {
+            const statusElements = document.querySelectorAll('.test-status');
+            statusElements.forEach(el => {
+                el.className = 'test-status pending';
+                el.textContent = '?';
+            });
+            updateCounts();
+            document.getElementById('log-output').innerHTML = '';
+            log('🗑️ Test results cleared', 'info');
+        }
+
+        function showConsole() {
+            const logOutput = document.getElementById('log-output');
+            logOutput.style.display = logOutput.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚨 Critical fixes test suite loaded', 'info');
+            log('Click "Run All Tests" to begin comprehensive testing', 'info');
+            updateCounts();
+        });
+    </script>
+</body>
+</html>

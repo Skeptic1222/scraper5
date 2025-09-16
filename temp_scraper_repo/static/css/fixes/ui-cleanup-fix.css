@@ -1,0 +1,258 @@
+/**
+ * UI Cleanup Fix
+ * Fixes double scrollbars, excessive whitespace, and layout issues
+ */
+
+/* Fix double scrollbar issue */
+html {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+body {
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    height: auto !important;
+    min-height: 100vh !important;
+}
+
+.main-container {
+    overflow: visible !important;
+    height: auto !important;
+    min-height: calc(100vh - 60px) !important;
+}
+
+.content-area,
+#main-content {
+    overflow-y: visible !important;
+    overflow-x: hidden !important;
+    height: auto !important;
+    min-height: calc(100vh - 60px) !important;
+}
+
+/* Fix sidebar scrolling */
+.sidebar {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: #f7fafc;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 3px;
+}
+
+/* Reduce excessive whitespace */
+.content-section {
+    padding: 20px !important;
+}
+
+.card {
+    margin-bottom: 16px !important;
+}
+
+.card-body {
+    padding: 16px !important;
+}
+
+.row.mt-4 {
+    margin-top: 20px !important;
+}
+
+.row.mt-3 {
+    margin-top: 16px !important;
+}
+
+.mb-4 {
+    margin-bottom: 20px !important;
+}
+
+.mb-3 {
+    margin-bottom: 16px !important;
+}
+
+/* Tighten search form spacing */
+#search-form .row {
+    margin-top: 12px !important;
+    margin-bottom: 12px !important;
+}
+
+#search-form .card {
+    margin-bottom: 12px !important;
+}
+
+/* Fix source categories container */
+#source-categories {
+    max-height: 400px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 12px !important;
+    margin-bottom: 12px !important;
+    background: #ffffff;
+}
+
+/* Ensure single scrollbar for source categories */
+.source-categories {
+    overflow: visible !important;
+    max-height: none !important;
+}
+
+/* Tighten source control buttons */
+.source-controls {
+    padding: 8px 0 !important;
+    margin-top: 8px !important;
+}
+
+.source-controls .btn {
+    margin-right: 8px !important;
+    margin-bottom: 8px !important;
+    padding: 6px 12px !important;
+    font-size: 14px !important;
+}
+
+/* Fix select all checkbox visibility */
+.form-check.mb-3 {
+    opacity: 1 !important;
+    visibility: visible !important;
+    animation: none !important;
+    position: relative !important;
+    z-index: 10 !important;
+}
+
+#select-all-sources-checkbox {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Hide duplicate error messages */
+.alert-warning:not(:first-of-type) {
+    display: none !important;
+}
+
+/* Prevent error message scrolling */
+.alert {
+    position: relative !important;
+    transform: none !important;
+    animation: none !important;
+    max-width: 100% !important;
+    word-wrap: break-word !important;
+}
+
+/* Compact filter sections */
+.filter-section {
+    margin-bottom: 16px !important;
+}
+
+fieldset {
+    padding: 12px !important;
+    margin-bottom: 12px !important;
+}
+
+legend {
+    font-size: 16px !important;
+    margin-bottom: 8px !important;
+    padding: 0 8px !important;
+}
+
+/* Tighten form controls */
+.form-label {
+    margin-bottom: 4px !important;
+    font-size: 14px !important;
+}
+
+.form-control,
+.form-select {
+    padding: 6px 10px !important;
+    font-size: 14px !important;
+}
+
+.form-check {
+    margin-bottom: 8px !important;
+}
+
+/* Fix dashboard section spacing */
+#dashboard-section {
+    padding: 20px !important;
+}
+
+.enhanced-stats-grid {
+    margin-bottom: 16px !important;
+}
+
+.stat-card {
+    padding: 12px !important;
+    margin-bottom: 12px !important;
+}
+
+/* Prevent content from being cut off */
+.content-section.active {
+    min-height: auto !important;
+    padding-bottom: 40px !important;
+}
+
+/* Fix navbar spacing */
+.navbar {
+    padding: 8px 16px !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .content-area,
+    #main-content {
+        padding: 16px !important;
+    }
+    
+    .card-body {
+        padding: 12px !important;
+    }
+    
+    #source-categories {
+        max-height: 300px !important;
+    }
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] #source-categories {
+    background: #1f2937;
+    border-color: #374151;
+}
+
+[data-theme="dark"] .sidebar::-webkit-scrollbar-track {
+    background: #1f2937;
+}
+
+[data-theme="dark"] .sidebar::-webkit-scrollbar-thumb {
+    background: #4b5563;
+}
+
+/* Ensure no elements create horizontal scroll */
+* {
+    max-width: 100% !important;
+}
+
+/* Fix potential layout breaking elements */
+.table-responsive {
+    overflow-x: auto !important;
+    max-width: 100% !important;
+}
+
+pre {
+    overflow-x: auto !important;
+    max-width: 100% !important;
+}
+
+/* Ensure buttons don't cause layout issues */
+.btn-group {
+    flex-wrap: wrap !important;
+}

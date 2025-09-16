@@ -1,0 +1,102 @@
+/* Google Indicator Fix - Properly display and position Google sign-in badge */
+
+/* Position the Google indicator as an absolute badge */
+.google-indicator {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 18px;
+    height: 18px;
+    background: white;
+    border-radius: 50%;
+    border: 2px solid #4285f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.google-indicator:hover {
+    transform: scale(1.1);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Ensure the image inside shows properly */
+.google-indicator img {
+    width: 12px !important;
+    height: 12px !important;
+    object-fit: contain;
+    display: block;
+}
+
+/* Make sure parent button has relative positioning */
+#user-dropdown {
+    position: relative !important;
+}
+
+/* For user avatar image */
+.user-avatar-image {
+    display: block;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    transition: border-color 0.2s ease;
+}
+
+.user-avatar-image:hover {
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Fix for user avatar badge when no image */
+.user-avatar-badge {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 600;
+    font-size: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.user-avatar-badge:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .google-indicator {
+    background: #2d2d2d;
+    border-color: #5a95ff;
+}
+
+[data-theme="dark"] .user-avatar-badge {
+    background: linear-gradient(135deg, #5a95ff, #4fd670);
+}
+
+/* Fix dropdown button focus outline */
+#user-dropdown:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* Ensure dropdown menu appears above other elements */
+.dropdown-menu {
+    z-index: 2010;
+}
+
+/* Make sure the sign-in button on splash page works */
+.google-btn {
+    cursor: pointer !important;
+    user-select: none;
+}
+
+.google-btn:disabled {
+    cursor: not-allowed !important;
+    opacity: 0.5 !important;
+}

@@ -1,0 +1,256 @@
+/**
+ * Working Asset System Styles
+ * Clean, functional styling for asset display
+ */
+
+/* Assets Grid */
+#assets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+    min-height: 300px;
+}
+
+/* Asset Card */
+.asset-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.asset-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Asset Thumbnail */
+.asset-thumbnail {
+    width: 100%;
+    height: 150px;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.asset-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.asset-icon {
+    width: 100%;
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+}
+
+.asset-icon-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+}
+
+/* Asset Info */
+.asset-info {
+    padding: 0.75rem;
+    flex: 1;
+}
+
+.asset-filename {
+    font-weight: 500;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.asset-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.asset-size {
+    font-weight: 500;
+}
+
+.asset-source {
+    text-transform: capitalize;
+    opacity: 0.8;
+}
+
+/* Asset Actions */
+.asset-actions {
+    padding: 0.5rem;
+    background: #f8f9fa;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.asset-actions button {
+    padding: 0.25rem 0.5rem;
+}
+
+/* Loading States */
+.loading-spinner {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    color: #666;
+}
+
+.loading-spinner p {
+    margin-top: 1rem;
+}
+
+/* Empty States */
+.no-assets-message {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    color: #999;
+}
+
+.no-assets-message i {
+    opacity: 0.5;
+}
+
+/* Error States */
+.error-message {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+}
+
+/* Dashboard Stats Enhancement */
+.stat-value-large {
+    font-size: 2.5rem;
+    font-weight: 700;
+    transition: all 0.3s ease;
+}
+
+.stat-value-large.updating {
+    transform: scale(1.1);
+    color: #007bff;
+}
+
+/* Asset Count Badge */
+#asset-count {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    background: #007bff;
+    color: white;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    margin-left: 0.5rem;
+}
+
+/* Filter Buttons */
+[data-filter-type] {
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border: 1px solid #dee2e6;
+    background: white;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+[data-filter-type]:hover {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+[data-filter-type].active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #assets-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 0.75rem;
+        padding: 0.75rem;
+    }
+    
+    .asset-thumbnail,
+    .asset-icon {
+        height: 120px;
+    }
+}
+
+@media (max-width: 480px) {
+    #assets-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+    
+    .asset-thumbnail,
+    .asset-icon {
+        height: 100px;
+    }
+    
+    .asset-info {
+        padding: 0.5rem;
+    }
+    
+    .asset-filename {
+        font-size: 0.8rem;
+    }
+    
+    .asset-meta {
+        font-size: 0.7rem;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .asset-card {
+        background: #2d3748;
+        border-color: #4a5568;
+        color: #e2e8f0;
+    }
+    
+    .asset-thumbnail,
+    .asset-icon,
+    .asset-icon-fallback {
+        background: #1a202c;
+    }
+    
+    .asset-actions {
+        background: #2d3748;
+    }
+    
+    .asset-meta {
+        color: #a0aec0;
+    }
+    
+    [data-filter-type] {
+        background: #2d3748;
+        border-color: #4a5568;
+        color: #e2e8f0;
+    }
+}

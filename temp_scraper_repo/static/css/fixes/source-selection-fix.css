@@ -1,0 +1,207 @@
+/**
+ * Source Selection UI Fix
+ * Improves visual feedback for source selection in the search interface
+ */
+
+/* Source item hover effects */
+.source-item-enhanced {
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
+    background: #ffffff;
+    margin: 4px 0;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.source-item-enhanced:hover {
+    background: #f0f9ff;
+    border-color: #3b82f6;
+    transform: translateX(2px);
+}
+
+/* Selected state - strong visual indicator */
+.source-item-enhanced.selected {
+    background: #dbeafe !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+.source-item-enhanced.selected::before {
+    content: '✓';
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    color: #2563eb;
+    font-weight: bold;
+}
+
+/* Checkbox styling improvements */
+.source-checkbox-enhanced,
+.source-checkbox {
+    width: 20px !important;
+    height: 20px !important;
+    cursor: pointer !important;
+    margin-right: 10px !important;
+    accent-color: #2563eb !important;
+}
+
+.source-checkbox-enhanced:checked,
+.source-checkbox:checked {
+    background: #2563eb !important;
+    border-color: #2563eb !important;
+}
+
+/* Ensure checkbox is visible and clickable */
+.source-control-enhanced {
+    display: flex;
+    align-items: center;
+    min-width: 30px;
+}
+
+/* Label improvements for better clickability */
+.source-item-enhanced label {
+    cursor: pointer;
+    flex: 1;
+    padding: 5px;
+    user-select: none;
+}
+
+/* Source categories visual improvements */
+.source-category-enhanced {
+    margin-bottom: 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.category-header-enhanced {
+    background: linear-gradient(to right, #f9fafb, #f3f4f6);
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.category-header-enhanced h4 {
+    margin: 0;
+    font-size: 16px;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Source list improvements */
+.source-list-enhanced {
+    list-style: none;
+    padding: 8px;
+    margin: 0;
+    background: #ffffff;
+}
+
+/* Visual feedback for locked sources */
+.source-item-enhanced.locked {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #f9fafb;
+}
+
+.source-item-enhanced.locked:hover {
+    background: #f9fafb;
+    border-color: transparent;
+    transform: none;
+}
+
+/* Source badges improvements */
+.source-badges-enhanced {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.source-badge-enhanced {
+    font-size: 11px !important;
+    padding: 2px 6px !important;
+    border-radius: 4px !important;
+}
+
+/* Selected sources counter */
+#selected-sources-count {
+    font-weight: bold;
+    color: #2563eb;
+    background: #dbeafe;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin-left: 10px;
+}
+
+/* Animation for selection changes */
+@keyframes selectPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.source-item-enhanced.selecting {
+    animation: selectPulse 0.3s ease;
+}
+
+/* Dark theme support */
+[data-theme="dark"] .source-item-enhanced {
+    background: #1f2937;
+    border-color: #374151;
+}
+
+[data-theme="dark"] .source-item-enhanced:hover {
+    background: #111827;
+    border-color: #3b82f6;
+}
+
+[data-theme="dark"] .source-item-enhanced.selected {
+    background: #1e3a8a !important;
+    border-color: #2563eb !important;
+}
+
+[data-theme="dark"] .category-header-enhanced {
+    background: linear-gradient(to right, #1f2937, #111827);
+    border-color: #374151;
+}
+
+[data-theme="dark"] .category-header-enhanced h4 {
+    color: #f3f4f6;
+}
+
+[data-theme="dark"] .source-list-enhanced {
+    background: #111827;
+}
+
+/* Fix flickering issues */
+.source-categories {
+    will-change: auto !important;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+/* Prevent layout shifts */
+#source-categories {
+    min-height: 200px;
+    position: relative;
+}
+
+/* Loading state */
+.sources-loading {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* Smooth transitions */
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Reduce repaints */
+.source-item-enhanced * {
+    will-change: auto !important;
+}

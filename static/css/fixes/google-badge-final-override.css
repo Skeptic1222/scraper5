@@ -1,0 +1,86 @@
+/**
+ * Google Badge Final Override
+ * This file MUST load LAST to ensure Google badge is visible
+ * Overrides any previous display:none rules
+ */
+
+/* Force Google indicator to be visible */
+.google-indicator {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: absolute !important;
+    bottom: -2px !important;
+    right: -2px !important;
+    width: 18px !important;
+    height: 18px !important;
+    background: white !important;
+    border-radius: 50% !important;
+    border: 2px solid #4285f4 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    z-index: 9999 !important;
+    cursor: pointer !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.google-indicator:hover {
+    transform: scale(1.1) !important;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15) !important;
+}
+
+.google-indicator img,
+.google-indicator svg {
+    width: 12px !important;
+    height: 12px !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Remove any conflicting rules */
+.google-account-badge {
+    display: flex !important; /* Override any display:none */
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Ensure parent button has relative positioning */
+#user-dropdown {
+    position: relative !important;
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .google-indicator {
+    background: #2d2d2d !important;
+    border-color: #5a95ff !important;
+}
+
+/* Ensure nothing hides the badge */
+.navbar .google-indicator,
+.container-fluid .google-indicator,
+.dropdown .google-indicator {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .google-indicator {
+        width: 16px !important;
+        height: 16px !important;
+    }
+
+    .google-indicator img,
+    .google-indicator svg {
+        width: 10px !important;
+        height: 10px !important;
+    }
+}
+
+/* Debug: Add red border to verify element exists */
+.google-indicator {
+    /* border: 2px solid red !important; */ /* Uncomment to debug */
+}

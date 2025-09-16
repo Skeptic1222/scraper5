@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "disable_existing_loggers": false,
+  "formatters": {
+    "detailed": {
+      "format": "[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
+      "datefmt": "%Y-%m-%d %H:%M:%S"
+    },
+    "simple": {
+      "format": "%(levelname)s - %(message)s"
+    }
+  },
+  "handlers": {
+    "console": {
+      "class": "logging.StreamHandler",
+      "level": "DEBUG",
+      "formatter": "detailed",
+      "stream": "ext://sys.stdout"
+    },
+    "file": {
+      "class": "logging.FileHandler",
+      "level": "DEBUG",
+      "formatter": "detailed",
+      "filename": "debug_logs/app/debug_20250914_162939.log",
+      "mode": "a"
+    },
+    "error_file": {
+      "class": "logging.FileHandler",
+      "level": "ERROR",
+      "formatter": "detailed",
+      "filename": "debug_logs/app/errors.log",
+      "mode": "a"
+    }
+  },
+  "loggers": {
+    "": {
+      "level": "DEBUG",
+      "handlers": [
+        "console",
+        "file",
+        "error_file"
+      ]
+    },
+    "werkzeug": {
+      "level": "DEBUG",
+      "handlers": [
+        "console",
+        "file"
+      ]
+    },
+    "flask": {
+      "level": "DEBUG",
+      "handlers": [
+        "console",
+        "file"
+      ]
+    },
+    "sqlalchemy": {
+      "level": "INFO",
+      "handlers": [
+        "console",
+        "file"
+      ]
+    },
+    "urllib3": {
+      "level": "DEBUG",
+      "handlers": [
+        "console",
+        "file"
+      ]
+    },
+    "requests": {
+      "level": "DEBUG",
+      "handlers": [
+        "console",
+        "file"
+      ]
+    },
+    "pyodbc": {
+      "level": "DEBUG",
+      "handlers": [
+        "console",
+        "file"
+      ]
+    }
+  }
+}

@@ -1,0 +1,161 @@
+/**
+ * Sidebar Visibility Fix
+ * Ensures the sidebar is always visible and properly positioned
+ * Critical fix for missing navigation issue
+ */
+
+/* Force sidebar to be visible and properly positioned */
+.sidebar,
+#sidebar {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: sticky !important;
+    top: 60px !important;
+    left: 0 !important;
+    width: 260px !important;
+    min-height: calc(100vh - 60px) !important;
+    max-height: calc(100vh - 60px) !important;
+    z-index: 100 !important;
+    background: var(--bg-card, #ffffff) !important;
+    border-right: 1px solid var(--border-color, #e0e0e0) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    transition: none !important;
+    transform: none !important;
+}
+
+/* Fix the main container layout */
+.main-container {
+    display: flex !important;
+    flex-direction: row !important;
+    min-height: calc(100vh - 60px) !important;
+    margin-top: 60px !important;
+    position: relative !important;
+}
+
+/* Ensure content area has proper spacing */
+.content-area,
+#main-content {
+    flex: 1 !important;
+    margin-left: 0 !important;
+    padding: 20px !important;
+    min-height: calc(100vh - 60px) !important;
+    width: calc(100% - 260px) !important;
+    overflow-x: hidden !important;
+}
+
+/* Fix navbar positioning to not cover sidebar */
+.navbar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 60px !important;
+    z-index: 1000 !important;
+}
+
+/* Ensure body has proper padding */
+body {
+    padding-top: 0 !important;
+    margin: 0 !important;
+    overflow-x: hidden !important;
+}
+
+/* Make sure sidebar sections are visible */
+.sidebar-header,
+.sidebar-nav,
+.system-status,
+.user-profile,
+.sidebar-footer {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Ensure navigation items are clickable */
+.nav-item {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+/* Fix hidden elements that should be visible */
+.sidebar.hidden,
+.sidebar.d-none,
+.sidebar[style*="display: none"],
+.sidebar[style*="visibility: hidden"] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Dark theme compatibility */
+[data-theme="dark"] .sidebar {
+    background: var(--bg-card, #1a1a1a) !important;
+    border-right: 1px solid var(--border-color, #333) !important;
+}
+
+/* Responsive behavior for smaller screens */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed !important;
+        transform: translateX(-100%) !important;
+        transition: transform 0.3s ease !important;
+    }
+    
+    .sidebar.active {
+        transform: translateX(0) !important;
+    }
+    
+    .content-area {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+}
+
+/* Ensure sidebar content is properly styled */
+.sidebar-nav .nav-list {
+    padding: 10px !important;
+}
+
+.sidebar-nav .nav-item {
+    margin-bottom: 5px !important;
+    padding: 10px 15px !important;
+    border-radius: 8px !important;
+}
+
+.sidebar-nav .nav-item:hover {
+    background: rgba(102, 126, 234, 0.1) !important;
+}
+
+.sidebar-nav .nav-item.active {
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    color: white !important;
+}
+
+/* System status styling */
+.system-status {
+    padding: 15px !important;
+    margin: 15px !important;
+    background: var(--bg-tertiary, #f5f5f5) !important;
+    border-radius: 8px !important;
+}
+
+[data-theme="dark"] .system-status {
+    background: var(--bg-tertiary, #2a2a2a) !important;
+}
+
+/* Debug - remove any transform that might hide sidebar */
+* {
+    transform-style: flat !important;
+}
+
+/* Ensure z-index hierarchy */
+.navbar { z-index: 1000 !important; }
+.sidebar { z-index: 100 !important; }
+.content-area { z-index: 1 !important; }
+.modal { z-index: 2000 !important; }
+.modal-backdrop { z-index: 1999 !important; }

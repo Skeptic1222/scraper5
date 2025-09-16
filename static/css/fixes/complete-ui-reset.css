@@ -1,0 +1,248 @@
+/**
+ * Complete UI Reset - Fixes ALL layout issues
+ * 1. Removes double scrollbars
+ * 2. Fixes sidebar positioning
+ * 3. Ensures proper layout structure
+ * MUST BE LOADED LAST
+ */
+
+/* RESET ALL SCROLLBARS - Remove double scrollbars */
+* {
+    scrollbar-width: auto !important;
+    scrollbar-color: #cbd5e0 transparent !important;
+}
+
+*::-webkit-scrollbar {
+    width: 8px !important;
+    height: 8px !important;
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: #cbd5e0 !important;
+    border-radius: 4px !important;
+}
+
+/* HTML and BODY - Single scrollbar setup */
+html {
+    overflow: hidden !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    scrollbar-gutter: stable !important;
+}
+
+body {
+    overflow: hidden !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: relative !important;
+    scrollbar-gutter: stable !important;
+}
+
+/* NAVBAR - Fixed at top */
+.navbar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 60px !important;
+    z-index: 10000 !important;
+    background: var(--navbar-bg, #ffffff) !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+/* MAIN CONTAINER - Flex layout */
+.main-container {
+    position: fixed !important;
+    top: 60px !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    display: flex !important;
+    overflow: hidden !important;
+}
+
+/* SIDEBAR - Fixed left column */
+.sidebar {
+    position: relative !important;
+    width: 260px !important;
+    height: 100% !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    background: var(--sidebar-bg, #f8f9fa) !important;
+    border-right: 1px solid #dee2e6 !important;
+    flex-shrink: 0 !important;
+}
+
+/* Ensure sidebar content is accessible */
+.sidebar-content,
+.sidebar .nav {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* CONTENT AREA - Scrollable main area */
+.content-area,
+#main-content {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    height: 100% !important;
+    padding: 20px !important;
+    background: var(--content-bg, #ffffff) !important;
+}
+
+/* Remove any duplicate margins */
+.content-section {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Active content section */
+.content-section.active {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Hidden content sections */
+.content-section:not(.active) {
+    display: none !important;
+}
+
+/* Dashboard specific fixes */
+#dashboard-section {
+    padding: 0 !important;
+}
+
+/* Remove padding from nested containers that cause double scrollbars */
+.container-fluid {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+}
+
+/* Fix source categories scrolling */
+#source-categories {
+    max-height: 400px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+    background: #ffffff !important;
+}
+
+/* Ensure no element creates horizontal overflow */
+* {
+    max-width: 100% !important;
+}
+
+/* Fix cards and sections */
+.card {
+    margin-bottom: 16px !important;
+    overflow: hidden !important;
+}
+
+.card-body {
+    padding: 16px !important;
+    overflow: hidden !important;
+}
+
+/* Remove conflicting styles from other fixes */
+.sidebar[style*="transform"],
+.sidebar[style*="position: sticky"],
+.sidebar[style*="position: absolute"] {
+    position: relative !important;
+    transform: none !important;
+}
+
+/* Ensure proper z-indexing */
+.modal {
+    z-index: 10500 !important;
+}
+
+.modal-backdrop {
+    z-index: 10400 !important;
+}
+
+.toast-container {
+    z-index: 11000 !important;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed !important;
+        left: -260px !important;
+        transition: left 0.3s ease !important;
+        z-index: 9999 !important;
+    }
+    
+    .sidebar.active {
+        left: 0 !important;
+    }
+    
+    .content-area,
+    #main-content {
+        margin-left: 0 !important;
+    }
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .sidebar {
+    background: #1f2937 !important;
+    border-right-color: #374151 !important;
+}
+
+[data-theme="dark"] .content-area,
+[data-theme="dark"] #main-content {
+    background: #111827 !important;
+}
+
+[data-theme="dark"] .navbar {
+    background: #1f2937 !important;
+}
+
+[data-theme="dark"] #source-categories {
+    background: #1f2937 !important;
+    border-color: #374151 !important;
+}
+
+/* Override all previous dashboard fixes */
+.sidebar.dashboard-active,
+#dashboard-section ~ .sidebar,
+[data-section="dashboard"] .sidebar {
+    position: relative !important;
+    transform: none !important;
+    left: auto !important;
+    top: auto !important;
+}
+
+/* Ensure sidebar links are clickable */
+.sidebar a,
+.sidebar button {
+    position: relative !important;
+    z-index: 10 !important;
+    pointer-events: auto !important;
+}
+
+/* Remove any absolute positioning that breaks layout */
+.content-area > *,
+#main-content > * {
+    position: relative !important;
+}
+
+/* Fix any elements with fixed height that cause scrollbars */
+.content-section,
+.dashboard-content,
+.search-content {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+}

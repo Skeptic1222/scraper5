@@ -1,0 +1,277 @@
+/**
+ * NUCLEAR UI FIX - Complete Override of All Layout Issues
+ * This is the ultimate fix that overrides EVERYTHING
+ * Load this LAST in base.html
+ */
+
+/* RESET EVERYTHING */
+* {
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Kill all transforms and transitions that might move elements */
+*, *::before, *::after {
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+}
+
+/* HTML and BODY - Absolute control */
+html {
+    width: 100vw !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+}
+
+body {
+    width: 100vw !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* NAVBAR - Absolute positioning */
+.navbar {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100vw !important;
+    height: 60px !important;
+    z-index: 999999 !important;
+    flex-shrink: 0 !important;
+    padding: 0 20px !important;
+}
+
+/* MAIN CONTAINER - Below navbar */
+.main-container {
+    position: absolute !important;
+    top: 60px !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: calc(100vh - 60px) !important;
+    display: grid !important;
+    grid-template-columns: 260px 1fr !important;
+    overflow: hidden !important;
+}
+
+/* SIDEBAR - Grid column 1 */
+.sidebar {
+    grid-column: 1 !important;
+    width: 260px !important;
+    height: 100% !important;
+    position: relative !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    background: var(--sidebar-bg, #f8f9fa) !important;
+    border-right: 1px solid #dee2e6 !important;
+    padding: 20px !important;
+    
+    /* Custom scrollbar for sidebar only */
+    scrollbar-width: thin !important;
+    scrollbar-color: #cbd5e0 transparent !important;
+}
+
+.sidebar::-webkit-scrollbar {
+    width: 6px !important;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: #cbd5e0 !important;
+    border-radius: 3px !important;
+}
+
+/* CONTENT AREA - Grid column 2 */
+.content-area,
+#main-content {
+    grid-column: 2 !important;
+    width: 100% !important;
+    height: 100% !important;
+    position: relative !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    background: var(--content-bg, #ffffff) !important;
+    padding: 20px !important;
+    
+    /* Custom scrollbar for content only */
+    scrollbar-width: thin !important;
+    scrollbar-color: #cbd5e0 transparent !important;
+}
+
+.content-area::-webkit-scrollbar,
+#main-content::-webkit-scrollbar {
+    width: 8px !important;
+}
+
+.content-area::-webkit-scrollbar-thumb,
+#main-content::-webkit-scrollbar-thumb {
+    background: #cbd5e0 !important;
+    border-radius: 4px !important;
+}
+
+/* Kill scrollbars on everything else */
+.container,
+.container-fluid,
+.row,
+.col,
+.card,
+.card-body,
+.modal-body,
+.dropdown-menu {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+}
+
+/* Content sections */
+.content-section {
+    width: 100% !important;
+    height: 100% !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    padding: 20px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    display: none !important;
+}
+
+.content-section.active {
+    display: block !important;
+}
+
+/* Dashboard specific */
+#dashboard-section {
+    display: block !important;
+    position: relative !important;
+    width: 100% !important;
+    height: 100% !important;
+    padding: 20px !important;
+}
+
+/* Source categories - Special case */
+#source-categories {
+    max-height: 400px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+    margin: 10px !important;
+}
+
+/* Prevent any element from creating horizontal scroll */
+* {
+    max-width: 100% !important;
+    word-wrap: break-word !important;
+}
+
+/* Images and media */
+img, video, iframe {
+    max-width: 100% !important;
+    height: auto !important;
+}
+
+/* Tables */
+.table-responsive {
+    overflow-x: auto !important;
+    max-width: 100% !important;
+}
+
+/* Modals */
+.modal {
+    position: fixed !important;
+    z-index: 1000000 !important;
+}
+
+.modal-backdrop {
+    position: fixed !important;
+    z-index: 999998 !important;
+}
+
+/* Toast notifications */
+.toast-container {
+    position: fixed !important;
+    z-index: 1000001 !important;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .main-container {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .sidebar {
+        position: fixed !important;
+        left: -260px !important;
+        top: 60px !important;
+        bottom: 0 !important;
+        width: 260px !important;
+        z-index: 999997 !important;
+        transition: left 0.3s ease !important;
+    }
+    
+    .sidebar.active {
+        left: 0 !important;
+    }
+    
+    .content-area,
+    #main-content {
+        grid-column: 1 !important;
+    }
+}
+
+/* Dark mode support */
+[data-theme="dark"] .sidebar {
+    background: #1f2937 !important;
+    border-right-color: #374151 !important;
+}
+
+[data-theme="dark"] .content-area,
+[data-theme="dark"] #main-content {
+    background: #111827 !important;
+}
+
+[data-theme="dark"] .navbar {
+    background: #1f2937 !important;
+}
+
+/* NUCLEAR OVERRIDE - Nothing can override these */
+.sidebar[style*="transform"],
+.sidebar[style*="position: absolute"],
+.sidebar[style*="position: sticky"],
+.sidebar[style*="top:"],
+.sidebar[style*="left:"] {
+    position: relative !important;
+    transform: none !important;
+    top: auto !important;
+    left: auto !important;
+}
+
+/* Ensure sidebar never moves */
+.sidebar.dashboard-active,
+#dashboard-section ~ .sidebar,
+[data-section="dashboard"] .sidebar {
+    position: relative !important;
+    transform: none !important;
+    left: auto !important;
+    top: auto !important;
+}
+
+/* FINAL INSURANCE - Use CSS Grid which is rock solid */
+@supports (display: grid) {
+    .main-container {
+        display: grid !important;
+    }
+}

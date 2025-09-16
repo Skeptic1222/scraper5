@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Enforce no-ports rule
+scripts/check-no-ports.sh
+
+# Optional linting if tools are present
+if command -v ruff >/dev/null 2>&1; then
+  echo "[pre-commit] ruff check..."
+  ruff check . || true
+fi
+if command -v black >/dev/null 2>&1; then
+  echo "[pre-commit] black check..."
+  black --check . || true
+fi

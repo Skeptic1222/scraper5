@@ -1,4 +1,4 @@
-modules = ["web", "python-3.12", "nodejs-20"]
+modules = ["web", "nodejs-20", "python-3.11"]
 run = "python app.py"
 
 [nix]
@@ -9,7 +9,7 @@ packages = ["cargo", "freetype", "lcms2", "libGL", "libGLU", "libiconv", "libima
 run = ["sh", "-c", "python app.py"]
 
 [workflows]
-runButton = "Run Flask App"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Run Flask App"
@@ -20,9 +20,34 @@ mode = "sequential"
 task = "shell.exec"
 args = "python app.py"
 
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Flask-Scraper"
+
+[[workflows.workflow]]
+name = "Flask-Scraper"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python simple_start.py"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 41765
+externalPort = 3000
 
 [agent]
 expertMode = true

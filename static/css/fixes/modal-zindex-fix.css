@@ -1,0 +1,153 @@
+/**
+ * Modal Z-Index and Display Fix
+ * Fixes extreme z-index values and prevents modals from auto-showing
+ * Addresses the "weird dialog box" issue
+ */
+
+/* ============ Z-INDEX NORMALIZATION ============ */
+
+/* Fix AI Assistant extreme z-index */
+.enhanced-ai-assistant,
+#ai-assistant,
+.ai-assistant-container {
+    z-index: 1060 !important; /* Normal modal z-index + 10 */
+    display: none !important; /* Hidden by default */
+}
+
+/* Show AI Assistant only when explicitly triggered */
+.enhanced-ai-assistant.show,
+#ai-assistant.show,
+.ai-assistant-container.show {
+    display: block !important;
+}
+
+/* Fix Media Viewer z-index */
+.media-viewer-overlay,
+#media-viewer-modal,
+.media-viewer {
+    z-index: 1055 !important; /* Below AI assistant but above normal modals */
+}
+
+/* Fix Toast Container z-index */
+#toast-container,
+.toast-container {
+    z-index: 1070 !important; /* Above modals but reasonable */
+    pointer-events: none; /* Allow clicks through container */
+}
+
+.toast-container .toast {
+    pointer-events: auto; /* But allow clicks on actual toasts */
+}
+
+/* ============ MODAL VISIBILITY CONTROL ============ */
+
+/* Prevent all modals from auto-showing on page load */
+.modal:not(.show) {
+    display: none !important;
+}
+
+/* Hide modal backdrops unless explicitly shown */
+.modal-backdrop:not(.show) {
+    display: none !important;
+}
+
+/* Ensure proper modal backdrop z-index */
+.modal-backdrop.show {
+    z-index: 1040 !important;
+}
+
+/* Standard modal z-index */
+.modal.show {
+    z-index: 1050 !important;
+}
+
+/* ============ AI ASSISTANT SPECIFIC FIXES ============ */
+
+/* Hide AI assistant components by default */
+.ai-assistant-trigger,
+.ai-assistant-button,
+.ai-assistant-fab {
+    display: none !important;
+}
+
+/* Show AI assistant button only after page fully loads */
+body.loaded .ai-assistant-trigger,
+body.loaded .ai-assistant-button,
+body.loaded .ai-assistant-fab {
+    display: block !important;
+}
+
+/* Fix AI assistant positioning */
+.enhanced-ai-assistant {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+}
+
+/* ============ MEDIA VIEWER FIXES ============ */
+
+/* Ensure media viewer is hidden by default */
+#mediaViewerModal:not(.show),
+.media-viewer-modal:not(.show) {
+    display: none !important;
+}
+
+/* ============ OVERLAY FIXES ============ */
+
+/* Remove any rogue overlays */
+.overlay:not(.show),
+.modal-overlay:not(.show),
+.dialog-overlay:not(.show) {
+    display: none !important;
+}
+
+/* ============ DIALOG BOX FIXES ============ */
+
+/* Hide any dialog elements that shouldn't be visible */
+dialog:not([open]) {
+    display: none !important;
+}
+
+/* Fix for any absolute positioned dialogs */
+.dialog-box,
+.popup-dialog,
+.modal-dialog {
+    position: relative !important;
+}
+
+/* ============ BOOTSTRAP MODAL OVERRIDES ============ */
+
+/* Ensure Bootstrap modals behave correctly */
+.modal.fade:not(.show) {
+    display: none !important;
+}
+
+.modal.fade.show {
+    display: block !important;
+}
+
+/* ============ FORCED CLEANUP ============ */
+
+/* Hide any elements that might be causing issues */
+.ai-modal-overlay,
+.ai-assistant-overlay,
+.media-viewer-overlay:not(.active),
+.modal-wrapper:not(.active) {
+    display: none !important;
+}
+
+/* ============ Z-INDEX HIERARCHY (for reference) ============ */
+/*
+ * Proper z-index hierarchy:
+ * - Base content: 0-999
+ * - Dropdowns: 1000-1039
+ * - Modal backdrop: 1040
+ * - Modals: 1050
+ * - Media Viewer: 1055
+ * - AI Assistant: 1060
+ * - Toast notifications: 1070
+ * - Critical alerts: 1080
+ */

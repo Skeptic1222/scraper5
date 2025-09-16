@@ -1,0 +1,39 @@
+{
+  "preferences": {
+    "download": {
+      "default_directory": "/mnt/c/inetpub/wwwroot/scraper/downloads",
+      "prompt_for_download": false
+    },
+    "profile": {
+      "default_content_settings": {
+        "popups": 0
+      }
+    },
+    "safebrowsing": {
+      "enabled": false
+    }
+  },
+  "args": [
+    "--enable-logging",
+    "--v=1",
+    "--dump-dom",
+    "--enable-features=NetworkService,NetworkServiceInProcess",
+    "--log-level=0",
+    "--log-file=debug_logs/browser/edge.log",
+    "--enable-chrome-browser-cloud-management",
+    "--disable-background-timer-throttling",
+    "--disable-backgrounding-occluded-windows",
+    "--disable-renderer-backgrounding",
+    "--disable-features=TranslateUI",
+    "--disable-ipc-flooding-protection",
+    "--disable-dev-shm-usage",
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--disable-gpu",
+    "--disable-web-security",
+    "--disable-features=IsolateOrigins,site-per-process",
+    "--allow-running-insecure-content",
+    "--disable-blink-features=AutomationControlled",
+    "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0"
+  ]
+}

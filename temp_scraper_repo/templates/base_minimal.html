@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Enhanced Media Scraper">
+
+    <title>{% block title %}Enhanced Media Scraper{% endblock %}</title>
+
+    <!-- EMERGENCY FIX: Must load FIRST to prevent white screen -->
+    <script src="{{ url_for('static', filename='js/emergency-white-screen-fix.js') }}"></script>
+
+    <!-- Minimal CSS Only -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* Minimal critical styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        /* Sidebar styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            height: 100vh;
+            background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 20px 0;
+        }
+
+        .sidebar-nav a {
+            display: block;
+            padding: 12px 20px;
+            color: white;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+
+        .sidebar-nav a:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .sidebar-nav a.active {
+            background: rgba(255,255,255,0.2);
+            border-left: 3px solid white;
+        }
+
+        /* Main content */
+        .main-content {
+            margin-left: 250px;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Hide all sections by default */
+        .content-section {
+            display: none;
+        }
+
+        /* Show active section */
+        .content-section.active {
+            display: block;
+        }
+
+        /* Basic card styles */
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Basic button styles */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: opacity 0.3s;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-download"></i>
+            Media Scraper
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" data-section="dashboard" class="nav-link active">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a href="#" data-section="search" class="nav-link">
+                <i class="fas fa-search"></i> Search
+            </a>
+            <a href="#" data-section="assets" class="nav-link">
+                <i class="fas fa-images"></i> Assets
+            </a>
+            <a href="#" data-section="settings" class="nav-link">
+                <i class="fas fa-cog"></i> Settings
+            </a>
+        </nav>
+        <div class="sidebar-footer" style="padding: 20px;">
+            {% if current_user and current_user.is_authenticated %}
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <img src="{{ current_user.picture }}" alt="User" style="width: 30px; height: 30px; border-radius: 50%;">
+                    <div style="flex: 1;">
+                        <div>{{ current_user.name }}</div>
+                        <a href="/auth/logout" style="color: rgba(255,255,255,0.7); font-size: 12px;">Logout</a>
+                    </div>
+                </div>
+            {% else %}
+                <a href="/auth/login" class="btn" style="display: block; width: 100%; background: white; color: #2a5298; text-align: center; text-decoration: none;">
+                    <i class="fab fa-google"></i> Sign in
+                </a>
+            {% endif %}
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="content-section active">
+            <h1>Dashboard</h1>
+            <div class="card">
+                <h2>Welcome to Enhanced Media Scraper</h2>
+                <p>Download and manage media from multiple sources.</p>
+            </div>
+        </div>
+
+        <!-- Search Section -->
+        <div id="search" class="content-section">
+            <h1>Search Media</h1>
+            <div class="card">
+                <input type="text" class="form-control" placeholder="Enter search query..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                <button class="btn btn-primary" style="margin-top: 10px;">Search</button>
+            </div>
+        </div>
+
+        <!-- Assets Section -->
+        <div id="assets" class="content-section">
+            <h1>Asset Library</h1>
+            <div class="card">
+                <p>Your downloaded assets will appear here.</p>
+            </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div id="settings" class="content-section">
+            <h1>Settings</h1>
+            <div class="card">
+                <p>Configure your preferences.</p>
+            </div>
+        </div>
+        {% endblock %}
+    </main>
+
+    <!-- Minimal JavaScript -->
+    <script>
+        // Simple navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('.content-section');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // Get target section
+                    const targetSection = this.dataset.section;
+
+                    // Update active states
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Show/hide sections
+                    sections.forEach(s => s.classList.remove('active'));
+                    const target = document.getElementById(targetSection);
+                    if (target) {
+                        target.classList.add('active');
+                    }
+                });
+            });
+
+            console.log('✅ Minimal UI initialized successfully');
+        });
+    </script>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
