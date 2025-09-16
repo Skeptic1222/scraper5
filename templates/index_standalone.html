@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Media Scraper</title>
+    
+    <!-- Bootstrap CSS only, no custom CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        /* Inline styles to ensure visibility */
+        body {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        .sidebar {
+            min-height: 100vh;
+            background: #f8f9fa;
+            padding: 20px;
+            border-right: 1px solid #dee2e6;
+        }
+        
+        .nav-link {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: none;
+            background: white;
+            color: #333;
+            text-align: left;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        
+        .nav-link.active {
+            background: #007bff;
+            color: white;
+        }
+        
+        .nav-link:hover {
+            background: #e9ecef;
+        }
+        
+        .nav-link.active:hover {
+            background: #0056b3;
+        }
+        
+        .content-section {
+            display: none;
+            padding: 20px;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+        
+        .assets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            padding: 20px 0;
+        }
+        
+        .source-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            padding: 15px 0;
+        }
+        
+        .source-item {
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .source-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .source-item.selected {
+            background: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar">
+                <h4 class="mb-4">Media Scraper</h4>
+                <nav>
+                    <button class="nav-link active" onclick="showSection('search')">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    <button class="nav-link" onclick="showSection('dashboard')">
+                        <i class="fas fa-th-large"></i> Dashboard
+                    </button>
+                    <button class="nav-link" onclick="showSection('assets')">
+                        <i class="fas fa-folder"></i> Assets
+                    </button>
+                </nav>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-10">
+                <!-- Search Section -->
+                <div id="search" class="content-section active">
+                    <h2>Media Search</h2>
+                    <p>Search across 78+ content sources</p>
+                    
+                    <form id="searchForm" onsubmit="handleSearch(event)">
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" placeholder="Enter your search query..." id="searchInput">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="mb-4">
+                        <h4>Select Sources</h4>
+                        <div class="source-grid" id="sourceGrid">
+                            <div class="source-item" onclick="toggleSource(this)">Google Images</div>
+                            <div class="source-item" onclick="toggleSource(this)">Bing Images</div>
+                            <div class="source-item" onclick="toggleSource(this)">Unsplash</div>
+                            <div class="source-item" onclick="toggleSource(this)">Pixabay</div>
+                            <div class="source-item" onclick="toggleSource(this)">Pexels</div>
+                            <div class="source-item" onclick="toggleSource(this)">Reddit</div>
+                            <div class="source-item" onclick="toggleSource(this)">Instagram</div>
+                            <div class="source-item" onclick="toggleSource(this)">Twitter</div>
+                        </div>
+                    </div>
+                    
+                    <div id="searchResults"></div>
+                </div>
+                
+                <!-- Dashboard Section -->
+                <div id="dashboard" class="content-section">
+                    <h2>Dashboard</h2>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Total Assets</h5>
+                                    <p class="card-text display-4">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Recent Downloads</h5>
+                                    <p class="card-text display-4">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Active Jobs</h5>
+                                    <p class="card-text display-4">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Assets Section -->
+                <div id="assets" class="content-section">
+                    <h2>Media Assets</h2>
+                    <p>Your downloaded media files will appear here</p>
+                    <div class="assets-grid" id="assetsGrid">
+                        <!-- Assets will be displayed here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Simple, clean JavaScript - no external dependencies or complex scripts
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected section
+            const targetSection = document.getElementById(sectionName);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            
+            // Update navigation
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+        
+        function toggleSource(element) {
+            element.classList.toggle('selected');
+        }
+        
+        function handleSearch(event) {
+            event.preventDefault();
+            const query = document.getElementById('searchInput').value;
+            const selectedSources = document.querySelectorAll('.source-item.selected');
+            const sources = Array.from(selectedSources).map(el => el.textContent);
+            
+            document.getElementById('searchResults').innerHTML = 
+                '<div class="alert alert-info">Searching for: ' + query + 
+                '<br>Sources: ' + (sources.length ? sources.join(', ') : 'None selected') + '</div>';
+        }
+        
+        // Initialize on page load
+        console.log('Enhanced Media Scraper - UI Loaded Successfully');
+    </script>
+</body>
+</html>
