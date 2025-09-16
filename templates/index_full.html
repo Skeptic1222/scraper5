@@ -222,16 +222,16 @@
         </div>
         
         <nav>
-            <button class="nav-link active" onclick="showSection('search')">
+            <button class="nav-link active" data-section="search">
                 <i class="fas fa-search"></i> Search Media
             </button>
-            <button class="nav-link" onclick="showSection('dashboard')">
+            <button class="nav-link" data-section="dashboard">
                 <i class="fas fa-th-large"></i> Dashboard
             </button>
-            <button class="nav-link" onclick="showSection('assets')">
+            <button class="nav-link" data-section="assets">
                 <i class="fas fa-folder"></i> Asset Library
             </button>
-            <button class="nav-link" onclick="showSection('settings')">
+            <button class="nav-link" data-section="settings">
                 <i class="fas fa-cog"></i> Settings
             </button>
         </nav>
@@ -247,7 +247,7 @@
             <h2><i class="fas fa-search"></i> Media Search</h2>
             <p class="text-muted">Search across 78+ premium content sources</p>
             
-            <form id="searchForm" onsubmit="performSearch(event)">
+            <form id="searchForm">
                 <div class="input-group mb-3">
                     <input type="text" class="form-control form-control-lg" 
                            placeholder="Enter your search query..." 
@@ -257,6 +257,12 @@
                     </button>
                 </div>
             </form>
+            
+            <div class="mb-3">
+                <button type="button" class="btn btn-sm btn-secondary me-2" id="selectAllSources">Select All</button>
+                <button type="button" class="btn btn-sm btn-secondary me-2" id="selectNoneSources">Select None</button>
+                <span class="text-muted" id="selectedCount">0 sources selected</span>
+            </div>
             
             <div id="sourceCategories">
                 <!-- Sources will be loaded here dynamically -->
@@ -344,16 +350,16 @@
             <p class="text-muted">Your downloaded media collection</p>
             
             <div class="filter-buttons">
-                <button class="btn btn-outline-primary filter-btn active" onclick="filterAssets('all')">
+                <button class="btn btn-outline-primary filter-btn active" data-filter="all">
                     <i class="fas fa-th"></i> All
                 </button>
-                <button class="btn btn-outline-primary filter-btn" onclick="filterAssets('images')">
+                <button class="btn btn-outline-primary filter-btn" data-filter="images">
                     <i class="fas fa-image"></i> Images
                 </button>
-                <button class="btn btn-outline-primary filter-btn" onclick="filterAssets('videos')">
+                <button class="btn btn-outline-primary filter-btn" data-filter="videos">
                     <i class="fas fa-video"></i> Videos
                 </button>
-                <button class="btn btn-outline-primary filter-btn" onclick="filterAssets('documents')">
+                <button class="btn btn-outline-primary filter-btn" data-filter="documents">
                     <i class="fas fa-file"></i> Documents
                 </button>
             </div>
@@ -402,312 +408,6 @@
         </div>
     </div>
     
-    <script>
-        // State management
-        let selectedSources = new Set();
-        let currentFilter = 'all';
-        let allSources = {};
-        
-        // Initialize application
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Enhanced Media Scraper - Full Version Loaded');
-            loadSources();
-            loadDashboardStats();
-            loadAssets();
-            checkAuthentication();
-        });
-        
-        // Navigation
-        function showSection(sectionName) {
-            document.querySelectorAll('.content-section').forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            const targetSection = document.getElementById(sectionName);
-            if (targetSection) {
-                targetSection.classList.add('active');
-            }
-            
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            // Load section-specific data
-            if (sectionName === 'assets') {
-                loadAssets();
-            } else if (sectionName === 'dashboard') {
-                loadDashboardStats();
-            }
-        }
-        
-        // Load sources from API
-        async function loadSources() {
-            try {
-                const response = await fetch('/api/sources');
-                const data = await response.json();
-                
-                const container = document.getElementById('sourceCategories');
-                container.innerHTML = '';
-                
-                // Process sources by category
-                const categories = {};
-                
-                if (data.sources && Array.isArray(data.sources)) {
-                    data.sources.forEach(source => {
-                        const category = source.category || 'Other';
-                        if (!categories[category]) {
-                            categories[category] = [];
-                        }
-                        categories[category].push(source);
-                        allSources[source.id] = source;
-                    });
-                } else if (data.categories) {
-                    Object.entries(data.categories).forEach(([cat, sources]) => {
-                        categories[cat] = sources;
-                        sources.forEach(source => {
-                            allSources[source.id] = source;
-                        });
-                    });
-                }
-                
-                // Render categories
-                Object.entries(categories).forEach(([categoryName, sources]) => {
-                    const categoryDiv = document.createElement('div');
-                    categoryDiv.className = 'source-category';
-                    
-                    categoryDiv.innerHTML = `
-                        <h5>${categoryName} (${sources.length})</h5>
-                        <div class="source-grid" id="cat-${categoryName}">
-                            ${sources.map(source => `
-                                <div class="source-item" data-source-id="${source.id}" onclick="toggleSource('${source.id}')">
-                                    <i class="fas fa-globe"></i> ${source.name}
-                                </div>
-                            `).join('')}
-                        </div>
-                    `;
-                    
-                    container.appendChild(categoryDiv);
-                });
-                
-                // Select recommended sources by default
-                ['google_images', 'bing_images', 'unsplash'].forEach(id => {
-                    if (allSources[id]) {
-                        selectedSources.add(id);
-                        const element = document.querySelector(`[data-source-id="${id}"]`);
-                        if (element) element.classList.add('selected');
-                    }
-                });
-                
-            } catch (error) {
-                console.error('Error loading sources:', error);
-                document.getElementById('sourceCategories').innerHTML = 
-                    '<div class="alert alert-danger">Failed to load sources. Please refresh the page.</div>';
-            }
-        }
-        
-        // Toggle source selection
-        function toggleSource(sourceId) {
-            if (selectedSources.has(sourceId)) {
-                selectedSources.delete(sourceId);
-            } else {
-                selectedSources.add(sourceId);
-            }
-            
-            const element = document.querySelector(`[data-source-id="${sourceId}"]`);
-            if (element) {
-                element.classList.toggle('selected');
-            }
-        }
-        
-        // Perform search
-        async function performSearch(event) {
-            event.preventDefault();
-            
-            const query = document.getElementById('searchInput').value;
-            const sources = Array.from(selectedSources);
-            
-            if (sources.length === 0) {
-                alert('Please select at least one source');
-                return;
-            }
-            
-            const spinner = document.getElementById('searchSpinner');
-            const results = document.getElementById('searchResults');
-            spinner.classList.add('active');
-            results.innerHTML = '';
-            
-            // Simulate progress
-            let progress = 0;
-            const progressBar = document.getElementById('searchProgress');
-            const progressInterval = setInterval(() => {
-                progress += Math.random() * 20;
-                if (progress > 90) progress = 90;
-                progressBar.style.width = progress + '%';
-            }, 500);
-            
-            try {
-                const response = await fetch('/api/search', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        query: query,
-                        sources: sources,
-                        limit: 50
-                    })
-                });
-                
-                const data = await response.json();
-                
-                clearInterval(progressInterval);
-                progressBar.style.width = '100%';
-                
-                setTimeout(() => {
-                    spinner.classList.remove('active');
-                    displaySearchResults(data.results || []);
-                }, 500);
-                
-            } catch (error) {
-                console.error('Search error:', error);
-                clearInterval(progressInterval);
-                spinner.classList.remove('active');
-                results.innerHTML = '<div class="alert alert-danger">Search failed. Please try again.</div>';
-            }
-        }
-        
-        // Display search results
-        function displaySearchResults(results) {
-            const container = document.getElementById('searchResults');
-            
-            if (results.length === 0) {
-                container.innerHTML = '<div class="alert alert-info">No results found. Try different keywords or sources.</div>';
-                return;
-            }
-            
-            container.innerHTML = `
-                <h4>Found ${results.length} results</h4>
-                <div class="row g-3">
-                    ${results.map(result => `
-                        <div class="col-md-3">
-                            <div class="card">
-                                <img src="${result.thumbnail || '/static/placeholder.jpg'}" class="card-img-top" alt="${result.title}">
-                                <div class="card-body">
-                                    <p class="card-text">${result.title || 'Untitled'}</p>
-                                    <button class="btn btn-sm btn-primary" onclick="downloadAsset('${result.url}')">
-                                        <i class="fas fa-download"></i> Download
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-        
-        // Load dashboard statistics
-        async function loadDashboardStats() {
-            try {
-                const response = await fetch('/api/stats');
-                const stats = await response.json();
-                
-                document.getElementById('totalAssets').textContent = stats.total_assets || '0';
-                document.getElementById('recentDownloads').textContent = stats.recent_downloads || '0';
-                document.getElementById('activeJobs').textContent = stats.active_jobs || '0';
-                document.getElementById('storageUsed').textContent = (stats.storage_mb || 0) + ' MB';
-                
-            } catch (error) {
-                console.error('Error loading stats:', error);
-            }
-        }
-        
-        // Load assets
-        async function loadAssets() {
-            const spinner = document.getElementById('assetsSpinner');
-            const grid = document.getElementById('assetsGrid');
-            
-            if (spinner) spinner.classList.add('active');
-            
-            try {
-                const response = await fetch('/api/assets');
-                const assets = await response.json();
-                
-                if (spinner) spinner.classList.remove('active');
-                displayAssets(assets.assets || []);
-                
-            } catch (error) {
-                console.error('Error loading assets:', error);
-                if (spinner) spinner.classList.remove('active');
-                grid.innerHTML = '<div class="alert alert-danger">Failed to load assets.</div>';
-            }
-        }
-        
-        // Display assets
-        function displayAssets(assets) {
-            const grid = document.getElementById('assetsGrid');
-            
-            if (assets.length === 0) {
-                grid.innerHTML = '<div class="alert alert-info">No assets yet. Start searching and downloading media!</div>';
-                return;
-            }
-            
-            const filteredAssets = currentFilter === 'all' 
-                ? assets 
-                : assets.filter(asset => asset.type === currentFilter);
-            
-            grid.innerHTML = filteredAssets.map(asset => `
-                <div class="asset-card" onclick="viewAsset(${asset.id})">
-                    <img src="${asset.thumbnail || '/static/placeholder.jpg'}" class="asset-thumbnail" alt="${asset.name}">
-                    <div class="asset-info">
-                        <h6>${asset.name || 'Untitled'}</h6>
-                        <small class="text-muted">${asset.size || 'Unknown size'}</small>
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        // Filter assets
-        function filterAssets(type) {
-            currentFilter = type;
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            loadAssets();
-        }
-        
-        // Check authentication
-        async function checkAuthentication() {
-            try {
-                const response = await fetch('/auth/check');
-                const data = await response.json();
-                
-                const userDisplay = document.getElementById('userDisplay');
-                if (data.authenticated) {
-                    userDisplay.innerHTML = `
-                        <div><i class="fas fa-user"></i> ${data.user.email || 'User'}</div>
-                        <small>Premium Account</small>
-                    `;
-                } else {
-                    userDisplay.innerHTML = `
-                        <div><i class="fas fa-user"></i> Guest User</div>
-                        <small>Limited Access</small>
-                    `;
-                }
-            } catch (error) {
-                console.error('Auth check error:', error);
-            }
-        }
-        
-        // Placeholder functions
-        function downloadAsset(url) {
-            alert('Download started for: ' + url);
-        }
-        
-        function viewAsset(id) {
-            alert('Viewing asset ID: ' + id);
-        }
-    </script>
+    <script src="/static/js/app-full.js"></script>
 </body>
 </html>
