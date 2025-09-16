@@ -1005,6 +1005,80 @@ def revoke_admin(user_id):
     return redirect(request.referrer or url_for("index"))
 
 
+# Test Admin Login Routes (for testing without Google OAuth)
+@auth_bp.route("/test-admin")
+def test_admin_login_page():
+    """Display test admin login page (only when enabled)"""
+    if not os.environ.get("ENABLE_TEST_ADMIN", "false").lower() == "true":
+        flash("Test admin login is disabled", "error")
+        return redirect(url_for("index"))
+    
+    from flask import render_template
+    return render_template("test_admin_login.html")
+
+
+@auth_bp.route("/test-admin-login", methods=["POST"])
+def test_admin_login():
+    """Handle test admin login (bypasses Google OAuth for testing)"""
+    try:
+        # Check if test admin is enabled
+        if not os.environ.get("ENABLE_TEST_ADMIN", "false").lower() == "true":
+            return jsonify({"success": False, "error": "Test admin login is disabled"}), 403
+        
+        # Get password from request
+        data = request.get_json() if request.is_json else request.form
+        password = data.get("password")
+        
+        # Check password against environment variable
+        test_admin_password = os.environ.get("TEST_ADMIN_PASSWORD", "admin123")
+        
+        if password != test_admin_password:
+            logger.warning("Failed test admin login attempt")
+            return jsonify({"success": False, "error": "Invalid password"}), 401
+        
+        # Create or get test admin user
+        test_admin_email = "admin@test.local"
+        test_admin_name = "Test Admin"
+        test_admin_id = "test_admin_001"
+        mem_id = f"mem:{test_admin_id}"
+        
+        # Check if user exists in memory
+        user = _MEM_USERS.get(mem_id)
+        if not user:
+            # Create new test admin user
+            user = MemoryUser(
+                test_admin_id,
+                email=test_admin_email,
+                name=test_admin_name,
+                picture="https://ui-avatars.com/api/?name=Test+Admin&background=667eea&color=fff",
+                is_admin=True,
+                google_id=None
+            )
+            _MEM_USERS[mem_id] = user
+            logger.info(f"Created test admin user: {test_admin_email}")
+        
+        # Log the user in
+        session.permanent = True
+        login_user(user, remember=True, duration=timedelta(days=7))
+        
+        logger.info(f"Test admin login successful: {test_admin_email}")
+        
+        return jsonify({
+            "success": True,
+            "message": "Test admin login successful",
+            "redirect": url_for("index"),
+            "user": {
+                "email": user.email,
+                "name": user.name,
+                "is_admin": True
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Test admin login error: {e}")
+        return jsonify({"success": False, "error": "Login failed"}), 500
+
+
 # Development-only mock login to avoid 404s on legacy links
 @auth_bp.route("/mock-login")
 @auth_bp.route("/mock-login/<email>")
