@@ -215,122 +215,76 @@ def comprehensive_multi_source_scrape_optimized(query, search_type='comprehensiv
     """Optimized multi-source scraper with parallel downloads"""
     print(f"[SCRAPE] Starting optimized search for '{query}' with sources: {enabled_sources}")
 
-    # Load cache
-    load_cache()
-
+    # Import the real scraper
+    from scrapers.real_scraper import search_and_download
+    
     # Create output directory
     if not output_dir:
         output_dir = os.path.join('downloads', f'{query.replace(" ", "_")}_{int(time.time())}')
     os.makedirs(output_dir, exist_ok=True)
 
-    results = {
-        'total_detected': 0,
-        'total_downloaded': 0,
-        'total_images': 0,
-        'total_videos': 0,
-        'sources': {}
-    }
-
-    # Test URLs for Wonder Woman
-    import os as local_os
-    base_path = local_os.path.abspath('test_images')
-    wonder_woman_urls = [
-        f'file://{base_path}/wonder_woman_1.jpg',
-        f'file://{base_path}/wonder_woman_2.jpg',
-        f'file://{base_path}/wonder_woman_3.jpg',
-        f'file://{base_path}/wonder_woman_logo.jpg',
-        f'file://{base_path}/wonder_woman_comic.jpg'
-    ]
-
-    # Add more test URLs
-    test_urls = {
-        'google_images': wonder_woman_urls[:2],
-        'bing_images': [wonder_woman_urls[2]],
-        'reddit': [wonder_woman_urls[3]],
-        'imgur': [wonder_woman_urls[4]],
-        'unsplash': wonder_woman_urls[:1],
-        'pixabay': wonder_woman_urls[1:2],
-        'pexels': wonder_woman_urls[2:3]
-    }
-
-    # Collect all URLs first
-    all_download_tasks = []
-    source_url_map = {}
-
-    for source in enabled_sources:
-        if source not in test_urls:
-            print(f"[SCRAPE] Skipping unknown source: {source}")
-            continue
-
-        urls = test_urls[source][:max_content_per_source]
-        results['sources'][source] = {
-            'detected': len(urls),
-            'downloaded': 0,
-            'images': 0,
-            'videos': 0
-        }
-        results['total_detected'] += len(urls)
-
-        # Track which URLs belong to which source
-        for url in urls:
-            all_download_tasks.append(url)
-            source_url_map[url] = source
-
-    # Download all URLs in parallel
-    print(f"[SCRAPE] Downloading {len(all_download_tasks)} files in parallel...")
-
-    def batch_progress_callback(message, progress):
+    # Define progress callback wrapper
+    def wrapped_progress_callback(message, progress, downloaded, images, videos):
         if progress_callback:
-            # Calculate detailed progress
-            downloaded = sum(s.get('downloaded', 0) for s in results['sources'].values())
-            images = sum(s.get('images', 0) for s in results['sources'].values())
-            videos = sum(s.get('videos', 0) for s in results['sources'].values())
             progress_callback(message, progress, downloaded, images, videos, "")
+        
+        # Update job progress if job_id provided
+        if job_id:
+            db_job_manager.update_job(
+                job_id,
+                progress=progress,
+                message=message,
+                downloaded=downloaded,
+                images=images,
+                videos=videos
+            )
 
-    download_results = download_batch(all_download_tasks, output_dir, batch_progress_callback)
-
-    # Process results
-    for result in download_results:
-        url = result['url']
-        source = source_url_map.get(url)
-
-        if result['success'] and result['filepath']:
-            results['sources'][source]['downloaded'] += 1
-            results['total_downloaded'] += 1
-
-            # Determine file type
-            if any(result['filepath'].endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.gif']):
-                results['sources'][source]['images'] += 1
-                results['total_images'] += 1
-            elif any(result['filepath'].endswith(ext) for ext in ['.mp4', '.webm']):
-                results['sources'][source]['videos'] += 1
-                results['total_videos'] += 1
-
-            # Add to assets if job_id provided
-            if job_id:
+    # Use real scraper to search and download
+    results = search_and_download(
+        query=query,
+        sources=enabled_sources,
+        max_per_source=max_content_per_source,
+        output_dir=output_dir,
+        safe_search=safe_search,
+        progress_callback=wrapped_progress_callback
+    )
+    
+    # Add to assets if job_id provided
+    if job_id and results['total_downloaded'] > 0:
+        for root, dirs, files in os.walk(output_dir):
+            for file in files:
+                filepath = os.path.join(root, file)
                 metadata = {
-                    'source': source,
                     'query': query,
-                    'url': url,
-                    'content_type': 'image'  # Simplified for now
+                    'search_type': search_type,
+                    'safe_search': safe_search
                 }
-                db_asset_manager.add_asset(job_id, result['filepath'], 'image', metadata)
-
+                # Determine content type
+                if any(file.endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.gif']):
+                    content_type = 'image'
+                elif any(file.endswith(ext) for ext in ['.mp4', '.webm']):
+                    content_type = 'video'
+                else:
+                    content_type = 'unknown'
+                
+                db_asset_manager.add_asset(job_id, filepath, content_type, metadata)
+    
     # Update job with final results
     if job_id:
         db_job_manager.update_job(
             job_id,
+            status='completed',
+            progress=100,
+            message=f'Search completed successfully! Downloaded {results["total_downloaded"]} files',
             detected=results['total_detected'],
             downloaded=results['total_downloaded'],
             images=results['total_images'],
             videos=results['total_videos'],
-            sources=results['sources']
+            sources=results['sources'],
+            results=results
         )
 
-    # Save cache
-    save_cache()
-
-    print(f"[SCRAPE] Optimized search complete. Downloaded {results['total_downloaded']} files")
+    print(f"[SCRAPE] Search complete. Downloaded {results['total_downloaded']} files")
     return results
 
 # Make the optimized version the default

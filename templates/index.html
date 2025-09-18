@@ -137,12 +137,23 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h2>Your Assets</h2>
-            <button class="btn btn-sm btn-outline-primary" id="refresh-assets">
-                <i class="fas fa-sync"></i> Refresh
-            </button>
+            <div>
+                <!-- View Toggle Buttons -->
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-sm btn-outline-primary active" data-view="thumbnail">
+                        <i class="fas fa-th"></i> Thumbnail
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-view="list">
+                        <i class="fas fa-list"></i> List View
+                    </button>
+                </div>
+                <button class="btn btn-sm btn-outline-primary ms-2" id="refresh-assets">
+                    <i class="fas fa-sync"></i> Refresh
+                </button>
+            </div>
         </div>
         <div class="card-body">
-            <div id="asset-grid">
+            <div id="asset-grid" class="asset-view thumbnail-view">
                 <div class="text-center text-muted p-4">
                     <div class="spinner-border mb-3" role="status">
                         <span class="visually-hidden">Loading...</span>
@@ -211,6 +222,9 @@
 <!-- Navigation Manager -->
 <script src="{{ url_for('static', filename='js/modules/nav.js') }}"></script>
 
+<!-- Dashboard -->
+<script src="{{ url_for('static', filename='js/modules/dashboard.js') }}"></script>
+
 <!-- Enhanced Search UI -->
 <script src="{{ url_for('static', filename='js/modules/enhanced-search-ui.js') }}"></script>
 
@@ -218,7 +232,7 @@
 <script src="{{ url_for('static', filename='js/modules/search-handler.js') }}"></script>
 
 <!-- Asset Library -->
-<script src="{{ url_for('static', filename='js/modules/asset-library.js') }}"></script>
+<script src="{{ url_for('static', filename='js/modules/asset-library-enhanced.js') }}"></script>
 
 <script>
 // Initialize modules when DOM is ready

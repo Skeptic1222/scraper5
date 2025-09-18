@@ -136,6 +136,7 @@ class SearchHandler {
         if (data.job_id) {
             // Async search with job ID
             this.currentJobId = data.job_id;
+            this.showJobStarted(data.job_id);
             this.monitorProgress(data.job_id);
         } else if (data.results) {
             // Direct results
@@ -145,6 +146,47 @@ class SearchHandler {
             this.showError('Unexpected response format');
             this.isSearching = false;
         }
+    }
+    
+    showJobStarted(jobId) {
+        const statusDiv = document.createElement('div');
+        statusDiv.className = 'job-status-card';
+        statusDiv.id = `job-${jobId}`;
+        statusDiv.innerHTML = `
+            <div class="job-header">
+                <h4>Download Job Started</h4>
+                <span class="job-id">ID: ${jobId.substring(0, 8)}...</span>
+            </div>
+            <div class="job-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+                <span class="progress-text">Starting...</span>
+            </div>
+            <div class="job-stats">
+                <span class="stat"><i class="fas fa-download"></i> <span class="downloaded">0</span> downloaded</span>
+                <span class="stat"><i class="fas fa-search"></i> <span class="detected">0</span> detected</span>
+                <span class="stat"><i class="fas fa-image"></i> <span class="images">0</span> images</span>
+                <span class="stat"><i class="fas fa-video"></i> <span class="videos">0</span> videos</span>
+            </div>
+            <div class="job-message">Initializing download...</div>
+        `;
+        
+        // Add to active jobs section or create one
+        let activeJobs = document.getElementById('active-jobs');
+        if (!activeJobs) {
+            activeJobs = document.createElement('div');
+            activeJobs.id = 'active-jobs';
+            activeJobs.className = 'active-jobs-container';
+            
+            const searchSection = document.querySelector('[data-section="search"]');
+            if (searchSection) {
+                searchSection.insertBefore(activeJobs, searchSection.firstChild);
+            }
+        }
+        
+        activeJobs.insertBefore(statusDiv, activeJobs.firstChild);
+        this.showStatus('Download job started! Monitoring progress...', 'success');
     }
 
     async monitorProgress(jobId) {
@@ -355,6 +397,48 @@ class SearchHandler {
             `;
         }
         this.hideProgress();
+    }
+    
+    updateJobCard(jobId, data) {
+        const jobCard = document.getElementById(`job-${jobId}`);
+        if (!jobCard) return;
+        
+        // Update progress bar
+        const progress = data.progress || 0;
+        const progressFill = jobCard.querySelector('.progress-fill');
+        const progressText = jobCard.querySelector('.progress-text');
+        if (progressFill) {
+            progressFill.style.width = `${progress}%`;
+        }
+        if (progressText) {
+            progressText.textContent = `${progress}% complete`;
+        }
+        
+        // Update stats
+        const stats = {
+            downloaded: data.downloaded || 0,
+            detected: data.detected || 0,
+            images: data.images || 0,
+            videos: data.videos || 0
+        };
+        
+        Object.keys(stats).forEach(key => {
+            const elem = jobCard.querySelector(`.${key}`);
+            if (elem) elem.textContent = stats[key];
+        });
+        
+        // Update message
+        const messageElem = jobCard.querySelector('.job-message');
+        if (messageElem && data.message) {
+            messageElem.textContent = data.message;
+        }
+        
+        // Update status color
+        if (data.status === 'completed') {
+            jobCard.classList.add('completed');
+        } else if (data.status === 'error' || data.status === 'failed') {
+            jobCard.classList.add('error');
+        }
     }
 }
 
