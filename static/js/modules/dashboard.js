@@ -35,8 +35,11 @@ class DashboardManager {
     }
     
     createDashboardContent() {
-        const dashboardSection = document.getElementById('dashboard');
-        if (!dashboardSection) return;
+        const dashboardSection = document.getElementById('dashboard-dynamic-content');
+        if (!dashboardSection) {
+            console.error('Dashboard dynamic content container not found');
+            return;
+        }
         
         dashboardSection.innerHTML = `
             <div class="dashboard-container">
@@ -578,3 +581,10 @@ class DashboardManager {
 
 // Initialize dashboard manager
 window.dashboard = new DashboardManager();
+
+// Expose initialization function for navigation
+window.initializeDashboard = function() {
+    if (window.dashboard) {
+        window.dashboard.init();
+    }
+};

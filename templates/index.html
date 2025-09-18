@@ -226,21 +226,24 @@
 <!-- Asset Library -->
 <script src="{{ url_for('static', filename='js/modules/asset-library-enhanced.js') }}"></script>
 
+<!-- Media Viewer -->
+<script src="{{ url_for('static', filename='js/modules/media-viewer.js') }}"></script>
+
 <script>
 // Initialize modules when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize dashboard if it's the active section
     const dashboardSection = document.getElementById('dashboard-section');
     if (dashboardSection && dashboardSection.classList.contains('active')) {
-        if (window.dashboardManager) {
-            window.dashboardManager.init();
+        if (window.dashboard) {
+            window.dashboard.init();
         }
     }
     
     // Also initialize when navigating to dashboard
     window.addEventListener('hashchange', () => {
-        if (window.location.hash === '#dashboard' && window.dashboardManager) {
-            window.dashboardManager.init();
+        if (window.location.hash === '#dashboard' && window.dashboard) {
+            window.dashboard.init();
         }
     });
     
