@@ -904,5 +904,15 @@ window.initializeDashboard = function() {
     }
 };
 
-// Dashboard will be initialized by the navigation system when needed
-// No auto-initialization - wait for nav.js to call initializeDashboard()
+// HARD INITIALIZATION - Create global instance immediately
+(function(){
+    try {
+        const instance = new DownloadDashboard();
+        window.downloadDashboard = instance; // make it globally accessible
+        window.initializeDashboard = () => instance.init(); // compatibility alias
+        instance.init(); // will observe/initialize when dashboard becomes active
+        console.log('[DownloadDashboard] Global instance created and initialized');
+    } catch (e) { 
+        console.error('DownloadDashboard init failed', e); 
+    }
+})();
