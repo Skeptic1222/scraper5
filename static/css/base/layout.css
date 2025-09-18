@@ -136,12 +136,12 @@ body {
 
 /* Content Sections */
 .content-section {
-    display: none;
+    display: none !important;
     animation: fadeIn 0.3s ease;
 }
 
 .content-section.active {
-    display: block;
+    display: block !important;
 }
 
 @keyframes fadeIn {
