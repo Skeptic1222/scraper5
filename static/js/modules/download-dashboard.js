@@ -30,12 +30,30 @@ class DownloadDashboard {
     }
     
     createDashboardUI() {
-        const container = document.getElementById('dashboard-dynamic-content');
+        let container = document.getElementById('dashboard-dynamic-content');
+        console.log('Looking for dashboard container...');
+        console.log('Container found:', container ? 'YES' : 'NO');
         if (!container) {
             console.error('Dashboard dynamic content container not found');
-            return;
+            // Try to find the dashboard section and create the container
+            const dashboardSection = document.getElementById('dashboard-section');
+            if (dashboardSection) {
+                console.log('Dashboard section found, checking for container...');
+                let dynamicContent = dashboardSection.querySelector('#dashboard-dynamic-content');
+                if (!dynamicContent) {
+                    console.log('Creating dashboard-dynamic-content container...');
+                    dynamicContent = document.createElement('div');
+                    dynamicContent.id = 'dashboard-dynamic-content';
+                    dashboardSection.appendChild(dynamicContent);
+                }
+                container = dynamicContent;
+            } else {
+                console.error('Dashboard section not found either!');
+                return;
+            }
         }
         
+        console.log('Populating dashboard HTML...');
         // Clear any existing content and populate with the dashboard
         container.innerHTML = `
             <div class="download-dashboard">
