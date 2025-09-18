@@ -1,31 +1,89 @@
-# Authentication and Authorization
-# Database and ORM
-# Environment and configuration
-# Security
-Flask-Dance==7.0.0
-Flask-Login==0.6.2
-Flask-SQLAlchemy==3.0.5
-Flask==2.3.2
-Pillow==10.0.0
-SQLAlchemy==2.0.19
-Werkzeug==2.3.6
-beautifulsoup4==4.12.2
-cryptography==41.0.3
-flask-dance==7.0.0
-flask-login==0.6.3
-flask-migrate==4.0.7
-flask-sqlalchemy==3.1.1
+# Flask and Web Framework
+Flask==3.1.2
+Flask-SQLAlchemy==3.1.1
+Flask-Login==0.6.3
+Flask-WTF==1.2.2
+Flask-Dance==7.1.0
+Flask-Migrate==4.1.0
 flask-talisman==1.1.0
-flask-wtf==1.2.1
-google-auth-httplib2==0.1.0
-google-auth-oauthlib==1.0.0
-google-auth==2.22.0
-mss==9.0.1
-openai>=0.27.0 
-opencv-python==4.8.1.78
-paypalrestsdk==1.13.1
-pyodbc==4.0.39
-python-dotenv==1.0.0
-python-dotenv==1.0.1
-requests-oauthlib==1.3.1
-requests==2.31.0
+Werkzeug==3.1.3
+WTForms==3.2.1
+Jinja2==3.1.6
+
+# Database
+SQLAlchemy==2.0.43
+psycopg2-binary==2.9.10
+alembic==1.16.5
+
+# Authentication & OAuth
+google-auth==2.40.3
+google-auth-httplib2==0.2.0
+google-auth-oauthlib==1.2.2
+oauthlib==3.3.1
+requests-oauthlib==2.0.0
+cryptography==45.0.7
+
+# Web Scraping
+beautifulsoup4==4.13.5
+requests==2.32.5
+httpx==0.28.1
+urllib3==2.5.0
+charset-normalizer==3.4.3
+
+# Image Processing
+pillow==11.3.0
+opencv-python==4.12.0.88
+numpy==2.2.6
+mss==10.1.0
+
+# AI Integration
+openai==1.107.3
+
+# Utilities
+python-dotenv==1.1.1
+tqdm==4.67.1
+click==8.2.1
+soupsieve==2.8
+
+# Type Checking and Validation
+pydantic==2.11.9
+pydantic_core==2.33.2
+typing_extensions==4.15.0
+typing-inspection==0.4.1
+annotated-types==0.7.0
+
+# HTTP and Network
+httpcore==1.0.9
+httplib2==0.31.0
+anyio==4.10.0
+sniffio==1.3.1
+h11==0.16.0
+certifi==2025.8.3
+idna==3.10
+
+# Security
+pyOpenSSL==25.2.0
+pyasn1==0.6.1
+pyasn1_modules==0.4.2
+rsa==4.9.1
+
+# Supporting Libraries
+MarkupSafe==3.0.2
+itsdangerous==2.2.0
+blinker==1.9.0
+cachetools==5.5.2
+greenlet==3.2.4
+six==1.17.0
+cffi==2.0.0
+pycparser==2.23
+pyparsing==3.2.4
+URLObject==3.0.0
+Mako==1.3.10
+jiter==0.11.0
+distro==1.9.0
+
+# Optional: Payment Processing
+paypalrestsdk==1.13.3
+
+# Optional: Database Drivers
+pyodbc==5.2.0
