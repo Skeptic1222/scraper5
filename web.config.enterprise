@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <system.webServer>
+    <!-- URL Rewrite for Flask Application -->
+    <rewrite>
+      <rules>
+        <!-- Handle static files directly -->
+        <rule name="Static Files" stopProcessing="true">
+          <match url="^(static|uploads|downloads|serve)/.*" />
+          <action type="None" />
+        </rule>
+        
+        <!-- Redirect all other requests to Flask app -->
+        <rule name="Flask Application" stopProcessing="true">
+          <match url=".*" />
+          <conditions logicalGrouping="MatchAll">
+            <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+            <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+          </conditions>
+          <action type="Rewrite" url="app.py/{R:0}" />
+        </rule>
+      </rules>
+    </rewrite>
+
+    <!-- FastCGI Configuration for Python -->
+    <handlers>
+      <add name="Python FastCGI" 
+           path="*.py" 
+           verb="*" 
+           modules="FastCgiModule" 
+           scriptProcessor="C:\Python312\python.exe|C:\inetpub\wwwroot\scraper\wfastcgi.py" 
+           resourceType="Unspecified" 
+           requireAccess="Script" />
+    </handlers>
+
+    <!-- Default Documents -->
+    <defaultDocument>
+      <files>
+        <clear />
+        <add value="app.py" />
+      </files>
+    </defaultDocument>
+
+    <!-- Security Headers -->
+    <httpProtocol>
+      <customHeaders>
+        <add name="X-Content-Type-Options" value="nosniff" />
+        <add name="X-Frame-Options" value="SAMEORIGIN" />
+        <add name="X-XSS-Protection" value="1; mode=block" />
+        <add name="Strict-Transport-Security" value="max-age=31536000; includeSubDomains" />
+        <add name="Referrer-Policy" value="strict-origin-when-cross-origin" />
+      </customHeaders>
+    </httpProtocol>
+
+    <!-- Enhanced MIME Types for Media Files -->
+    <staticContent>
+      <!-- Remove existing to avoid conflicts -->
+      <remove fileExtension=".css" />
+      <remove fileExtension=".js" />
+      <remove fileExtension=".json" />
+      <remove fileExtension=".png" />
+      <remove fileExtension=".jpg" />
+      <remove fileExtension=".jpeg" />
+      <remove fileExtension=".gif" />
+      <remove fileExtension=".svg" />
+      <remove fileExtension=".woff" />
+      <remove fileExtension=".woff2" />
+      <remove fileExtension=".mp4" />
+      <remove fileExtension=".webm" />
+      <remove fileExtension=".mkv" />
+      <remove fileExtension=".webp" />
+
+      <!-- Standard web types -->
+      <mimeMap fileExtension=".css" mimeType="text/css" />
+      <mimeMap fileExtension=".js" mimeType="application/javascript" />
+      <mimeMap fileExtension=".json" mimeType="application/json" />
+      
+      <!-- Image types -->
+      <mimeMap fileExtension=".png" mimeType="image/png" />
+      <mimeMap fileExtension=".jpg" mimeType="image/jpeg" />
+      <mimeMap fileExtension=".jpeg" mimeType="image/jpeg" />
+      <mimeMap fileExtension=".gif" mimeType="image/gif" />
+      <mimeMap fileExtension=".webp" mimeType="image/webp" />
+      <mimeMap fileExtension=".bmp" mimeType="image/bmp" />
+      <mimeMap fileExtension=".svg" mimeType="image/svg+xml" />
+      
+      <!-- Video types -->
+      <mimeMap fileExtension=".mp4" mimeType="video/mp4" />
+      <mimeMap fileExtension=".webm" mimeType="video/webm" />
+      <mimeMap fileExtension=".mkv" mimeType="video/x-matroska" />
+      <mimeMap fileExtension=".avi" mimeType="video/x-msvideo" />
+      <mimeMap fileExtension=".mov" mimeType="video/quicktime" />
+      
+      <!-- Font types -->
+      <mimeMap fileExtension=".woff" mimeType="font/woff" />
+      <mimeMap fileExtension=".woff2" mimeType="font/woff2" />
+      <mimeMap fileExtension=".ttf" mimeType="font/ttf" />
+      <mimeMap fileExtension=".otf" mimeType="font/otf" />
+      
+      <!-- Cache control for static assets -->
+      <clientCache cacheControlMode="UseMaxAge" cacheControlMaxAge="30.00:00:00" />
+    </staticContent>
+
+    <!-- Error Pages -->
+    <httpErrors errorMode="DetailedLocalOnly">
+      <remove statusCode="404" subStatusCode="-1" />
+      <error statusCode="404" path="/static/error/404.html" responseMode="File" />
+      <remove statusCode="500" subStatusCode="-1" />
+      <error statusCode="500" path="/static/error/500.html" responseMode="File" />
+    </httpErrors>
+
+    <!-- Compression for Performance -->
+    <httpCompression>
+      <scheme name="gzip" dll="%Windir%\system32\inetsrv\gzip.dll" />
+      <dynamicTypes>
+        <add mimeType="application/json" enabled="true" />
+        <add mimeType="application/javascript" enabled="true" />
+        <add mimeType="text/css" enabled="true" />
+        <add mimeType="text/html" enabled="true" />
+        <add mimeType="text/plain" enabled="true" />
+      </dynamicTypes>
+      <staticTypes>
+        <add mimeType="application/json" enabled="true" />
+        <add mimeType="application/javascript" enabled="true" />
+        <add mimeType="text/css" enabled="true" />
+        <add mimeType="text/html" enabled="true" />
+        <add mimeType="image/svg+xml" enabled="true" />
+      </staticTypes>
+    </httpCompression>
+
+    <!-- Request Limits and Security -->
+    <security>
+      <requestFiltering>
+        <requestLimits maxAllowedContentLength="104857600" maxQueryString="2048" maxUrl="4096" />
+        <fileExtensions>
+          <add fileExtension=".py" allowed="true" />
+          <add fileExtension=".config" allowed="false" />
+          <add fileExtension=".log" allowed="false" />
+        </fileExtensions>
+        <hiddenSegments>
+          <add segment="logs" />
+          <add segment="instance" />
+          <add segment="__pycache__" />
+          <add segment=".env" />
+          <add segment="config" />
+        </hiddenSegments>
+      </requestFiltering>
+    </security>
+  </system.webServer>
+
+  <!-- Application Settings for Python/Flask -->
+  <appSettings>
+    <add key="WSGI_HANDLER" value="app.application" />
+    <add key="PYTHONPATH" value="C:\inetpub\wwwroot\scraper" />
+    <add key="WSGI_LOG" value="C:\inetpub\logs\scraper\python.log" />
+    <add key="WSGI_RESTART_FILE_REGEX" value=".*\.(py|config)$" />
+    <add key="FLASK_ENV" value="production" />
+    <add key="FLASK_DEBUG" value="0" />
+  </appSettings>
+
+  <!-- Connection Strings for SQL Server Express -->
+  <connectionStrings>
+    <add name="DefaultConnection" 
+         connectionString="Server=.\SQLEXPRESS;Database=enhanced_media_scraper;Integrated Security=true;TrustServerCertificate=true;MultipleActiveResultSets=true;Connection Timeout=30;" 
+         providerName="System.Data.SqlClient" />
+  </connectionStrings>
+</configuration>

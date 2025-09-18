@@ -1,0 +1,303 @@
+# Enhanced Media Scraper - Windows Enterprise Deployment Script
+# For IIS + SQL Server Express deployment
+# Run as Administrator
+
+param(
+    [string]$AppPath = "C:\inetpub\wwwroot\scraper",
+    [string]$DatabaseName = "enhanced_media_scraper",
+    [string]$PythonVersion = "3.12",
+    [switch]$SkipDatabase,
+    [switch]$SkipIIS,
+    [switch]$Force
+)
+
+Write-Host "Enhanced Media Scraper - Windows Enterprise Deployment" -ForegroundColor Green
+Write-Host "======================================================" -ForegroundColor Green
+
+# Check if running as Administrator
+if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    Write-Error "This script must be run as Administrator"
+    exit 1
+}
+
+# Function to check if command exists
+function Test-Command($cmdname) {
+    return [bool](Get-Command -Name $cmdname -ErrorAction SilentlyContinue)
+}
+
+# Step 1: Install Prerequisites
+Write-Host "Step 1: Installing Prerequisites..." -ForegroundColor Yellow
+
+# Check Python installation
+$pythonPath = "C:\Python$($PythonVersion.Replace('.', ''))"
+if (-not (Test-Path $pythonPath)) {
+    Write-Host "Installing Python $PythonVersion..." -ForegroundColor Blue
+    $pythonUrl = "https://www.python.org/ftp/python/$PythonVersion.0/python-$PythonVersion.0-amd64.exe"
+    $pythonInstaller = "$env:TEMP\python-installer.exe"
+    Invoke-WebRequest -Uri $pythonUrl -OutFile $pythonInstaller
+    Start-Process -FilePath $pythonInstaller -ArgumentList "/quiet", "InstallAllUsers=1", "PrependPath=1", "Include_test=0" -Wait
+    Remove-Item $pythonInstaller -Force
+}
+
+# Install wfastcgi for IIS integration
+Write-Host "Installing wfastcgi for IIS integration..." -ForegroundColor Blue
+& "$pythonPath\python.exe" -m pip install wfastcgi
+& "$pythonPath\Scripts\wfastcgi-enable.exe"
+
+# Step 2: Configure IIS
+if (-not $SkipIIS) {
+    Write-Host "Step 2: Configuring IIS..." -ForegroundColor Yellow
+    
+    # Enable IIS features
+    $features = @(
+        "IIS-WebServerRole",
+        "IIS-WebServer",
+        "IIS-CommonHttpFeatures",
+        "IIS-HttpErrors",
+        "IIS-HttpLogging",
+        "IIS-RequestFiltering",
+        "IIS-StaticContent",
+        "IIS-DefaultDocument",
+        "IIS-DirectoryBrowsing",
+        "IIS-ASPNET45",
+        "IIS-CGI",
+        "IIS-ISAPIExtensions",
+        "IIS-ISAPIFilter",
+        "IIS-HttpCompressionStatic",
+        "IIS-HttpCompressionDynamic",
+        "IIS-HttpRedirect",
+        "IIS-IISCertificateMappingAuthentication",
+        "IIS-URLAuthorization",
+        "IIS-RequestFiltering",
+        "IIS-CustomLogging",
+        "IIS-BasicAuthentication",
+        "IIS-WindowsAuthentication"
+    )
+    
+    foreach ($feature in $features) {
+        Write-Host "Enabling $feature..." -ForegroundColor Blue
+        Enable-WindowsOptionalFeature -Online -FeatureName $feature -All -NoRestart
+    }
+    
+    # Import WebAdministration module
+    Import-Module WebAdministration
+    
+    # Create application directory
+    if (-not (Test-Path $AppPath)) {
+        New-Item -ItemType Directory -Path $AppPath -Force
+    }
+    
+    # Set permissions on application directory
+    $acl = Get-Acl $AppPath
+    $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("IIS_IUSRS", "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
+    $acl.SetAccessRule($accessRule)
+    $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("IUSR", "ReadAndExecute", "ContainerInherit,ObjectInherit", "None", "Allow")
+    $acl.SetAccessRule($accessRule)
+    Set-Acl -Path $AppPath -AclObject $acl
+    
+    # Create Application Pool
+    $poolName = "EnhancedMediaScraperPool"
+    if (Get-IISAppPool -Name $poolName -ErrorAction SilentlyContinue) {
+        Remove-WebAppPool -Name $poolName
+    }
+    New-WebAppPool -Name $poolName
+    Set-ItemProperty -Path "IIS:\AppPools\$poolName" -Name processModel.identityType -Value ApplicationPoolIdentity
+    Set-ItemProperty -Path "IIS:\AppPools\$poolName" -Name recycling.periodicRestart.time -Value "00:00:00"
+    Set-ItemProperty -Path "IIS:\AppPools\$poolName" -Name processModel.maxProcesses -Value 1
+    
+    # Create IIS Site
+    $siteName = "EnhancedMediaScraper"
+    if (Get-Website -Name $siteName -ErrorAction SilentlyContinue) {
+        Remove-Website -Name $siteName
+    }
+    New-Website -Name $siteName -Port 80 -PhysicalPath $AppPath -ApplicationPool $poolName
+}
+
+# Step 3: Configure SQL Server Express
+if (-not $SkipDatabase) {
+    Write-Host "Step 3: Configuring SQL Server Express..." -ForegroundColor Yellow
+    
+    # Check if SQL Server Express is installed
+    $sqlService = Get-Service -Name "MSSQL`$SQLEXPRESS" -ErrorAction SilentlyContinue
+    if (-not $sqlService) {
+        Write-Host "SQL Server Express not found. Please install SQL Server Express first." -ForegroundColor Red
+        Write-Host "Download from: https://www.microsoft.com/en-us/sql-server/sql-server-downloads" -ForegroundColor Yellow
+        return
+    }
+    
+    # Start SQL Server Express service
+    if ($sqlService.Status -ne "Running") {
+        Start-Service -Name "MSSQL`$SQLEXPRESS"
+    }
+    
+    # Create database
+    $createDbScript = @"
+USE master;
+IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = '$DatabaseName')
+BEGIN
+    CREATE DATABASE [$DatabaseName];
+END
+"@
+    
+    $sqlcmdPath = "${env:ProgramFiles}\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\sqlcmd.exe"
+    if (-not (Test-Path $sqlcmdPath)) {
+        $sqlcmdPath = "${env:ProgramFiles(x86)}\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\sqlcmd.exe"
+    }
+    
+    if (Test-Path $sqlcmdPath) {
+        Write-Host "Creating database '$DatabaseName'..." -ForegroundColor Blue
+        & $sqlcmdPath -S ".\SQLEXPRESS" -E -Q $createDbScript
+    } else {
+        Write-Host "sqlcmd not found. Please install SQL Server Command Line Utilities." -ForegroundColor Red
+    }
+}
+
+# Step 4: Deploy Application
+Write-Host "Step 4: Deploying Application..." -ForegroundColor Yellow
+
+# Copy application files
+if (Test-Path "app.py") {
+    Write-Host "Copying application files..." -ForegroundColor Blue
+    Copy-Item -Path "." -Destination $AppPath -Recurse -Force -Exclude @("deployment", ".git", "__pycache__", "*.pyc", ".env")
+    
+    # Copy enterprise web.config
+    if (Test-Path "web.config.enterprise") {
+        Copy-Item -Path "web.config.enterprise" -Destination "$AppPath\web.config" -Force
+    }
+    
+    # Create required directories
+    $dirs = @("logs", "uploads", "downloads", "static\error")
+    foreach ($dir in $dirs) {
+        $fullPath = Join-Path $AppPath $dir
+        if (-not (Test-Path $fullPath)) {
+            New-Item -ItemType Directory -Path $fullPath -Force
+        }
+    }
+    
+    # Create error pages
+    $error404 = @"
+<!DOCTYPE html>
+<html>
+<head><title>Page Not Found</title></head>
+<body><h1>404 - Page Not Found</h1><p>The requested page could not be found.</p></body>
+</html>
+"@
+    
+    $error500 = @"
+<!DOCTYPE html>
+<html>
+<head><title>Server Error</title></head>
+<body><h1>500 - Server Error</h1><p>An internal server error occurred.</p></body>
+</html>
+"@
+    
+    $error404 | Out-File -FilePath "$AppPath\static\error\404.html" -Encoding UTF8
+    $error500 | Out-File -FilePath "$AppPath\static\error\500.html" -Encoding UTF8
+}
+
+# Step 5: Install Python Dependencies
+Write-Host "Step 5: Installing Python Dependencies..." -ForegroundColor Yellow
+
+if (Test-Path "$AppPath\requirements.txt") {
+    Set-Location $AppPath
+    
+    # Handle Windows-specific dependency installation issues
+    Write-Host "Installing critical packages individually (Windows compatibility)..." -ForegroundColor Blue
+    
+    $criticalPackages = @("flask", "sqlalchemy", "pyodbc", "flask-sqlalchemy", "flask-login")
+    foreach ($package in $criticalPackages) {
+        Write-Host "Installing $package..." -ForegroundColor Blue
+        & "$pythonPath\python.exe" -m pip install $package --force-reinstall
+        Start-Sleep -Seconds 2
+    }
+    
+    # Install remaining packages
+    Write-Host "Installing remaining packages..." -ForegroundColor Blue
+    & "$pythonPath\python.exe" -m pip install -r requirements.txt --force-reinstall
+}
+
+# Step 6: Create Environment Configuration
+Write-Host "Step 6: Creating Environment Configuration..." -ForegroundColor Yellow
+
+$envContent = @"
+# Enhanced Media Scraper - Production Configuration
+FLASK_ENV=production
+FLASK_DEBUG=False
+
+# Database Configuration (SQL Server Express)
+DATABASE_URL=mssql+pyodbc://./\SQLEXPRESS/$DatabaseName?driver=ODBC Driver 18 for SQL Server&trusted_connection=yes&TrustServerCertificate=yes
+
+# Application Settings
+SECRET_KEY=$(New-Guid).ToString().Replace('-', '')
+APP_BASE=/scraper
+SESSION_COOKIE_SECURE=true
+SESSION_COOKIE_HTTPONLY=true
+
+# Logging
+LOG_LEVEL=INFO
+LOG_FILE=C:\inetpub\logs\scraper\app.log
+
+# Google OAuth (Configure these)
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# OpenAI API (Configure this)
+OPENAI_API_KEY=your-openai-api-key
+
+# Admin Configuration
+ADMIN_EMAIL=admin@yourcompany.com
+"@
+
+$envContent | Out-File -FilePath "$AppPath\.env" -Encoding UTF8
+
+# Step 7: Initialize Database
+Write-Host "Step 7: Initializing Database..." -ForegroundColor Yellow
+
+if (Test-Path "$AppPath\init_db.py") {
+    Set-Location $AppPath
+    & "$pythonPath\python.exe" init_db.py
+}
+
+# Step 8: Create Windows Service (Optional)
+Write-Host "Step 8: Creating Windows Service (Optional)..." -ForegroundColor Yellow
+
+$serviceScript = @"
+import sys
+import os
+sys.path.insert(0, r'$AppPath')
+os.chdir(r'$AppPath')
+
+from app import app
+
+if __name__ == '__main__':
+    app.run(host='127.0.0.1', port=8080, debug=False)
+"@
+
+$serviceScript | Out-File -FilePath "$AppPath\service.py" -Encoding UTF8
+
+# Step 9: Test Installation
+Write-Host "Step 9: Testing Installation..." -ForegroundColor Yellow
+
+try {
+    Set-Location $AppPath
+    $testResult = & "$pythonPath\python.exe" -c "import app; print('Application imports successfully')"
+    Write-Host $testResult -ForegroundColor Green
+} catch {
+    Write-Host "Application test failed: $_" -ForegroundColor Red
+}
+
+# Final Instructions
+Write-Host ""
+Write-Host "Deployment Complete!" -ForegroundColor Green
+Write-Host "==================" -ForegroundColor Green
+Write-Host "1. Configure Google OAuth credentials in $AppPath\.env"
+Write-Host "2. Configure OpenAI API key in $AppPath\.env"
+Write-Host "3. Test the application by visiting http://localhost"
+Write-Host "4. Check logs in C:\inetpub\logs\scraper\"
+Write-Host ""
+Write-Host "Troubleshooting:"
+Write-Host "- Check IIS Application Pool is running"
+Write-Host "- Check SQL Server Express service is running"
+Write-Host "- Check file permissions on $AppPath"
+Write-Host "- Check logs for errors"
+Write-Host ""
