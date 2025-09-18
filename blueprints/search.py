@@ -41,6 +41,14 @@ except Exception:
                 "sources": {},
             }
 
+# Enhanced scraper import
+try:
+    from scrapers.enhanced_scraper import perform_enhanced_search, enhanced_scraper
+    ENHANCED_SCRAPER_AVAILABLE = True
+except Exception as e:
+    print(f"[WARNING] Enhanced scraper not available: {e}")
+    ENHANCED_SCRAPER_AVAILABLE = False
+
 
 search_bp = Blueprint("search", __name__)
 
@@ -159,6 +167,186 @@ def run_comprehensive_search_job(
         except Exception as e:
             db_job_manager.update_job(
                 job_id, status="error", message=f"Error: {str(e)}", progress=0
+            )
+
+
+@search_bp.route("/api/enhanced-search", methods=["POST"])
+def start_enhanced_search():
+    """Enhanced search with safe-search bypass and video support"""
+    try:
+        data = request.json
+        query = data.get("query", "").strip()
+        include_videos = data.get("include_videos", False)
+        include_adult = data.get("include_adult", False)
+        force_bypass_safe_search = data.get("bypass_safe_search", False)
+        max_content = min(data.get("max_content", 20), 100)
+        sources = data.get("sources", ["google", "bing", "duckduckgo"])
+        
+        if not query:
+            return jsonify({"success": False, "error": "Query is required"})
+        
+        # Check authentication and permissions
+        user_id = None
+        safe_search = True
+        
+        if not current_user.is_authenticated:
+            # Limit guest users
+            sources = sources[:2]
+            max_content = min(max_content, 10)
+            include_adult = False
+            force_bypass_safe_search = False
+        else:
+            user_id = current_user.id
+            # Check NSFW permissions
+            if current_user.can_use_nsfw() and current_user.is_nsfw_enabled:
+                safe_search = False
+            
+            # Apply bypass if requested and allowed
+            if force_bypass_safe_search and current_user.can_use_nsfw():
+                safe_search = False
+        
+        # Create job
+        job_id = db_job_manager.create_job(
+            "enhanced_search",
+            {
+                "query": query,
+                "sources": sources,
+                "max_content": max_content,
+                "include_videos": include_videos,
+                "include_adult": include_adult and not safe_search,
+                "safe_search": safe_search,
+                "user_id": user_id,
+            },
+        )
+        
+        # Start background thread
+        app_instance = current_app._get_current_object()
+        thread = threading.Thread(
+            target=run_enhanced_search_job,
+            args=(job_id, query, sources, max_content, safe_search, include_videos, include_adult, app_instance),
+        )
+        thread.daemon = True
+        thread.start()
+        
+        return jsonify({
+            "success": True,
+            "job_id": job_id,
+            "message": f"Enhanced search started (Safe search: {'BYPASSED' if not safe_search else 'ON'})",
+            "safe_search_enabled": safe_search,
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+
+def run_enhanced_search_job(job_id, query, sources, max_content, safe_search, include_videos, include_adult, app_instance):
+    """Run enhanced search in background"""
+    with app_instance.app_context():
+        try:
+            db_job_manager.update_job(
+                job_id, status="running", message=f"Starting enhanced search for '{query}'..."
+            )
+            
+            if not ENHANCED_SCRAPER_AVAILABLE:
+                # Fallback to regular scraper
+                return run_comprehensive_search_job(
+                    job_id, query, "all", max_content, sources, safe_search, app_instance
+                )
+            
+            # Use enhanced scraper
+            results = perform_enhanced_search(
+                query=query,
+                sources=sources,
+                limit_per_source=max_content // len(sources) if sources else 10,
+                safe_search=safe_search,
+                include_videos=include_videos,
+                include_adult=include_adult and not safe_search
+            )
+            
+            # Download results
+            downloaded = 0
+            images = 0
+            videos = 0
+            
+            for idx, result in enumerate(results):
+                progress = int((idx / len(results)) * 100) if results else 0
+                
+                db_job_manager.update_job(
+                    job_id,
+                    status="running",
+                    progress=progress,
+                    message=f"Downloading {result['type']} from {result['source']}...",
+                    downloaded=downloaded,
+                    images=images,
+                    videos=videos
+                )
+                
+                # Handle video downloads
+                if result['type'] == 'video' and enhanced_scraper.check_ytdlp_support(result['url']):
+                    video_file = enhanced_scraper.download_with_ytdlp(result['url'])
+                    if video_file:
+                        videos += 1
+                        downloaded += 1
+                        # Save to database
+                        db_asset_manager.save_file_to_db(
+                            video_file,
+                            user_id=None,
+                            container="videos",
+                            metadata={"source": result['source'], "query": query}
+                        )
+                # Handle image downloads
+                elif result['type'] in ['image', 'adult']:
+                    try:
+                        response = enhanced_scraper.session.get(
+                            result['url'],
+                            timeout=30,
+                            stream=True
+                        )
+                        if response.status_code == 200:
+                            # Save image
+                            import tempfile
+                            import os
+                            
+                            ext = result['url'].split('.')[-1][:4]
+                            if ext not in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
+                                ext = 'jpg'
+                            
+                            with tempfile.NamedTemporaryFile(delete=False, suffix=f'.{ext}') as tmp:
+                                for chunk in response.iter_content(8192):
+                                    tmp.write(chunk)
+                                tmp_path = tmp.name
+                            
+                            # Save to database
+                            db_asset_manager.save_file_to_db(
+                                tmp_path,
+                                user_id=None,
+                                container="images",
+                                metadata={"source": result['source'], "query": query, "adult": result['type'] == 'adult'}
+                            )
+                            
+                            os.unlink(tmp_path)
+                            images += 1
+                            downloaded += 1
+                    except Exception as e:
+                        print(f"Failed to download {result['url']}: {e}")
+            
+            # Update final status
+            db_job_manager.update_job(
+                job_id,
+                status="completed",
+                progress=100,
+                message=f"Enhanced search completed! Downloaded {downloaded} files ({images} images, {videos} videos)",
+                downloaded=downloaded,
+                images=images,
+                videos=videos,
+                detected=len(results)
+            )
+            
+        except Exception as e:
+            db_job_manager.update_job(
+                job_id,
+                status="error",
+                message=f"Enhanced search error: {str(e)}",
+                progress=0
             )
 
 
