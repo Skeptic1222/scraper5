@@ -101,9 +101,11 @@ def create_progress_callback(job_id, metadata=None):
 def run_comprehensive_search_job(
     job_id, query, search_type, max_content, enabled_sources, safe_search=True, app=None
 ):
-    # Get the Flask app instance if not provided
+    # Get the actual Flask app instance
     if app is None:
-        from app import app
+        from flask import current_app
+        # Get the underlying app from the proxy
+        app = current_app._get_current_object()
 
     with app.app_context():
         try:
@@ -221,8 +223,8 @@ def start_enhanced_search():
             },
         )
         
-        # Start background thread
-        app_instance = current_app
+        # Start background thread with actual Flask app instance
+        app_instance = current_app._get_current_object()
         thread = threading.Thread(
             target=run_enhanced_search_job,
             args=(job_id, query, sources, max_content, safe_search, include_videos, include_adult, app_instance),
@@ -491,8 +493,8 @@ def start_comprehensive_search():
                 "user_id": user_id,
             },
         )
-        # Get the current app instance to pass to the thread
-        app_instance = current_app
+        # Get the actual Flask app instance to pass to the thread
+        app_instance = current_app._get_current_object()
 
         thread = threading.Thread(
             target=run_comprehensive_search_job,

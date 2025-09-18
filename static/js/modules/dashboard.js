@@ -37,11 +37,20 @@ class DashboardManager {
             const response = await fetch('/api/jobs');
             const data = await response.json();
             
-            if (data.jobs) {
+            if (data.jobs && data.jobs.length > 0) {
                 this.activeJobs = data.jobs.filter(job => job.status === 'running');
                 this.completedJobs = data.jobs.filter(job => job.status === 'completed');
                 
                 // Calculate metrics
+                this.metrics.activeJobs = this.activeJobs.length;
+                this.metrics.totalDownloads = this.completedJobs.reduce((sum, job) => 
+                    sum + (job.downloaded || 0), 0);
+            } else {
+                // For guest users, show cached session data if available
+                const sessionJobs = JSON.parse(sessionStorage.getItem('recentJobs') || '[]');
+                this.activeJobs = sessionJobs.filter(job => job.status === 'running');
+                this.completedJobs = sessionJobs.filter(job => job.status === 'completed');
+                
                 this.metrics.activeJobs = this.activeJobs.length;
                 this.metrics.totalDownloads = this.completedJobs.reduce((sum, job) => 
                     sum + (job.downloaded || 0), 0);

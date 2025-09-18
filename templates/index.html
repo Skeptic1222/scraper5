@@ -229,8 +229,20 @@
 <script>
 // Initialize modules when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    // Search UI will be initialized when search section is shown
-    // Asset Library will be initialized when assets section is shown
+    // Initialize dashboard if it's the active section
+    const dashboardSection = document.getElementById('dashboard-section');
+    if (dashboardSection && dashboardSection.classList.contains('active')) {
+        if (window.dashboardManager) {
+            window.dashboardManager.init();
+        }
+    }
+    
+    // Also initialize when navigating to dashboard
+    window.addEventListener('hashchange', () => {
+        if (window.location.hash === '#dashboard' && window.dashboardManager) {
+            window.dashboardManager.init();
+        }
+    });
     
     // Log that everything is loaded
     console.log('Enhanced Media Scraper UI initialized');
