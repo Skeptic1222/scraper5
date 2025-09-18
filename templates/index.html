@@ -172,7 +172,7 @@
 <!-- Navigation Manager -->
 <script src="{{ url_for('static', filename='js/modules/nav.js') }}"></script>
 
-<!-- Download Dashboard -->
+<!-- Download Dashboard Module -->
 <script src="{{ url_for('static', filename='js/modules/download-dashboard.js') }}"></script>
 
 <!-- Enhanced Search UI -->
@@ -191,40 +191,7 @@
 <script src="{{ url_for('static', filename='js/modules/media-viewer.js') }}"></script>
 
 <script>
-// Wait for dashboard script to load then initialize
-window.addEventListener('load', () => {
-    // Small delay to ensure all scripts are loaded
-    setTimeout(() => {
-        const dashboardSection = document.getElementById('dashboard-section');
-        const dashboardContainer = document.getElementById('dashboard-dynamic-content');
-        
-        if (dashboardSection && dashboardContainer && window.downloadDashboard) {
-            // Initialize download dashboard if it's the active section
-            if (dashboardSection.classList.contains('active')) {
-                console.log('Initializing dashboard with container:', dashboardContainer);
-                window.downloadDashboard.init();
-            }
-        } else {
-            console.error('Missing requirements:', {
-                dashboardSection: !!dashboardSection,
-                dashboardContainer: !!dashboardContainer,
-                downloadDashboard: !!window.downloadDashboard
-            });
-        }
-        
-        // Also initialize when navigating to dashboard
-        window.addEventListener('hashchange', () => {
-            if (window.location.hash === '#dashboard' && window.downloadDashboard) {
-                const container = document.getElementById('dashboard-dynamic-content');
-                if (container) {
-                    window.downloadDashboard.init();
-                }
-            }
-        });
-        
-        // Log that everything is loaded
-        console.log('Enhanced Media Scraper UI initialized');
-    }, 500); // Give time for everything to load
-});
+// Simple test - just log that the page loaded
+console.log('Enhanced Media Scraper page loaded');
 </script>
 {% endblock %}

@@ -875,3 +875,18 @@ window.initializeDashboard = function() {
         window.downloadDashboard.init();
     }
 };
+
+// Auto-initialize when this script loads
+// Check if DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('[DownloadDashboard] DOM loaded, auto-initializing dashboard...');
+        window.initializeDashboard();
+    });
+} else {
+    // DOM is already loaded
+    console.log('[DownloadDashboard] DOM already loaded, auto-initializing dashboard...');
+    setTimeout(() => {
+        window.initializeDashboard();
+    }, 100); // Small delay to ensure all elements are ready
+}
