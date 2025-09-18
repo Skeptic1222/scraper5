@@ -1,8 +1,0 @@
-/* Simple, single fix to hide dropdown on load */
-.dropdown-menu {
-    display: none;
-}
-
-.dropdown-menu.show {
-    display: block;
-}
