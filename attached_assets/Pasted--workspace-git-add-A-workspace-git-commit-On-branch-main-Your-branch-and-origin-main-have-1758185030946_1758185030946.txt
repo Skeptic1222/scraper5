@@ -1,0 +1,55 @@
+~/workspace$ git add -A
+~/workspace$ git commit
+On branch main
+Your branch and 'origin/main' have diverged,
+and have 82 and 9 different commits each, respectively.
+
+nothing to commit, working tree clean
+~/workspace$ git push origin main
+Enumerating objects: 989, done.
+Counting objects: 100% (989/989), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (897/897), done.
+Writing objects: 100% (989/989), 1.69 MiB | 6.44 MiB/s, done.
+Total 989 (delta 453), reused 405 (delta 65), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (453/453), done.
+remote: error: GH013: Repository rule violations found for refs/heads/main.
+remote: 
+remote: - GITHUB PUSH PROTECTION
+remote:   —————————————————————————————————————————
+remote:     Resolve the following violations before pushing again
+remote: 
+remote:     - Push cannot contain secrets
+remote: 
+remote:     
+remote:      (?) Learn how to resolve a blocked push
+remote:      https://docs.github.com/code-security/secret-scanning/working-with-secret-scanning-and-push-protection/working-with-push-protection-from-the-command-line#resolving-a-blocked-push
+remote:     
+remote:     
+remote:       —— Google OAuth Client ID ————————————————————————————
+remote:        locations:
+remote:          - commit: c9ff3953a096020de43c4a6e0a251ad5159722d4
+remote:            path: temp_scraper_repo/docs/SITE_ARCHITECTURE_AND_FIXES.md:115
+remote:          - commit: c9ff3953a096020de43c4a6e0a251ad5159722d4
+remote:            path: temp_scraper_repo/docs/archive/specialized/OAUTH_FIX_DOCUMENTATION.md:76
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/Skeptic1222/Scraper2/security/secret-scanning/unblock-secret/32rggEfcMyVKaPwuSJSh8Qy3Kdf
+remote:     
+remote:     
+remote:       —— Google OAuth Client Secret ————————————————————————
+remote:        locations:
+remote:          - commit: c9ff3953a096020de43c4a6e0a251ad5159722d4
+remote:            path: temp_scraper_repo/docs/SITE_ARCHITECTURE_AND_FIXES.md:116
+remote:          - commit: c9ff3953a096020de43c4a6e0a251ad5159722d4
+remote:            path: temp_scraper_repo/docs/archive/specialized/OAUTH_FIX_DOCUMENTATION.md:77
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/Skeptic1222/Scraper2/security/secret-scanning/unblock-secret/32rggIUy0JIW3hkwMe96KUAy3Uk
+remote:     
+remote: 
+remote: 
+To https://github.com/Skeptic1222/Scraper2
+ ! [remote rejected] main -> main (push declined due to repository rule violations)
+error: failed to push some refs to 'https://github.com/Skeptic1222/Scraper2'
+~/workspace$ 
