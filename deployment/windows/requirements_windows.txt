@@ -1,0 +1,27 @@
+# Windows-specific requirements for Enhanced Media Scraper
+# Install with: pip install -r requirements_windows.txt
+
+# Windows Service Support
+pywin32==306
+pypiwin32==223
+
+# SQL Server Express Support
+pyodbc==5.0.1
+
+# IIS Integration
+waitress==3.0.0
+
+# Additional Windows utilities
+psutil==5.9.6
+wmi==1.5.1
+
+# Core Flask application requirements (if not already installed)
+Flask==2.3.2
+Flask-SQLAlchemy==3.0.5
+Flask-Login==0.6.2
+SQLAlchemy==2.0.19
+requests==2.31.0
+beautifulsoup4==4.12.2
+Pillow==10.0.0
+python-dotenv==1.0.0
+gunicorn==21.2.0

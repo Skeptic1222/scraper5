@@ -7,8 +7,12 @@ import os
 import platform
 from datetime import timedelta
 
-# Base path for the app when reverse-proxied (IIS). Must not include trailing slash.
-APP_BASE = os.getenv("APP_BASE", "/scraper").rstrip("/") or "/scraper"
+# Base path for the app when reverse-proxied (IIS). Handle root deployment correctly.
+APP_BASE = os.getenv("APP_BASE", "/scraper")
+if APP_BASE in ("", "/"):
+    APP_BASE = "/"
+else:
+    APP_BASE = "/" + APP_BASE.strip("/")
 
 # Detect Windows environment for path handling
 IS_WINDOWS = platform.system() == "Windows"
@@ -18,10 +22,10 @@ class DefaultConfig:
     PREFERRED_URL_SCHEME = "https" if os.getenv("PUBLIC_BASE_URL", "").startswith("https") else "http"
 
     # Database Configuration with SQL Server Express support
-    # Default to environment variable, with fallbacks for different platforms
+    # Default to environment variable, with secure fallbacks for different platforms
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL") or (
-        # SQL Server Express with Windows Authentication (preferred for enterprise Windows)
-        "mssql+pyodbc://./\\SQLEXPRESS/enhanced_media_scraper?driver=ODBC Driver 18 for SQL Server&trusted_connection=yes&TrustServerCertificate=yes"
+        # SQL Server Express with Windows Authentication (enterprise secure settings)
+        "mssql+pyodbc://./\\SQLEXPRESS/enhanced_media_scraper?driver=ODBC Driver 18 for SQL Server&trusted_connection=yes&Encrypt=yes&TrustServerCertificate=no"
         if IS_WINDOWS else
         # PostgreSQL for development/Linux
         os.getenv("POSTGRES_URL") or "postgresql://user:password@localhost:5432/scraper_db"
@@ -48,8 +52,8 @@ class DefaultConfig:
     SESSION_COOKIE_NAME = "scraper_session"
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
 
-    # Other
-    WTF_CSRF_ENABLED = False  # can be toggled on when OAuth flow is stable
+    # Security - CSRF Protection enabled for production
+    WTF_CSRF_ENABLED = True
 
 
 def apply_env_fallbacks():

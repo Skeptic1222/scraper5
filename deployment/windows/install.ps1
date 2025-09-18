@@ -28,21 +28,91 @@ function Test-Command($cmdname) {
 # Step 1: Install Prerequisites
 Write-Host "Step 1: Installing Prerequisites..." -ForegroundColor Yellow
 
-# Check Python installation
-$pythonPath = "C:\Python$($PythonVersion.Replace('.', ''))"
-if (-not (Test-Path $pythonPath)) {
+# Check Python installation (detect existing Python first)
+$pythonExe = $null
+$pythonPaths = @(
+    "C:\Program Files\Python$($PythonVersion.Replace('.', ''))\python.exe",
+    "C:\Python$($PythonVersion.Replace('.', ''))\python.exe",
+    (Get-Command python -ErrorAction SilentlyContinue)?.Source,
+    (Get-Command python3 -ErrorAction SilentlyContinue)?.Source
+)
+
+foreach ($path in $pythonPaths) {
+    if ($path -and (Test-Path $path)) {
+        $version = & $path --version 2>$null
+        if ($version -match "Python $PythonVersion") {
+            $pythonExe = $path
+            $pythonPath = Split-Path $path
+            Write-Host "Found Python $PythonVersion at: $pythonExe" -ForegroundColor Green
+            break
+        }
+    }
+}
+
+if (-not $pythonExe) {
     Write-Host "Installing Python $PythonVersion..." -ForegroundColor Blue
-    $pythonUrl = "https://www.python.org/ftp/python/$PythonVersion.0/python-$PythonVersion.0-amd64.exe"
+    # Use more reliable URL construction
+    $majorMinor = $PythonVersion
+    $pythonUrl = "https://www.python.org/ftp/python/$majorMinor.0/python-$majorMinor.0-amd64.exe"
     $pythonInstaller = "$env:TEMP\python-installer.exe"
-    Invoke-WebRequest -Uri $pythonUrl -OutFile $pythonInstaller
-    Start-Process -FilePath $pythonInstaller -ArgumentList "/quiet", "InstallAllUsers=1", "PrependPath=1", "Include_test=0" -Wait
-    Remove-Item $pythonInstaller -Force
+    
+    try {
+        Invoke-WebRequest -Uri $pythonUrl -OutFile $pythonInstaller -UseBasicParsing
+        Start-Process -FilePath $pythonInstaller -ArgumentList "/quiet", "InstallAllUsers=1", "PrependPath=1", "Include_test=0", "TargetDir=C:\Program Files\Python$($PythonVersion.Replace('.', ''))" -Wait
+        Remove-Item $pythonInstaller -Force
+        
+        # Update paths after installation
+        $pythonExe = "C:\Program Files\Python$($PythonVersion.Replace('.', ''))\python.exe"
+        $pythonPath = "C:\Program Files\Python$($PythonVersion.Replace('.', ''))"
+    } catch {
+        Write-Error "Failed to install Python: $($_.Exception.Message)"
+        exit 1
+    }
 }
 
 # Install wfastcgi for IIS integration
 Write-Host "Installing wfastcgi for IIS integration..." -ForegroundColor Blue
-& "$pythonPath\python.exe" -m pip install wfastcgi
-& "$pythonPath\Scripts\wfastcgi-enable.exe"
+& $pythonExe -m pip install wfastcgi
+
+# Check for ODBC Driver 18 for SQL Server (required for database connectivity)
+Write-Host "Checking for ODBC Driver 18 for SQL Server..." -ForegroundColor Blue
+$odbcDriver = Get-OdbcDriver -Name "ODBC Driver 18 for SQL Server" -ErrorAction SilentlyContinue
+if (-not $odbcDriver) {
+    Write-Warning "ODBC Driver 18 for SQL Server not found. Database connections will fail."
+    Write-Host "Download from: https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server" -ForegroundColor Yellow
+    Write-Host "Or install SQL Server Express which includes the driver." -ForegroundColor Yellow
+    if (-not $Force) {
+        $continue = Read-Host "Continue anyway? (y/N)"
+        if ($continue -ne "y" -and $continue -ne "Y") {
+            exit 1
+        }
+    }
+}
+
+# Configure FastCGI using standard wfastcgi-enable tool
+$wfastcgiEnable = Join-Path (Split-Path $pythonExe) "Scripts\wfastcgi-enable.exe"
+if (Test-Path $wfastcgiEnable) {
+    Write-Host "Enabling FastCGI for Python..." -ForegroundColor Blue
+    & $wfastcgiEnable
+    
+    # Configure environment variables for the application (without secrets)
+    $appCmd = "C:\Windows\System32\inetsrv\appcmd.exe"
+    if (Test-Path $appCmd) {
+        # Find the FastCGI application registered by wfastcgi-enable
+        $pythonDir = Split-Path $pythonExe
+        $wfastcgiScript = Join-Path $pythonDir "Scripts\wfastcgi.py"
+        
+        Write-Host "Configuring FastCGI environment variables..." -ForegroundColor Blue
+        & $appCmd set config /section:system.webServer/fastCgi /[fullPath='$pythonExe',arguments='$wfastcgiScript'].environmentVariables.+"[name='PYTHONPATH',value='$AppPath']"
+        & $appCmd set config /section:system.webServer/fastCgi /[fullPath='$pythonExe',arguments='$wfastcgiScript'].environmentVariables.+"[name='WSGI_HANDLER',value='index.application']"
+        & $appCmd set config /section:system.webServer/fastCgi /[fullPath='$pythonExe',arguments='$wfastcgiScript'].environmentVariables.+"[name='FLASK_ENV',value='production']"
+        & $appCmd set config /section:system.webServer/fastCgi /[fullPath='$pythonExe',arguments='$wfastcgiScript'].environmentVariables.+"[name='APP_BASE',value='/']"
+        
+        Write-Host "FastCGI application configured. Set DATABASE_URL and SECRET_KEY manually via IIS Manager." -ForegroundColor Yellow
+    }
+} else {
+    Write-Warning "wfastcgi-enable.exe not found. You may need to install wfastcgi package."
+}
 
 # Step 2: Configure IIS
 if (-not $SkipIIS) {
@@ -58,8 +128,6 @@ if (-not $SkipIIS) {
         "IIS-RequestFiltering",
         "IIS-StaticContent",
         "IIS-DefaultDocument",
-        "IIS-DirectoryBrowsing",
-        "IIS-ASPNET45",
         "IIS-CGI",
         "IIS-ISAPIExtensions",
         "IIS-ISAPIFilter",
@@ -87,12 +155,44 @@ if (-not $SkipIIS) {
         New-Item -ItemType Directory -Path $AppPath -Force
     }
     
-    # Set permissions on application directory
+    # Set secure permissions on application directory (least privilege)
     $acl = Get-Acl $AppPath
-    $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("IIS_IUSRS", "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
+    # Remove inherited permissions and set specific ones
+    $acl.SetAccessRuleProtection($true, $false)
+    
+    # Grant minimal required permissions
+    $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("IIS_IUSRS", "ReadAndExecute", "ContainerInherit,ObjectInherit", "None", "Allow")
     $acl.SetAccessRule($accessRule)
-    $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("IUSR", "ReadAndExecute", "ContainerInherit,ObjectInherit", "None", "Allow")
+    
+    # Create and set write permissions for uploads and downloads directories
+    $uploadPath = Join-Path $AppPath "uploads"
+    $downloadPath = Join-Path $AppPath "downloads"
+    $logsPath = Join-Path $AppPath "logs"
+    
+    New-Item -ItemType Directory -Path $uploadPath -Force -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Path $downloadPath -Force -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Path $logsPath -Force -ErrorAction SilentlyContinue
+    
+    # Grant write permissions to specific directories that need it
+    foreach ($dir in @($uploadPath, $downloadPath, $logsPath)) {
+        if (Test-Path $dir) {
+            $dirAcl = Get-Acl $dir
+            $writeRule = New-Object System.Security.AccessControl.FileSystemAccessRule("IIS_IUSRS", "Modify", "ContainerInherit,ObjectInherit", "None", "Allow")
+            $dirAcl.SetAccessRule($writeRule)
+            Set-Acl -Path $dir -AclObject $dirAcl
+        }
+    }
+    $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("IUSR", "Read", "ContainerInherit,ObjectInherit", "None", "Allow")
     $acl.SetAccessRule($accessRule)
+    
+    # Grant write access only to logs and temp directories
+    $logsPath = Join-Path $AppPath "logs"
+    if (-not (Test-Path $logsPath)) { New-Item -ItemType Directory -Path $logsPath -Force }
+    $logsAcl = Get-Acl $logsPath
+    $logsAccessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("IIS_IUSRS", "Modify", "ContainerInherit,ObjectInherit", "None", "Allow")
+    $logsAcl.SetAccessRule($logsAccessRule)
+    Set-Acl -Path $logsPath -AclObject $logsAcl
+    
     Set-Acl -Path $AppPath -AclObject $acl
     
     # Create Application Pool
@@ -207,13 +307,13 @@ if (Test-Path "$AppPath\requirements.txt") {
     $criticalPackages = @("flask", "sqlalchemy", "pyodbc", "flask-sqlalchemy", "flask-login")
     foreach ($package in $criticalPackages) {
         Write-Host "Installing $package..." -ForegroundColor Blue
-        & "$pythonPath\python.exe" -m pip install $package --force-reinstall
+        & $pythonExe -m pip install $package --force-reinstall
         Start-Sleep -Seconds 2
     }
     
     # Install remaining packages
     Write-Host "Installing remaining packages..." -ForegroundColor Blue
-    & "$pythonPath\python.exe" -m pip install -r requirements.txt --force-reinstall
+    & $pythonExe -m pip install -r requirements.txt --force-reinstall
 }
 
 # Step 6: Create Environment Configuration
@@ -224,8 +324,9 @@ $envContent = @"
 FLASK_ENV=production
 FLASK_DEBUG=False
 
-# Database Configuration (SQL Server Express)
-DATABASE_URL=mssql+pyodbc://./\SQLEXPRESS/$DatabaseName?driver=ODBC Driver 18 for SQL Server&trusted_connection=yes&TrustServerCertificate=yes
+# Database Configuration (SQL Server Express) - SECURE
+# Set DATABASE_URL via IIS Configuration Editor for production security
+# DATABASE_URL=mssql+pyodbc://./\SQLEXPRESS/$DatabaseName?driver=ODBC Driver 18 for SQL Server&trusted_connection=yes&Encrypt=yes&TrustServerCertificate=no
 
 # Application Settings
 SECRET_KEY=$(New-Guid).ToString().Replace('-', '')
@@ -255,25 +356,11 @@ Write-Host "Step 7: Initializing Database..." -ForegroundColor Yellow
 
 if (Test-Path "$AppPath\init_db.py") {
     Set-Location $AppPath
-    & "$pythonPath\python.exe" init_db.py
+    & $pythonExe init_db.py
 }
 
-# Step 8: Create Windows Service (Optional)
-Write-Host "Step 8: Creating Windows Service (Optional)..." -ForegroundColor Yellow
-
-$serviceScript = @"
-import sys
-import os
-sys.path.insert(0, r'$AppPath')
-os.chdir(r'$AppPath')
-
-from app import app
-
-if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=8080, debug=False)
-"@
-
-$serviceScript | Out-File -FilePath "$AppPath\service.py" -Encoding UTF8
+# Windows Service files exist for development/testing but are NOT used in production
+# Production deployment uses IIS FastCGI only - no Windows Service required
 
 # Step 9: Test Installation
 Write-Host "Step 9: Testing Installation..." -ForegroundColor Yellow

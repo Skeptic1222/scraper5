@@ -32,6 +32,22 @@ from flask_wtf.csrf import CSRFProtect
 
 from config import APP_BASE, init_app_config
 
+# Import Windows path utilities for enterprise deployment (Windows only)
+import platform
+path_manager = None
+if platform.system() == "Windows":
+    try:
+        from deployment.windows.path_utils import get_path_manager, init_windows_paths
+        init_windows_paths()
+        path_manager = get_path_manager()
+        # Only log in development
+        if os.getenv("FLASK_ENV") == "development":
+            print(f"[WINDOWS] Path management initialized")
+    except ImportError:
+        pass
+elif os.getenv("FLASK_ENV") == "development":
+    print(f"[INFO] Standard path management for platform: {platform.system()}")
+
 
 def require_auth(f):
     """Decorator to require authentication for API endpoints"""

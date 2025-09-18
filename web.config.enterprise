@@ -4,42 +4,48 @@
     <!-- URL Rewrite for Flask Application -->
     <rewrite>
       <rules>
-        <!-- Handle static files directly -->
+        <!-- HTTPS Redirect (disabled by default - enable after HTTPS binding is configured) -->
+        <rule name="Redirect to HTTPS" enabled="false" stopProcessing="true">
+          <match url="(.*)" />
+          <conditions logicalGrouping="MatchAll" trackAllCaptures="false">
+            <add input="{HTTPS}" pattern="^OFF$" />
+          </conditions>
+          <action type="Redirect" url="https://{HTTP_HOST}{REQUEST_URI}" 
+                  appendQueryString="false" redirectType="Permanent" />
+        </rule>
+        
+        <!-- Static files handled by IIS StaticFileModule -->
         <rule name="Static Files" stopProcessing="true">
           <match url="^(static|uploads|downloads|serve)/.*" />
           <action type="None" />
         </rule>
         
-        <!-- Redirect all other requests to Flask app -->
-        <rule name="Flask Application" stopProcessing="true">
+        <!-- Route root to FastCGI -->
+        <rule name="FastCGI Root" stopProcessing="true">
+          <match url="^$" />
+          <action type="Rewrite" url="index.py" />
+        </rule>
+        
+        <!-- Route all other requests to FastCGI via index.py -->
+        <rule name="FastCGI Application" stopProcessing="true">
           <match url=".*" />
           <conditions logicalGrouping="MatchAll">
             <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
             <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
           </conditions>
-          <action type="Rewrite" url="app.py/{R:0}" />
+          <action type="Rewrite" url="index.py/{R:0}" />
         </rule>
       </rules>
     </rewrite>
 
-    <!-- FastCGI Configuration for Python -->
+    <!-- FastCGI Configuration for Flask WSGI -->
     <handlers>
-      <add name="Python FastCGI" 
-           path="*.py" 
-           verb="*" 
-           modules="FastCgiModule" 
-           scriptProcessor="C:\Python312\python.exe|C:\inetpub\wwwroot\scraper\wfastcgi.py" 
-           resourceType="Unspecified" 
-           requireAccess="Script" />
+      <!-- FastCGI handler configured via applicationHost.config by wfastcgi-enable -->
+      <!-- Remove explicit handler mapping - rely on global FastCGI configuration -->
     </handlers>
 
-    <!-- Default Documents -->
-    <defaultDocument>
-      <files>
-        <clear />
-        <add value="app.py" />
-      </files>
-    </defaultDocument>
+    <!-- No default document needed for WSGI -->
+    <defaultDocument enabled="false" />
 
     <!-- Security Headers -->
     <httpProtocol>
@@ -49,6 +55,7 @@
         <add name="X-XSS-Protection" value="1; mode=block" />
         <add name="Strict-Transport-Security" value="max-age=31536000; includeSubDomains" />
         <add name="Referrer-Policy" value="strict-origin-when-cross-origin" />
+        <add name="Content-Security-Policy" value="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self';" />
       </customHeaders>
     </httpProtocol>
 
@@ -133,7 +140,6 @@
       <requestFiltering>
         <requestLimits maxAllowedContentLength="104857600" maxQueryString="2048" maxUrl="4096" />
         <fileExtensions>
-          <add fileExtension=".py" allowed="true" />
           <add fileExtension=".config" allowed="false" />
           <add fileExtension=".log" allowed="false" />
         </fileExtensions>
@@ -148,20 +154,16 @@
     </security>
   </system.webServer>
 
-  <!-- Application Settings for Python/Flask -->
+  <!-- Application Settings - WSGI_HANDLER set via FastCGI environment variables -->
   <appSettings>
-    <add key="WSGI_HANDLER" value="app.application" />
-    <add key="PYTHONPATH" value="C:\inetpub\wwwroot\scraper" />
-    <add key="WSGI_LOG" value="C:\inetpub\logs\scraper\python.log" />
+    <add key="PYTHONPATH" value="%APPL_PHYSICAL_PATH%" />
+    <add key="WSGI_LOG" value="%APPL_PHYSICAL_PATH%\logs\wfastcgi.log" />
     <add key="WSGI_RESTART_FILE_REGEX" value=".*\.(py|config)$" />
     <add key="FLASK_ENV" value="production" />
     <add key="FLASK_DEBUG" value="0" />
   </appSettings>
 
-  <!-- Connection Strings for SQL Server Express -->
-  <connectionStrings>
-    <add name="DefaultConnection" 
-         connectionString="Server=.\SQLEXPRESS;Database=enhanced_media_scraper;Integrated Security=true;TrustServerCertificate=true;MultipleActiveResultSets=true;Connection Timeout=30;" 
-         providerName="System.Data.SqlClient" />
-  </connectionStrings>
+  <!-- FastCGI application configured via install.ps1 and wfastcgi-enable -->
+  <!-- Secrets must be set via IIS Configuration Editor or secure environment -->
+  <!-- Do not commit sensitive values to repository -->
 </configuration>
