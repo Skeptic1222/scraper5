@@ -1030,15 +1030,17 @@ if __name__ == "__main__":
         print(f"[WARNING] Memory management failed to start: {e}")
 
     try:
-        # Run in debug mode for development
-        # Use port 5050 for IIS integration (or FLASK_RUN_PORT env var)
-        port = int(os.environ.get("FLASK_RUN_PORT", 8080))
-        app.run(debug=os.environ.get("FLASK_ENV") == "development", host="0.0.0.0", port=port)
+        # Start the Flask application
+        # Use port 5000 for Replit (required), configurable for enterprise deployment
+        port = int(os.environ.get("FLASK_RUN_PORT", 5000))
+        debug_mode = os.environ.get("FLASK_ENV") == "development"
+        
+        print(f"[INFO] Starting Flask application on port {port}...")
+        app.run(host="0.0.0.0", port=port, debug=debug_mode)
     finally:
         # Cleanup on shutdown
         try:
             from memory_manager import stop_memory_management
-
             stop_memory_management()
             print("[CLEANUP] Memory management stopped")
         except Exception as e:
