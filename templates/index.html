@@ -7,8 +7,15 @@
         <h1><i class="fas fa-home"></i> Dashboard</h1>
     </div>
     
+    <!-- Dynamic dashboard content will be inserted here -->
     <div id="dashboard-dynamic-content">
-        <!-- Real-time download dashboard will be loaded here by JavaScript -->
+        <!-- Loading placeholder -->
+        <div class="text-center p-5">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading dashboard...</span>
+            </div>
+            <p class="mt-3 text-muted">Loading real-time dashboard...</p>
+        </div>
     </div>
 </section>
 
@@ -173,7 +180,7 @@
 <script src="{{ url_for('static', filename='js/modules/nav.js') }}"></script>
 
 <!-- Download Dashboard Module -->
-<script src="{{ url_for('static', filename='js/force-dashboard.js') }}?v=nuclear"></script>
+<script src="{{ url_for('static', filename='js/modules/download-dashboard.js') }}"></script>
 
 <!-- Enhanced Search UI -->
 <script src="{{ url_for('static', filename='js/modules/enhanced-search-ui.js') }}"></script>
