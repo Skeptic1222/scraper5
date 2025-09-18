@@ -20,6 +20,16 @@ class DashboardManager {
         this.initialized = true;
         
         console.log('Initializing dashboard...');
+        
+        // Set initial values immediately
+        this.updateMetricCard('metric-downloads', 0);
+        this.updateMetricCard('total-assets', 0);
+        this.updateMetricCard('active-jobs-count', 0);
+        
+        // Show initial empty state
+        this.showEmptyState();
+        
+        // Then load actual data
         this.loadData();
         this.startAutoRefresh();
     }
@@ -81,6 +91,28 @@ class DashboardManager {
         
         // Update dynamic content area
         this.updateDynamicContent();
+    }
+    
+    showEmptyState() {
+        const dynamicContent = document.getElementById('dashboard-dynamic-content');
+        if (!dynamicContent) return;
+        
+        dynamicContent.innerHTML = `
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body text-center py-5">
+                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Welcome to Enhanced Media Scraper</h5>
+                            <p class="text-muted mb-4">Start searching to download images and videos from 118+ sources</p>
+                            <a href="#search" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Go to Search
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
     }
     
     updateMetricCard(elementId, value) {

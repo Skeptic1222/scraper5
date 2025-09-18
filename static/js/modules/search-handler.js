@@ -361,6 +361,19 @@ class SearchHandler {
             `;
         }
     }
+    
+    showStatus(message, type = 'info') {
+        const container = document.getElementById('search-progress');
+        if (container) {
+            container.style.display = 'block';
+            const alertClass = `alert-${type}`;
+            container.innerHTML = `
+                <div class="alert ${alertClass}">
+                    ${message}
+                </div>
+            `;
+        }
+    }
 
     updateProgress(percent, status) {
         const container = document.getElementById('search-progress');
