@@ -1,11 +1,13 @@
 /**
- * Enhanced Asset Library with thumbnail and list views
+ * Enhanced Asset Library with square thumbnails, keyboard navigation, and video hover autoplay
  */
 class AssetLibraryEnhanced {
     constructor() {
         this.assets = [];
         this.currentView = 'thumbnail';
         this.selectedAssets = new Set();
+        this.focusedIndex = 0;
+        this.hoveredVideo = null;
         
         this.init();
     }
@@ -14,6 +16,7 @@ class AssetLibraryEnhanced {
         this.setupViewSwitching();
         this.loadAssets();
         this.setupRefreshButton();
+        this.setupKeyboardNavigation();
     }
     
     setupViewSwitching() {
@@ -57,6 +60,113 @@ class AssetLibraryEnhanced {
         }
     }
     
+    setupKeyboardNavigation() {
+        document.addEventListener('keydown', (e) => {
+            // Only handle navigation if we're in the asset library section
+            const assetSection = document.getElementById('asset-library');
+            if (!assetSection || !assetSection.classList.contains('active')) return;
+            
+            // Don't interfere with form inputs
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            
+            // If media viewer is open, let it handle the keys
+            if (window.mediaViewer && window.mediaViewer.isOpen) return;
+            
+            const handled = this.handleKeyNavigation(e);
+            if (handled) {
+                e.preventDefault();
+            }
+        });
+    }
+    
+    handleKeyNavigation(e) {
+        if (this.currentView !== 'thumbnail' || this.assets.length === 0) return false;
+        
+        const cols = Math.floor(document.getElementById('asset-grid').offsetWidth / 180); // Approximate column count
+        let newIndex = this.focusedIndex;
+        
+        switch(e.key) {
+            case 'ArrowLeft':
+            case 'a':
+            case 'A':
+                newIndex = Math.max(0, this.focusedIndex - 1);
+                break;
+            case 'ArrowRight':
+            case 'd':
+            case 'D':
+                newIndex = Math.min(this.assets.length - 1, this.focusedIndex + 1);
+                break;
+            case 'ArrowUp':
+            case 'w':
+            case 'W':
+                newIndex = Math.max(0, this.focusedIndex - cols);
+                break;
+            case 'ArrowDown':
+            case 's':
+            case 'S':
+                newIndex = Math.min(this.assets.length - 1, this.focusedIndex + cols);
+                break;
+            case ' ':
+            case 'Enter':
+                this.openMediaViewer(this.focusedIndex);
+                return true;
+            default:
+                return false;
+        }
+        
+        if (newIndex !== this.focusedIndex) {
+            this.focusedIndex = newIndex;
+            this.updateFocus();
+            return true;
+        }
+        
+        return false;
+    }
+    
+    updateFocus() {
+        // Remove all previous focus
+        document.querySelectorAll('.asset-card').forEach((card, index) => {
+            card.classList.remove('focused');
+            if (index === this.focusedIndex) {
+                card.classList.add('focused');
+                card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                
+                // Autoplay video if focused element is a video
+                this.autoplayFocusedVideo(card);
+            }
+        });
+    }
+    
+    autoplayFocusedVideo(card) {
+        // Stop any previously playing video
+        this.stopAllVideos();
+        
+        const asset = this.assets[this.focusedIndex];
+        const fileType = (asset.file_type || asset.type || '').toLowerCase();
+        const isVideo = fileType.includes('video') || 
+                       fileType.includes('mp4') || 
+                       fileType.includes('webm');
+        
+        if (isVideo) {
+            const videoPreview = card.querySelector('.video-preview');
+            if (videoPreview) {
+                const video = videoPreview.querySelector('video');
+                if (video) {
+                    video.play().catch(() => {
+                        // Autoplay failed, likely due to browser restrictions
+                    });
+                }
+            }
+        }
+    }
+    
+    stopAllVideos() {
+        document.querySelectorAll('.asset-card video').forEach(video => {
+            video.pause();
+            video.currentTime = 0;
+        });
+    }
+    
     async loadAssets() {
         try {
             const response = await fetch('/api/assets');
@@ -70,6 +180,14 @@ class AssetLibraryEnhanced {
             if (totalAssetsElem) {
                 totalAssetsElem.textContent = this.assets.length;
             }
+            
+            // Update stats in dashboard
+            if (data.counts) {
+                const imageCount = document.getElementById('image-count');
+                const videoCount = document.getElementById('video-count');
+                if (imageCount) imageCount.textContent = data.counts.images || 0;
+                if (videoCount) videoCount.textContent = data.counts.videos || 0;
+            }
         } catch (error) {
             console.error('Failed to load assets:', error);
             this.showError('Failed to load assets');
@@ -82,8 +200,8 @@ class AssetLibraryEnhanced {
         
         if (this.assets.length === 0) {
             assetGrid.innerHTML = `
-                <div class="text-center text-muted p-5">
-                    <i class="fas fa-folder-open fa-4x mb-3"></i>
+                <div class="empty-state">
+                    <i class="fas fa-folder-open fa-4x"></i>
                     <h4>No assets yet</h4>
                     <p>Start downloading content to build your library</p>
                 </div>
@@ -100,13 +218,104 @@ class AssetLibraryEnhanced {
     
     renderThumbnailView(container) {
         container.innerHTML = `
-            <div class="asset-grid-container">
-                ${this.assets.map(asset => this.createThumbnailCard(asset)).join('')}
+            <div class="asset-grid-container square-grid">
+                ${this.assets.map((asset, index) => this.createSquareThumbnailCard(asset, index)).join('')}
             </div>
         `;
         
-        // Add click handlers
-        this.attachAssetHandlers();
+        // Add hover handlers for video autoplay
+        this.attachThumbnailHandlers();
+        
+        // Set initial focus
+        if (this.focusedIndex >= 0 && this.focusedIndex < this.assets.length) {
+            this.updateFocus();
+        }
+    }
+    
+    createSquareThumbnailCard(asset, index) {
+        const fileType = (asset.file_type || asset.type || '').toLowerCase();
+        const isImage = fileType.includes('image') || 
+                       fileType.includes('jpeg') || 
+                       fileType.includes('jpg') || 
+                       fileType.includes('png') || 
+                       fileType.includes('gif');
+        const isVideo = fileType.includes('video') || 
+                       fileType.includes('mp4') || 
+                       fileType.includes('webm');
+        
+        const mediaUrl = asset.url || `/serve/${asset.id}`;
+        const fileName = asset.filename || 'Unknown';
+        
+        let thumbnailContent = '';
+        
+        if (isImage) {
+            thumbnailContent = `
+                <div class="thumbnail-media">
+                    <img src="${mediaUrl}" alt="${fileName}" loading="lazy">
+                </div>
+            `;
+        } else if (isVideo) {
+            thumbnailContent = `
+                <div class="thumbnail-media video-preview">
+                    <video src="${mediaUrl}" muted loop preload="metadata"></video>
+                    <div class="video-overlay">
+                        <i class="fas fa-play-circle"></i>
+                    </div>
+                </div>
+            `;
+        } else {
+            thumbnailContent = `
+                <div class="thumbnail-media file-icon">
+                    <i class="fas fa-file fa-3x"></i>
+                </div>
+            `;
+        }
+        
+        return `
+            <div class="asset-card square-card" data-asset-id="${asset.id}" data-index="${index}">
+                ${thumbnailContent}
+                <div class="asset-overlay">
+                    <div class="asset-name" title="${fileName}">${this.truncate(fileName, 15)}</div>
+                    <div class="asset-actions">
+                        <button class="btn-icon" onclick="assetLibrary.openMediaViewer(${index})" title="View">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn-icon" onclick="assetLibrary.downloadAsset('${asset.id}')" title="Download">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    attachThumbnailHandlers() {
+        const cards = document.querySelectorAll('.asset-card');
+        
+        cards.forEach((card, index) => {
+            // Click to open viewer
+            card.addEventListener('click', (e) => {
+                if (!e.target.closest('.asset-actions')) {
+                    this.openMediaViewer(index);
+                }
+            });
+            
+            // Hover for video autoplay
+            card.addEventListener('mouseenter', () => {
+                const video = card.querySelector('video');
+                if (video) {
+                    video.play().catch(() => {});
+                }
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                const video = card.querySelector('video');
+                if (video) {
+                    video.pause();
+                    video.currentTime = 0;
+                }
+            });
+        });
     }
     
     renderListView(container) {
@@ -115,103 +324,60 @@ class AssetLibraryEnhanced {
                 <table class="table table-hover">
                     <thead>
                         <tr>
-                            <th><input type="checkbox" id="select-all-assets"></th>
-                            <th>Thumbnail</th>
+                            <th width="60">Preview</th>
                             <th>Name</th>
-                            <th>Source</th>
                             <th>Type</th>
                             <th>Size</th>
                             <th>Date</th>
-                            <th>Actions</th>
+                            <th width="120">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${this.assets.map(asset => this.createListRow(asset)).join('')}
+                        ${this.assets.map((asset, index) => this.createListRow(asset, index)).join('')}
                     </tbody>
                 </table>
             </div>
         `;
         
-        // Setup select all checkbox
-        const selectAll = document.getElementById('select-all-assets');
-        if (selectAll) {
-            selectAll.addEventListener('change', (e) => {
-                const checkboxes = document.querySelectorAll('.asset-checkbox');
-                checkboxes.forEach(cb => {
-                    cb.checked = e.target.checked;
-                    if (e.target.checked) {
-                        this.selectedAssets.add(cb.value);
-                    } else {
-                        this.selectedAssets.clear();
-                    }
-                });
-                this.updateBulkActions();
+        // Add click handlers for rows
+        document.querySelectorAll('.asset-list-row').forEach((row, index) => {
+            row.addEventListener('click', (e) => {
+                if (!e.target.closest('.btn-group')) {
+                    this.openMediaViewer(index);
+                }
             });
+        });
+    }
+    
+    createListRow(asset, index) {
+        const fileType = (asset.file_type || asset.type || '').toLowerCase();
+        const isImage = fileType.includes('image') || fileType.includes('jpeg') || fileType.includes('jpg') || fileType.includes('png');
+        const mediaUrl = asset.url || `/serve/${asset.id}`;
+        const fileName = asset.filename || 'Unknown';
+        const size = this.formatSize(asset.file_size || asset.size || 0);
+        const date = this.formatDate(asset.created_at || asset.modified);
+        
+        let preview = '';
+        if (isImage) {
+            preview = `<img src="${mediaUrl}" class="list-thumbnail" alt="${fileName}">`;
+        } else {
+            preview = `<div class="list-thumbnail-icon"><i class="fas fa-file"></i></div>`;
         }
         
-        // Add handlers
-        this.attachAssetHandlers();
-    }
-    
-    createThumbnailCard(asset) {
-        const thumbnail = this.getAssetThumbnail(asset);
-        const fileName = asset.filename || 'Unknown';
-        const source = asset.source || 'Unknown';
-        
         return `
-            <div class="asset-card" data-asset-id="${asset.id}">
-                <div class="asset-checkbox-container">
-                    <input type="checkbox" class="asset-checkbox" value="${asset.id}">
-                </div>
-                <div class="asset-thumbnail">
-                    ${thumbnail}
-                </div>
-                <div class="asset-info">
-                    <div class="asset-name" title="${fileName}">${this.truncate(fileName, 20)}</div>
-                    <div class="asset-source">${source}</div>
-                </div>
-                <div class="asset-actions">
-                    <button class="btn btn-sm btn-icon" onclick="assetLibrary.viewAsset('${asset.id}')" title="View">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="btn btn-sm btn-icon" onclick="assetLibrary.downloadAsset('${asset.id}')" title="Download">
-                        <i class="fas fa-download"></i>
-                    </button>
-                    <button class="btn btn-sm btn-icon text-danger" onclick="assetLibrary.deleteAsset('${asset.id}')" title="Delete">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-    }
-    
-    createListRow(asset) {
-        const thumbnail = this.getAssetThumbnail(asset, 40);
-        const fileName = asset.filename || 'Unknown';
-        const source = asset.source || 'Unknown';
-        const type = asset.content_type || 'Unknown';
-        const size = this.formatSize(asset.file_size || 0);
-        const date = this.formatDate(asset.created_at);
-        
-        return `
-            <tr data-asset-id="${asset.id}">
-                <td><input type="checkbox" class="asset-checkbox" value="${asset.id}"></td>
-                <td class="asset-list-thumbnail">${thumbnail}</td>
-                <td class="asset-name">${fileName}</td>
-                <td>${source}</td>
-                <td><span class="badge bg-secondary">${type}</span></td>
+            <tr class="asset-list-row" data-index="${index}">
+                <td>${preview}</td>
+                <td>${fileName}</td>
+                <td><span class="badge badge-secondary">${fileType}</span></td>
                 <td>${size}</td>
                 <td>${date}</td>
                 <td>
                     <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-primary" onclick="assetLibrary.viewAsset('${asset.id}')" title="View">
+                        <button class="btn btn-sm btn-outline-primary" onclick="assetLibrary.openMediaViewer(${index})">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button class="btn btn-outline-success" onclick="assetLibrary.downloadAsset('${asset.id}')" title="Download">
+                        <button class="btn btn-sm btn-outline-success" onclick="assetLibrary.downloadAsset('${asset.id}')">
                             <i class="fas fa-download"></i>
-                        </button>
-                        <button class="btn btn-outline-danger" onclick="assetLibrary.deleteAsset('${asset.id}')" title="Delete">
-                            <i class="fas fa-trash"></i>
                         </button>
                     </div>
                 </td>
@@ -219,47 +385,21 @@ class AssetLibraryEnhanced {
         `;
     }
     
-    getAssetThumbnail(asset, size = 150) {
-        if (asset.content_type === 'image') {
-            // Use actual image URL if available
-            const imageUrl = `/api/media/${asset.id}/thumbnail` || `/api/media/${asset.id}`;
-            return `<img src="${imageUrl}" alt="${asset.filename}" style="width: ${size}px; height: ${size}px; object-fit: cover;">`;
-        } else if (asset.content_type === 'video') {
-            return `<div class="asset-icon" style="width: ${size}px; height: ${size}px;"><i class="fas fa-video fa-3x"></i></div>`;
-        } else {
-            return `<div class="asset-icon" style="width: ${size}px; height: ${size}px;"><i class="fas fa-file fa-3x"></i></div>`;
+    openMediaViewer(index) {
+        if (window.mediaViewer) {
+            window.mediaViewer.open(this.assets, index);
         }
-    }
-    
-    attachAssetHandlers() {
-        // Checkbox handlers
-        document.querySelectorAll('.asset-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('change', (e) => {
-                if (e.target.checked) {
-                    this.selectedAssets.add(e.target.value);
-                } else {
-                    this.selectedAssets.delete(e.target.value);
-                }
-                this.updateBulkActions();
-            });
-        });
-    }
-    
-    updateBulkActions() {
-        // Show/hide bulk action buttons based on selection
-        if (this.selectedAssets.size > 0) {
-            // Could show bulk action toolbar here
-            console.log(`${this.selectedAssets.size} assets selected`);
-        }
-    }
-    
-    async viewAsset(assetId) {
-        // Open asset in modal or new tab
-        window.open(`/api/media/${assetId}`, '_blank');
     }
     
     async downloadAsset(assetId) {
-        window.location.href = `/api/media/${assetId}/download`;
+        const asset = this.assets.find(a => a.id == assetId);
+        if (asset) {
+            const downloadUrl = `/api/media/${assetId}/download`;
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = asset.filename || 'download';
+            link.click();
+        }
     }
     
     async deleteAsset(assetId) {
@@ -284,16 +424,17 @@ class AssetLibraryEnhanced {
         }
     }
     
+    // Utility methods
     truncate(str, length) {
         return str.length > length ? str.substring(0, length) + '...' : str;
     }
     
     formatSize(bytes) {
-        if (bytes === 0) return '0 B';
+        if (bytes === 0) return '0 Bytes';
         const k = 1024;
-        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
     }
     
     formatDate(dateStr) {
@@ -303,17 +444,15 @@ class AssetLibraryEnhanced {
     }
     
     showSuccess(message) {
-        // Could show toast notification
+        // You can implement toast notifications here
         console.log('Success:', message);
     }
     
     showError(message) {
-        // Could show toast notification
+        // You can implement toast notifications here
         console.error('Error:', message);
     }
 }
 
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    window.assetLibrary = new AssetLibraryEnhanced();
-});
+// Initialize asset library
+window.assetLibrary = new AssetLibraryEnhanced();
