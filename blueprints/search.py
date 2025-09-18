@@ -248,21 +248,39 @@ def run_enhanced_search_job(job_id, query, sources, max_content, safe_search, in
                 job_id, status="running", message=f"Starting enhanced search for '{query}'..."
             )
             
+            # Map frontend source names to backend names
+            source_map = {
+                'google_images': 'google',
+                'bing_images': 'bing',
+                'yahoo_images': 'yahoo',
+                'duckduckgo_images': 'duckduckgo',
+                'yandex_images': 'yandex'
+            }
+            mapped_sources = [source_map.get(s, s) for s in sources]
+            
             if not ENHANCED_SCRAPER_AVAILABLE:
-                # Fallback to regular scraper
+                print(f"[ENHANCED SEARCH] Falling back to regular search - enhanced scraper not available")
+                # Fallback to regular comprehensive search
                 return run_comprehensive_search_job(
                     job_id, query, "all", max_content, sources, safe_search, app_instance
                 )
             
-            # Use enhanced scraper
-            results = perform_enhanced_search(
-                query=query,
-                sources=sources,
-                limit_per_source=max_content // len(sources) if sources else 10,
-                safe_search=safe_search,
-                include_videos=include_videos,
-                include_adult=include_adult and not safe_search
-            )
+            try:
+                # Use enhanced scraper
+                results = perform_enhanced_search(
+                    query=query,
+                    sources=mapped_sources,
+                    limit_per_source=max_content // len(mapped_sources) if mapped_sources else 10,
+                    safe_search=safe_search,
+                    include_videos=include_videos,
+                    include_adult=include_adult and not safe_search
+                )
+            except Exception as e:
+                print(f"[ENHANCED SEARCH] Error calling enhanced scraper: {e}")
+                # Fallback to regular search on error
+                return run_comprehensive_search_job(
+                    job_id, query, "all", max_content, sources, safe_search, app_instance
+                )
             
             # Download results
             downloaded = 0
@@ -283,38 +301,46 @@ def run_enhanced_search_job(job_id, query, sources, max_content, safe_search, in
                 )
                 
                 # Handle video downloads
-                if result['type'] == 'video' and enhanced_scraper.check_ytdlp_support(result['url']):
-                    video_file = enhanced_scraper.download_with_ytdlp(result['url'])
-                    if video_file:
-                        videos += 1
-                        downloaded += 1
-                        # Save to database
-                        try:
-                            if hasattr(db_asset_manager, 'save_file_to_db'):
-                                db_asset_manager.save_file_to_db(
-                                    video_file,
-                                    user_id=None,
-                                    container="videos",
-                                    metadata={"source": result['source'], "query": query}
-                                )
-                            elif hasattr(db_asset_manager, 'save_downloaded_asset'):
-                                db_asset_manager.save_downloaded_asset(
-                                    file_path=video_file,
-                                    user_id=None,
-                                    source_name=result['source'],
-                                    query=query,
-                                    is_video=True
-                                )
-                        except Exception as e:
-                            print(f"Failed to save video to DB: {e}")
+                if result['type'] == 'video':
+                    try:
+                        if hasattr(enhanced_scraper, 'check_ytdlp_support') and enhanced_scraper.check_ytdlp_support(result['url']):
+                            video_file = enhanced_scraper.download_with_ytdlp(result['url'])
+                            if video_file:
+                                videos += 1
+                                downloaded += 1
+                                # Save to database
+                                try:
+                                    if hasattr(db_asset_manager, 'save_downloaded_asset'):
+                                        db_asset_manager.save_downloaded_asset(
+                                            file_path=video_file,
+                                            user_id=None,
+                                            source_name=result['source'],
+                                            query=query,
+                                            is_video=True
+                                        )
+                                except Exception as e:
+                                    print(f"Failed to save video to DB: {e}")
+                    except Exception as e:
+                        print(f"Error downloading video: {e}")
+                        
                 # Handle image downloads
                 elif result['type'] in ['image', 'adult']:
                     try:
-                        response = enhanced_scraper.session.get(
-                            result['url'],
-                            timeout=30,
-                            stream=True
-                        )
+                        if hasattr(enhanced_scraper, 'session'):
+                            response = enhanced_scraper.session.get(
+                                result['url'],
+                                timeout=30,
+                                stream=True
+                            )
+                        else:
+                            import requests
+                            response = requests.get(
+                                result['url'],
+                                timeout=30,
+                                stream=True,
+                                headers={'User-Agent': 'Mozilla/5.0'}
+                            )
+                            
                         if response.status_code == 200:
                             # Save image
                             import tempfile
@@ -331,14 +357,7 @@ def run_enhanced_search_job(job_id, query, sources, max_content, safe_search, in
                             
                             # Save to database
                             try:
-                                if hasattr(db_asset_manager, 'save_file_to_db'):
-                                    db_asset_manager.save_file_to_db(
-                                        tmp_path,
-                                        user_id=None,
-                                        container="images",
-                                        metadata={"source": result['source'], "query": query, "adult": result['type'] == 'adult'}
-                                    )
-                                elif hasattr(db_asset_manager, 'save_downloaded_asset'):
+                                if hasattr(db_asset_manager, 'save_downloaded_asset'):
                                     db_asset_manager.save_downloaded_asset(
                                         file_path=tmp_path,
                                         user_id=None,
@@ -368,6 +387,7 @@ def run_enhanced_search_job(job_id, query, sources, max_content, safe_search, in
             )
             
         except Exception as e:
+            print(f"[ENHANCED SEARCH] Critical error: {e}")
             db_job_manager.update_job(
                 job_id,
                 status="error",
