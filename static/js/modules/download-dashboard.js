@@ -31,17 +31,13 @@ class DownloadDashboard {
     
     createDashboardUI() {
         let container = document.getElementById('dashboard-dynamic-content');
-        console.log('Looking for dashboard container...');
-        console.log('Container found:', container ? 'YES' : 'NO');
         if (!container) {
             console.error('Dashboard dynamic content container not found');
             // Try to find the dashboard section and create the container
             const dashboardSection = document.getElementById('dashboard-section');
             if (dashboardSection) {
-                console.log('Dashboard section found, checking for container...');
                 let dynamicContent = dashboardSection.querySelector('#dashboard-dynamic-content');
                 if (!dynamicContent) {
-                    console.log('Creating dashboard-dynamic-content container...');
                     dynamicContent = document.createElement('div');
                     dynamicContent.id = 'dashboard-dynamic-content';
                     dashboardSection.appendChild(dynamicContent);
@@ -53,9 +49,8 @@ class DownloadDashboard {
             }
         }
         
-        console.log('Populating dashboard HTML...');
         // Clear any existing content and populate with the dashboard
-        container.innerHTML = `
+        const dashboardHTML = `
             <div class="download-dashboard">
                 <!-- Download Stats Header -->
                 <div class="download-stats-header">
@@ -163,6 +158,9 @@ class DownloadDashboard {
                 </div>
             </div>
         `;
+        
+        // Set the dashboard HTML
+        container.innerHTML = dashboardHTML;
         
         this.addStyles();
         this.initSpeedGraph();
