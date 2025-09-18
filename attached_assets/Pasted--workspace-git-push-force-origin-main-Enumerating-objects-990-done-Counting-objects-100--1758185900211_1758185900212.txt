@@ -1,0 +1,48 @@
+~/workspace$ git push --force origin main
+Enumerating objects: 990, done.
+Counting objects: 100% (990/990), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (540/540), done.
+Writing objects: 100% (990/990), 1.69 MiB | 9.80 MiB/s, done.
+Total 990 (delta 423), reused 990 (delta 423), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (423/423), done.
+remote: error: GH013: Repository rule violations found for refs/heads/main.
+remote: 
+remote: - GITHUB PUSH PROTECTION
+remote:   —————————————————————————————————————————
+remote:     Resolve the following violations before pushing again
+remote: 
+remote:     - Push cannot contain secrets
+remote: 
+remote:     
+remote:      (?) Learn how to resolve a blocked push
+remote:      https://docs.github.com/code-security/secret-scanning/working-with-secret-scanning-and-push-protection/working-with-push-protection-from-the-command-line#resolving-a-blocked-push
+remote:     
+remote:     
+remote:       —— Google OAuth Client ID ————————————————————————————
+remote:        locations:
+remote:          - commit: 7b0b8a4001c261f9cded5f79125020886b4d6b18
+remote:            path: temp_scraper_repo/docs/SITE_ARCHITECTURE_AND_FIXES.md:115
+remote:          - commit: 7b0b8a4001c261f9cded5f79125020886b4d6b18
+remote:            path: temp_scraper_repo/docs/archive/specialized/OAUTH_FIX_DOCUMENTATION.md:76
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/Skeptic1222/scraper3/security/secret-scanning/unblock-secret/32rjx9jBvHbpbk7lrJtspnjq6RG
+remote:     
+remote:     
+remote:       —— Google OAuth Client Secret ————————————————————————
+remote:        locations:
+remote:          - commit: 7b0b8a4001c261f9cded5f79125020886b4d6b18
+remote:            path: temp_scraper_repo/docs/SITE_ARCHITECTURE_AND_FIXES.md:116
+remote:          - commit: 7b0b8a4001c261f9cded5f79125020886b4d6b18
+remote:            path: temp_scraper_repo/docs/archive/specialized/OAUTH_FIX_DOCUMENTATION.md:77
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/Skeptic1222/scraper3/security/secret-scanning/unblock-secret/32rjxA84FXiLIzPcWcEpmvfYAUs
+remote:     
+remote: 
+remote: 
+To https://github.com/Skeptic1222/scraper3
+ ! [remote rejected] main -> main (push declined due to repository rule violations)
+error: failed to push some refs to 'https://github.com/Skeptic1222/scraper3'
+~/workspace$ 
