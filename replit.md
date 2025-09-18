@@ -11,7 +11,25 @@ Enhanced Media Scraper is an enterprise-grade web scraping application that aggr
 - **Database Manager**: Created proper `db_asset_manager.py` with SQLAlchemy integration
 - **API Integration**: Fixed module imports and field name mismatches in assets blueprint
 - **Data Persistence**: Assets now properly saved to PostgreSQL and persist across restarts
-- **Verified Working**: 12+ assets confirmed in database, API returning data correctly
+- **Verified Working**: 17+ assets confirmed in database, API returning data correctly
+
+### Known Issues (Handover Documentation)
+
+#### CRITICAL: Dashboard Navigation Issue
+**Status**: UNRESOLVED - Requires architectural approach change
+**Symptom**: Dashboard section appears blank when clicking "Dashboard" in sidebar, despite JavaScript console showing successful initialization
+**Root Cause**: CSS hides all `.content-section` by default with `display: none !important`. Navigation system fails to apply `.active` class to `#dashboard-section` when clicked
+**Technical Details**:
+- Dashboard JavaScript (`simple-dashboard.js`) loads and executes successfully
+- Console logs show "Container found, creating dashboard..." and "Dashboard HTML created successfully"
+- APIs respond correctly (/api/assets returns 17 assets, /api/jobs responds)
+- Issue is in SPA section-switching mechanism in `nav.js` not activating dashboard section
+**Attempted Solutions** (All Failed):
+- CSS !important overrides and cascade fixes
+- Navigation attribute matching corrections (data-section="dashboard-section")
+- Nuclear overlay testing (confirmed JS works, UI rendering issue)
+- Multiple dashboard implementations (complex real-time vs simple cards)
+**Recommended Solution**: Eliminate SPA gating for dashboard - create dedicated `/dashboard` route with server-side template rendering where dashboard content is visible by default
 
 ## Previous Updates (Sept 16, 2025)
 
@@ -79,9 +97,9 @@ Preferred communication style: Simple, everyday language.
 - **Flask-Login**: Session management and user state persistence
 
 ### Database Systems  
-- **PostgreSQL**: Primary production database with full ACID compliance
+- **PostgreSQL**: Primary production database with full ACID compliance (current)
 - **SQLite**: Development fallback with simplified setup
-- **SQL Server Express**: Optional enterprise database support
+- **SQL Server Express**: Target migration database - requires pyodbc driver and connection string updates
 
 ### Python Libraries
 - **Flask Ecosystem**: Flask-SQLAlchemy, Flask-WTF, Flask-Talisman for security
@@ -98,3 +116,35 @@ Preferred communication style: Simple, everyday language.
 - **IIS Integration**: Windows IIS reverse proxy configuration with URL rewriting
 - **Process Management**: Windows Service integration for production deployment
 - **Monitoring**: Custom logging with file rotation and error tracking
+
+## Migration Readiness
+
+### SQL Server Express Migration
+**Status**: Ready for migration
+**Requirements**:
+- Add `pyodbc` to requirements.txt
+- Update DATABASE_URL format: `mssql+pyodbc://user:pass@localhost\\SQLEXPRESS/dbname?driver=ODBC Driver 18 for SQL Server`
+- Validate SQLAlchemy models for MSSQL compatibility (autoincrement PKs, DateTime defaults)
+- Add engine options: `pool_pre_ping=True`, `fast_executemany=True`
+
+### Google OAuth Integration
+**Status**: Architecture ready, needs configuration
+**Current State**: `auth.py` implements OAuth flow with `init_auth(app)` function
+**Required Configuration**:
+- Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` environment variables
+- Configure redirect URIs in Google Cloud Console
+- Set `SESSION_COOKIE_SAMESITE=None` for production HTTPS
+- Disable `MemoryUser` mock authentication in production
+
+## Code Cleanup Required
+
+### Files to Remove
+- **Duplicate Apps**: `app_working.py`, `simple_app.py`, various start variants
+- **Legacy Debugging**: `static/js/fixes/*`, `emergency-*.js`, multiple dashboard variants
+- **Test Templates**: `index_simple.html`, `splash_*`, `test_*.html`
+- **Artifacts**: `logs/*`, `debug_logs/*`, `downloads/*`, `*.zip`, `cookies.txt`, `instance/scraper.db`
+
+### Security Concerns
+- **Sensitive Data**: Remove cookies.txt, instance DB, and logs before GitHub upload
+- **Debug Logging**: Currently at MAX level - must be reduced for production
+- **Secrets**: Add .env.example, exclude actual secrets from repository
