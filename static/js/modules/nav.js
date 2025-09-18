@@ -78,7 +78,7 @@ class NavigationManager {
             this.loadSectionFromHash();
         } else {
             // Load last visited section from localStorage or default
-            const lastSection = localStorage.getItem('lastSection') || 'dashboard-section';
+            const lastSection = localStorage.getItem('lastSection') || 'search-section';
             this.showSection(lastSection);
             
             // Set active nav item
@@ -98,7 +98,7 @@ class NavigationManager {
             'settings': 'settings-section'
         };
         
-        const section = sectionMap[hash] || 'dashboard-section';
+        const section = sectionMap[hash] || 'search-section';
         this.showSection(section);
         
         // Update active nav item
