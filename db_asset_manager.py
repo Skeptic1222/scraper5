@@ -92,9 +92,13 @@ def add_asset(job_id, filepath, file_type, metadata=None):
 def get_assets(user_id=None, file_type=None, limit=100, offset=0):
     """Get assets from database"""
     try:
+        print(f"[DEBUG] get_assets called with user_id={user_id}, file_type={file_type}, limit={limit}, offset={offset}")
         query = Asset.query.filter_by(is_deleted=False)
         
-        if user_id:
+        # Only filter by user_id if specifically provided (not None)
+        # This allows getting all assets when user_id is None
+        if user_id is not None and user_id != "admin_all":
+            print(f"[DEBUG] Filtering by user_id={user_id}")
             query = query.filter_by(user_id=user_id)
         
         if file_type:
@@ -108,6 +112,7 @@ def get_assets(user_id=None, file_type=None, limit=100, offset=0):
             query = query.limit(limit)
         
         assets = query.all()
+        print(f"[DEBUG] Found {len(assets)} assets in database")
         
         # Convert to dict format for compatibility
         result = []
@@ -115,9 +120,10 @@ def get_assets(user_id=None, file_type=None, limit=100, offset=0):
             result.append({
                 'id': str(asset.id),
                 'job_id': asset.job_id,
-                'filepath': asset.file_path,
+                'file_path': asset.file_path,  # Changed from 'filepath' to 'file_path'
                 'filename': asset.filename,
                 'file_type': f"{asset.file_type}/{asset.file_extension}" if asset.file_extension else asset.file_type,
+                'file_extension': asset.file_extension or '',
                 'metadata': json.loads(asset.asset_metadata) if asset.asset_metadata else {},
                 'created_at': asset.downloaded_at.isoformat() if asset.downloaded_at else None,
                 'file_size': asset.file_size
@@ -129,6 +135,35 @@ def get_assets(user_id=None, file_type=None, limit=100, offset=0):
         print(f"[ERROR] Failed to get assets: {e}")
         return []
 
+def get_asset_statistics(user_id=None):
+    """Get asset statistics from database"""
+    try:
+        query = Asset.query.filter_by(is_deleted=False)
+        
+        if user_id is not None and user_id != "admin_all":
+            query = query.filter_by(user_id=user_id)
+        
+        total_count = query.count()
+        
+        # Count by file type
+        image_count = query.filter(Asset.file_type.in_(['image', 'images'])).count()
+        video_count = query.filter(Asset.file_type.in_(['video', 'videos'])).count()
+        
+        return {
+            'total': total_count,
+            'images': image_count,
+            'videos': video_count,
+            'all': total_count
+        }
+    except Exception as e:
+        print(f"[ERROR] Failed to get statistics: {e}")
+        return {
+            'total': 0,
+            'images': 0,
+            'videos': 0,
+            'all': 0
+        }
+
 def get_asset(asset_id):
     """Get specific asset from database"""
     try:
@@ -139,9 +174,10 @@ def get_asset(asset_id):
         return {
             'id': str(asset.id),
             'job_id': asset.job_id,
-            'filepath': asset.file_path,
+            'file_path': asset.file_path,  # Changed from 'filepath' to 'file_path'
             'filename': asset.filename,
             'file_type': f"{asset.file_type}/{asset.file_extension}" if asset.file_extension else asset.file_type,
+            'file_extension': asset.file_extension or '',
             'metadata': json.loads(asset.asset_metadata) if asset.asset_metadata else {},
             'created_at': asset.downloaded_at.isoformat() if asset.downloaded_at else None,
             'file_size': asset.file_size
@@ -165,6 +201,75 @@ def delete_asset(asset_id):
         print(f"[ERROR] Failed to delete asset: {e}")
         db.session.rollback()
         return False
+
+def bulk_delete_assets(asset_ids, user_id=None):
+    """Bulk delete assets from database"""
+    try:
+        deleted_count = 0
+        for asset_id in asset_ids:
+            query = Asset.query.filter_by(id=int(asset_id), is_deleted=False)
+            if user_id:
+                query = query.filter_by(user_id=user_id)
+            
+            asset = query.first()
+            if asset:
+                asset.is_deleted = True
+                deleted_count += 1
+        
+        db.session.commit()
+        return deleted_count
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to bulk delete assets: {e}")
+        db.session.rollback()
+        return 0
+
+def get_user_containers(user_id):
+    """Get unique container names for a user"""
+    try:
+        # Get distinct folder names from file paths
+        assets = Asset.query.filter_by(user_id=user_id, is_deleted=False).all()
+        containers = set()
+        
+        for asset in assets:
+            # Extract folder name from path
+            if asset.file_path:
+                parts = asset.file_path.split('/')
+                if len(parts) > 1:
+                    containers.add(parts[-2])  # Get parent folder name
+        
+        return sorted(list(containers))
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to get containers: {e}")
+        return []
+
+def move_assets_to_container(asset_ids, container_name, user_id=None):
+    """Move assets to a different container/folder"""
+    try:
+        moved_count = 0
+        for asset_id in asset_ids:
+            query = Asset.query.filter_by(id=int(asset_id), is_deleted=False)
+            if user_id:
+                query = query.filter_by(user_id=user_id)
+            
+            asset = query.first()
+            if asset:
+                # Update the path to new container
+                old_path = asset.file_path
+                path_parts = old_path.split('/')
+                if len(path_parts) > 1:
+                    path_parts[-2] = container_name
+                    asset.file_path = '/'.join(path_parts)
+                    moved_count += 1
+        
+        db.session.commit()
+        return moved_count
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to move assets: {e}")
+        db.session.rollback()
+        return 0
 
 def cleanup_missing_files():
     """Mark assets with missing files as deleted"""

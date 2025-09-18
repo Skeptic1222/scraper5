@@ -4,7 +4,16 @@
 
 Enhanced Media Scraper is an enterprise-grade web scraping application that aggregates content from 118+ sources including search engines, social media platforms, video sites, and image galleries. The application provides a Flask-based web interface with authentication bypass for testing, database-driven asset management, and real-time progress tracking for bulk downloads.
 
-## Recent Updates (Sept 16, 2025)
+## Recent Updates (Sept 18, 2025)
+
+### Critical Database Integration Fix
+- **Fixed Asset Storage**: Replaced in-memory storage with PostgreSQL database persistence
+- **Database Manager**: Created proper `db_asset_manager.py` with SQLAlchemy integration
+- **API Integration**: Fixed module imports and field name mismatches in assets blueprint
+- **Data Persistence**: Assets now properly saved to PostgreSQL and persist across restarts
+- **Verified Working**: 12+ assets confirmed in database, API returning data correctly
+
+## Previous Updates (Sept 16, 2025)
 
 ### Complete UI Redesign from Ground Up
 - **Rebuilt Layout Architecture**: Created clean, professional layout with fixed sidebar navigation and content area

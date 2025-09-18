@@ -16,13 +16,8 @@ from auth import optional_auth, user_or_admin_required
 from models import Asset, MediaBlob, User, db
 from watermark import watermark_overlay
 
-try:
-    from fixed_asset_manager import db_asset_manager
-except Exception:
-    try:
-        from database_asset_manager import db_asset_manager
-    except Exception:
-        from db_asset_manager import db_asset_manager
+# Import the correct database-backed asset manager
+import db_asset_manager
 
 
 assets_bp = Blueprint("assets", __name__)
@@ -60,9 +55,11 @@ def get_assets():
         else:
             user_id = None
 
+        print(f"[ASSETS API] Calling get_assets with user_id={user_id}, file_type={file_type}")
         assets_data = db_asset_manager.get_assets(
             user_id=user_id, file_type=file_type, limit=limit, offset=offset
         )
+        print(f"[ASSETS API] Got {len(assets_data)} assets back")
 
         stats = db_asset_manager.get_asset_statistics(user_id=user_id)
 
@@ -82,8 +79,8 @@ def get_assets():
                     "path": asset_data["file_path"],
                     "size": asset_data["file_size"] or 0,
                     "file_size": asset_data["file_size"] or 0,
-                    "modified": asset_data["downloaded_at"],
-                    "downloaded_at": asset_data["downloaded_at"],
+                    "modified": asset_data.get("created_at"),
+                    "downloaded_at": asset_data.get("created_at"),
                     "type": asset_data["file_type"],
                     "file_type": asset_data["file_type"],
                     "extension": asset_data["file_extension"],
