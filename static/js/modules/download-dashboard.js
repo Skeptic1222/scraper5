@@ -30,24 +30,13 @@ class DownloadDashboard {
     }
     
     createDashboardUI() {
-        const dashboardSection = document.getElementById('dashboard-section');
-        if (!dashboardSection) {
-            console.error('Dashboard section not found');
+        const container = document.getElementById('dashboard-dynamic-content');
+        if (!container) {
+            console.error('Dashboard dynamic content container not found');
             return;
         }
         
-        // Clear existing content but keep the header
-        const header = dashboardSection.querySelector('.section-header');
-        dashboardSection.innerHTML = '';
-        if (header) {
-            dashboardSection.appendChild(header);
-        }
-        
-        // Create a container for dashboard content
-        const container = document.createElement('div');
-        container.id = 'dashboard-dynamic-content';
-        dashboardSection.appendChild(container);
-        
+        // Clear any existing content and populate with the dashboard
         container.innerHTML = `
             <div class="download-dashboard">
                 <!-- Download Stats Header -->
