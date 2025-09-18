@@ -118,3 +118,64 @@ $RECYCLE.BIN/
 # Batch file generated scripts
 run_production.py
 run_temp_*.py 
+# Flask specific
+instance/
+.webassets-cache
+*.db
+*.sqlite
+*.sqlite3
+flask_session/
+
+# Environment Variables
+.env.*
+*.env
+config.env
+
+# Database
+migrations/
+*.sql
+*.dump
+
+# Credentials and Secrets
+credentials.json
+token.json
+client_secret*.json
+service-account*.json
+*.pem
+*.key
+*.crt
+
+# Google OAuth
+client_secret.json
+
+# Replit specific (for GitHub upload)
+.replit
+replit.nix
+.upm/
+.config/
+.cache/
+poetry.lock
+pyproject.toml
+
+# Node modules (if any)
+node_modules/
+
+# Python package files
+*.tar.gz
+*.zip
+*.rar
+*.7z
+
+# Session files
+sessions/
+
+# Coverage reports
+.coverage
+.pytest_cache/
+htmlcov/
+coverage.xml
+*.cover
+
+# Documentation build
+docs/_build/
+docs/.doctrees/
