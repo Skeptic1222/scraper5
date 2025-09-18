@@ -144,9 +144,9 @@ class NavigationManager {
         // Trigger section-specific initialization
         switch(sectionId) {
             case 'dashboard-section':
-                // Initialize dashboard if needed
-                if (window.initializeDashboard) {
-                    window.initializeDashboard();
+                // Initialize download dashboard if needed
+                if (window.downloadDashboard) {
+                    window.downloadDashboard.init();
                 }
                 break;
             

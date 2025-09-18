@@ -211,8 +211,8 @@
 <!-- Navigation Manager -->
 <script src="{{ url_for('static', filename='js/modules/nav.js') }}"></script>
 
-<!-- Dashboard -->
-<script src="{{ url_for('static', filename='js/modules/dashboard.js') }}"></script>
+<!-- Download Dashboard -->
+<script src="{{ url_for('static', filename='js/modules/download-dashboard.js') }}"></script>
 
 <!-- Enhanced Search UI -->
 <script src="{{ url_for('static', filename='js/modules/enhanced-search-ui.js') }}"></script>
@@ -232,18 +232,18 @@
 <script>
 // Initialize modules when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize dashboard if it's the active section
+    // Initialize download dashboard if it's the active section
     const dashboardSection = document.getElementById('dashboard-section');
     if (dashboardSection && dashboardSection.classList.contains('active')) {
-        if (window.dashboard) {
-            window.dashboard.init();
+        if (window.downloadDashboard) {
+            window.downloadDashboard.init();
         }
     }
     
     // Also initialize when navigating to dashboard
     window.addEventListener('hashchange', () => {
-        if (window.location.hash === '#dashboard' && window.dashboard) {
-            window.dashboard.init();
+        if (window.location.hash === '#dashboard' && window.downloadDashboard) {
+            window.downloadDashboard.init();
         }
     });
     

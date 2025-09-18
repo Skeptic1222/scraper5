@@ -273,16 +273,18 @@ class AssetLibraryEnhanced {
         
         return `
             <div class="asset-card square-card" data-asset-id="${asset.id}" data-index="${index}">
-                ${thumbnailContent}
-                <div class="asset-overlay">
-                    <div class="asset-name" title="${fileName}">${this.truncate(fileName, 15)}</div>
-                    <div class="asset-actions">
-                        <button class="btn-icon" onclick="assetLibrary.openMediaViewer(${index})" title="View">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn-icon" onclick="assetLibrary.downloadAsset('${asset.id}')" title="Download">
-                            <i class="fas fa-download"></i>
-                        </button>
+                <div class="asset-card-inner">
+                    ${thumbnailContent}
+                    <div class="asset-overlay">
+                        <div class="asset-name" title="${fileName}">${this.truncate(fileName, 15)}</div>
+                        <div class="asset-actions">
+                            <button class="btn-icon" onclick="assetLibrary.openMediaViewer(${index})" title="View">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn-icon" onclick="assetLibrary.downloadAsset('${asset.id}')" title="Download">
+                                <i class="fas fa-download"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
