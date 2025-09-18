@@ -31,6 +31,28 @@ class DownloadDashboard {
             return;
         }
         
+        // Check if we're on the dashboard section
+        const dashboardSection = document.getElementById('dashboard-section');
+        if (!dashboardSection) {
+            console.log('Dashboard section not found on this page, skipping initialization');
+            return;
+        }
+        
+        // Check if dashboard section is currently active
+        if (!dashboardSection.classList.contains('active')) {
+            console.log('Dashboard section not active, waiting for it to become visible');
+            // Listen for when dashboard becomes active
+            const observer = new MutationObserver((mutations) => {
+                if (dashboardSection.classList.contains('active') && !this.initialized) {
+                    console.log('Dashboard section became active, initializing now');
+                    observer.disconnect();
+                    this.init();
+                }
+            });
+            observer.observe(dashboardSection, { attributes: true, attributeFilter: ['class'] });
+            return;
+        }
+        
         // Ensure container exists
         const container = document.getElementById('dashboard-dynamic-content');
         if (!container) {
@@ -598,6 +620,12 @@ class DownloadDashboard {
     }
     
     async refreshData() {
+        // Only refresh if dashboard is visible
+        const dashboardSection = document.getElementById('dashboard-section');
+        if (!dashboardSection || !dashboardSection.classList.contains('active')) {
+            return; // Don't refresh if dashboard isn't visible
+        }
+        
         try {
             // Fetch active jobs
             const jobsResponse = await fetch('/api/jobs');
@@ -876,17 +904,5 @@ window.initializeDashboard = function() {
     }
 };
 
-// Auto-initialize when this script loads
-// Check if DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log('[DownloadDashboard] DOM loaded, auto-initializing dashboard...');
-        window.initializeDashboard();
-    });
-} else {
-    // DOM is already loaded
-    console.log('[DownloadDashboard] DOM already loaded, auto-initializing dashboard...');
-    setTimeout(() => {
-        window.initializeDashboard();
-    }, 100); // Small delay to ensure all elements are ready
-}
+// Dashboard will be initialized by the navigation system when needed
+// No auto-initialization - wait for nav.js to call initializeDashboard()

@@ -2,7 +2,7 @@
 
 {% block content %}
 <!-- Dashboard Section -->
-<section id="dashboard-section" class="content-section active" data-section="dashboard">
+<section id="dashboard-section" class="content-section" data-section="dashboard">
     <div class="section-header">
         <h1><i class="fas fa-home"></i> Dashboard</h1>
     </div>
@@ -13,7 +13,7 @@
 </section>
 
 <!-- Search Section -->
-<section id="search-section" class="content-section">
+<section id="search-section" class="content-section active">
     <div class="section-header">
         <h1><i class="fas fa-search"></i> Search & Download</h1>
     </div>
@@ -173,7 +173,7 @@
 <script src="{{ url_for('static', filename='js/modules/nav.js') }}"></script>
 
 <!-- Download Dashboard Module -->
-<script src="{{ url_for('static', filename='js/modules/download-dashboard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/modules/download-dashboard.js') }}?v=3"></script>
 
 <!-- Enhanced Search UI -->
 <script src="{{ url_for('static', filename='js/modules/enhanced-search-ui.js') }}"></script>
