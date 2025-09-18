@@ -22,9 +22,25 @@ class DownloadDashboard {
     
     init() {
         if (this.initialized) return;
-        this.initialized = true;
         
         console.log('Initializing real-time download dashboard...');
+        
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.init());
+            return;
+        }
+        
+        // Ensure container exists
+        const container = document.getElementById('dashboard-dynamic-content');
+        if (!container) {
+            console.error('Dashboard container not found, retrying in 100ms...');
+            setTimeout(() => this.init(), 100);
+            return;
+        }
+        
+        this.initialized = true;
+        console.log('Dashboard container found, creating UI...');
         this.createDashboardUI();
         this.startMonitoring();
     }
