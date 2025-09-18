@@ -43,7 +43,9 @@ except Exception:
 
 # Enhanced scraper import
 try:
-    from scrapers.enhanced_scraper import perform_enhanced_search, enhanced_scraper
+    import sys
+    sys.path.insert(0, 'scrapers')
+    from enhanced_scraper import perform_enhanced_search, enhanced_scraper
     ENHANCED_SCRAPER_AVAILABLE = True
 except Exception as e:
     print(f"[WARNING] Enhanced scraper not available: {e}")
@@ -220,7 +222,7 @@ def start_enhanced_search():
         )
         
         # Start background thread
-        app_instance = current_app._get_current_object()
+        app_instance = current_app
         thread = threading.Thread(
             target=run_enhanced_search_job,
             args=(job_id, query, sources, max_content, safe_search, include_videos, include_adult, app_instance),
@@ -287,12 +289,24 @@ def run_enhanced_search_job(job_id, query, sources, max_content, safe_search, in
                         videos += 1
                         downloaded += 1
                         # Save to database
-                        db_asset_manager.save_file_to_db(
-                            video_file,
-                            user_id=None,
-                            container="videos",
-                            metadata={"source": result['source'], "query": query}
-                        )
+                        try:
+                            if hasattr(db_asset_manager, 'save_file_to_db'):
+                                db_asset_manager.save_file_to_db(
+                                    video_file,
+                                    user_id=None,
+                                    container="videos",
+                                    metadata={"source": result['source'], "query": query}
+                                )
+                            elif hasattr(db_asset_manager, 'save_downloaded_asset'):
+                                db_asset_manager.save_downloaded_asset(
+                                    file_path=video_file,
+                                    user_id=None,
+                                    source_name=result['source'],
+                                    query=query,
+                                    is_video=True
+                                )
+                        except Exception as e:
+                            print(f"Failed to save video to DB: {e}")
                 # Handle image downloads
                 elif result['type'] in ['image', 'adult']:
                     try:
@@ -316,12 +330,24 @@ def run_enhanced_search_job(job_id, query, sources, max_content, safe_search, in
                                 tmp_path = tmp.name
                             
                             # Save to database
-                            db_asset_manager.save_file_to_db(
-                                tmp_path,
-                                user_id=None,
-                                container="images",
-                                metadata={"source": result['source'], "query": query, "adult": result['type'] == 'adult'}
-                            )
+                            try:
+                                if hasattr(db_asset_manager, 'save_file_to_db'):
+                                    db_asset_manager.save_file_to_db(
+                                        tmp_path,
+                                        user_id=None,
+                                        container="images",
+                                        metadata={"source": result['source'], "query": query, "adult": result['type'] == 'adult'}
+                                    )
+                                elif hasattr(db_asset_manager, 'save_downloaded_asset'):
+                                    db_asset_manager.save_downloaded_asset(
+                                        file_path=tmp_path,
+                                        user_id=None,
+                                        source_name=result['source'],
+                                        query=query,
+                                        is_video=False
+                                    )
+                            except Exception as e:
+                                print(f"Failed to save image to DB: {e}")
                             
                             os.unlink(tmp_path)
                             images += 1
@@ -446,7 +472,7 @@ def start_comprehensive_search():
             },
         )
         # Get the current app instance to pass to the thread
-        app_instance = current_app._get_current_object()
+        app_instance = current_app
 
         thread = threading.Thread(
             target=run_comprehensive_search_job,
