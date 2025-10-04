@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Download Test</title>
+</head>
+<body>
+    <h1>Asset Download Test</h1>
+
+    <button onclick="testDownload(628)">Download Asset 628 (Direct)</button>
+    <br><br>
+    <button onclick="testDownloadViaAPI()">Download Asset 628 (Via Fetch)</button>
+
+    <div id="log"></div>
+
+    <script>
+        function log(msg) {
+            document.getElementById('log').innerHTML += '<br>' + msg;
+            console.log(msg);
+        }
+
+        function testDownload(assetId) {
+            log('Testing direct download for asset ' + assetId);
+
+            const downloadUrl = `/scraper/api/media/${assetId}/download`;
+            log('Download URL: ' + downloadUrl);
+
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = `asset_${assetId}`;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            log('Download link clicked');
+        }
+
+        async function testDownloadViaAPI() {
+            log('Testing download via fetch API');
+
+            try {
+                const response = await fetch('/scraper/api/media/628/download');
+                log('Response status: ' + response.status);
+                log('Response headers: ' + JSON.stringify([...response.headers.entries()]));
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    log('Blob size: ' + blob.size + ' bytes');
+
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'asset_628.png';
+                    link.click();
+                    window.URL.revokeObjectURL(url);
+
+                    log('Download initiated via blob');
+                }
+            } catch (error) {
+                log('Error: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

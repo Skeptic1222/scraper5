@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Media Scraper - Diagnostics</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 10px 0;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .success {
+            background: #28a745;
+            color: white;
+        }
+        .error {
+            background: #dc3545;
+            color: white;
+        }
+        .warning {
+            background: #ffc107;
+            color: #333;
+        }
+        .pending {
+            background: #6c757d;
+            color: white;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .log-output {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .instructions {
+            background: #e7f3ff;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Enhanced Media Scraper - Diagnostics</h1>
+
+    <div class="test-section">
+        <h2>Connection Tests</h2>
+
+        <div class="test-item">
+            <span>Flask Direct (Port 3050)</span>
+            <span id="flask-status" class="status pending">Testing...</span>
+        </div>
+
+        <div class="test-item">
+            <span>IIS Proxy (/scraper)</span>
+            <span id="iis-status" class="status pending">Testing...</span>
+        </div>
+
+        <div class="test-item">
+            <span>API Endpoint (/scraper/api/sources)</span>
+            <span id="api-status" class="status pending">Testing...</span>
+        </div>
+
+        <button onclick="runAllTests()">🔄 Re-run All Tests</button>
+        <button onclick="testFlaskDirect()">Test Flask Only</button>
+        <button onclick="testIISProxy()">Test IIS Only</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Quick Fixes</h2>
+        <div class="instructions">
+            <p><strong>If Flask is not running (Port 3050 fails):</strong></p>
+            <ol>
+                <li>Open Command Prompt as Administrator</li>
+                <li>Navigate to: <code>cd C:\inetpub\wwwroot\scraper</code></li>
+                <li>Run: <code>start-flask-service.bat</code></li>
+            </ol>
+        </div>
+
+        <div class="instructions">
+            <p><strong>If IIS Proxy fails (502 Bad Gateway):</strong></p>
+            <ol>
+                <li>Open PowerShell as Administrator</li>
+                <li>Navigate to: <code>cd C:\inetpub\wwwroot\scraper</code></li>
+                <li>Run: <code>.\fix-iis-proxy.ps1</code></li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div class="log-output" id="test-log">
+            Ready to run diagnostics...
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>System Information</h2>
+        <div id="system-info">
+            <p>Current URL: <strong id="current-url"></strong></p>
+            <p>Browser: <strong id="browser-info"></strong></p>
+            <p>Time: <strong id="current-time"></strong></p>
+        </div>
+    </div>
+
+    <script>
+        const log = document.getElementById('test-log');
+
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff6b6b' : type === 'success' ? '#51cf66' : '#74c0fc';
+            log.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        async function testFlaskDirect() {
+            const statusEl = document.getElementById('flask-status');
+            statusEl.className = 'status pending';
+            statusEl.textContent = 'Testing...';
+
+            try {
+                addLog('Testing Flask direct connection on port 3050...');
+                const response = await fetch('http://localhost:3050/', {
+                    method: 'HEAD',
+                    mode: 'no-cors'
+                });
+
+                // With no-cors, we can't read the response, but if no error is thrown, it connected
+                statusEl.className = 'status success';
+                statusEl.textContent = 'Connected';
+                addLog('✓ Flask server is running on port 3050', 'success');
+                return true;
+            } catch (error) {
+                statusEl.className = 'status error';
+                statusEl.textContent = 'Failed';
+                addLog('✗ Flask connection failed: ' + error.message, 'error');
+                addLog('  → Please start Flask using start-flask-service.bat', 'error');
+                return false;
+            }
+        }
+
+        async function testIISProxy() {
+            const statusEl = document.getElementById('iis-status');
+            statusEl.className = 'status pending';
+            statusEl.textContent = 'Testing...';
+
+            try {
+                addLog('Testing IIS reverse proxy at /scraper...');
+                const response = await fetch('/scraper', {
+                    method: 'HEAD'
+                });
+
+                if (response.ok || response.status === 302) {
+                    statusEl.className = 'status success';
+                    statusEl.textContent = 'Working';
+                    addLog('✓ IIS proxy is working (Status: ' + response.status + ')', 'success');
+                    return true;
+                } else if (response.status === 502) {
+                    statusEl.className = 'status error';
+                    statusEl.textContent = '502 Bad Gateway';
+                    addLog('✗ IIS proxy returned 502 Bad Gateway', 'error');
+                    addLog('  → Flask may not be running or IIS cannot connect to port 3050', 'error');
+                    return false;
+                } else {
+                    statusEl.className = 'status warning';
+                    statusEl.textContent = 'Status ' + response.status;
+                    addLog('⚠ IIS proxy returned unexpected status: ' + response.status, 'error');
+                    return false;
+                }
+            } catch (error) {
+                statusEl.className = 'status error';
+                statusEl.textContent = 'Failed';
+                addLog('✗ IIS proxy test failed: ' + error.message, 'error');
+                return false;
+            }
+        }
+
+        async function testAPI() {
+            const statusEl = document.getElementById('api-status');
+            statusEl.className = 'status pending';
+            statusEl.textContent = 'Testing...';
+
+            try {
+                addLog('Testing API endpoint /scraper/api/sources...');
+                const response = await fetch('/scraper/api/sources');
+
+                if (response.ok) {
+                    const data = await response.json();
+                    statusEl.className = 'status success';
+                    statusEl.textContent = 'Working';
+                    addLog('✓ API is working, returned ' + (data.sources ? data.sources.length : 0) + ' sources', 'success');
+                    return true;
+                } else {
+                    statusEl.className = 'status error';
+                    statusEl.textContent = 'Status ' + response.status;
+                    addLog('✗ API returned status: ' + response.status, 'error');
+                    return false;
+                }
+            } catch (error) {
+                statusEl.className = 'status error';
+                statusEl.textContent = 'Failed';
+                addLog('✗ API test failed: ' + error.message, 'error');
+                return false;
+            }
+        }
+
+        async function runAllTests() {
+            log.innerHTML = 'Starting diagnostic tests...\n';
+
+            addLog('=== Starting Enhanced Media Scraper Diagnostics ===');
+
+            // Test Flask first
+            const flaskOk = await testFlaskDirect();
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Test IIS proxy
+            const iisOk = await testIISProxy();
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Test API
+            const apiOk = await testAPI();
+
+            // Summary
+            addLog('');
+            addLog('=== Diagnostic Summary ===');
+
+            if (flaskOk && iisOk && apiOk) {
+                addLog('✓ All systems operational!', 'success');
+                addLog('You can access the application at: http://localhost/scraper', 'success');
+            } else {
+                if (!flaskOk) {
+                    addLog('⚠ Flask server is not running. Run start-flask-service.bat', 'error');
+                }
+                if (flaskOk && !iisOk) {
+                    addLog('⚠ IIS proxy is not working. Run fix-iis-proxy.ps1 as Admin', 'error');
+                }
+                if (!apiOk && iisOk) {
+                    addLog('⚠ API endpoints may not be configured correctly', 'error');
+                }
+            }
+        }
+
+        // Update system info
+        document.getElementById('current-url').textContent = window.location.href;
+        document.getElementById('browser-info').textContent = navigator.userAgent.split(' ').slice(-2).join(' ');
+        document.getElementById('current-time').textContent = new Date().toLocaleString();
+
+        // Run tests on load
+        window.addEventListener('load', () => {
+            setTimeout(runAllTests, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+# SOURCE SELECTION UI - FIX SUMMARY
+
+## PROBLEM
+- Main "Select All" only selected 87 sources (should select 112)
+- Category "Select All" buttons skipped premium sources
+- Individual premium source checkboxes were disabled/unclickable
+- 25 premium sources (Netflix, Hulu, etc.) were completely unusable
+
+## ROOT CAUSE
+Line 156 in enhanced-search-ui.js: `checkbox.disabled = !source.enabled`
+This disabled all premium sources, making them unselectable.
+
+## SOLUTION
+✅ Removed disabled attribute from all checkboxes
+✅ Added data-is-premium attribute to track premium status
+✅ Updated selectAll() to select ALL checkboxes (not just enabled)
+✅ Updated selectAllInCategory() to include premium sources
+✅ Changed visual styling - all sources now normal color with badges
+
+## FILE MODIFIED
+C:\inetpub\wwwroot\scraper\static\js\modules\enhanced-search-ui.js
+
+## CHANGES
+1. Lines 146-173: Removed checkbox.disabled, added data-is-premium
+2. Lines 205-216: Removed if(source.enabled) check in selectAllInCategory()
+3. Lines 254-261: Removed :not(:disabled) selector in selectAll()
+
+## VERIFICATION
+✅ Total sources: 112
+✅ Disabled sources: 0 (was 25)
+✅ "Select All" now selects: 112 (was 87)
+✅ Premium sources clickable: YES
+✅ Category "Select All" works: YES
+✅ Individual selection works: YES
+
+## HOW TO VERIFY
+1. Go to http://localhost:5050
+2. Click "Search & Download" section
+3. Click "Select All" button
+4. Verify count shows "112 selected"
+5. Verify premium sources (Netflix, etc.) are checked
+6. Click individual premium source - should work
+
+## STATUS
+✅ FIXED AND VERIFIED
+All 112 sources are now fully selectable!

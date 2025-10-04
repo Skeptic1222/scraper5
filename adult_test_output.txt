@@ -1,0 +1,199 @@
+2025-10-03 10:57:40,806 - INFO - [pornhub] Starting scrape for 'dance' (max 5 files)
+2025-10-03 10:57:40,807 - INFO - [pornhub] Method 1: URL extraction + yt-dlp
+2025-10-03 10:57:40,807 - INFO - [pornhub] Fetching search results: https://www.pornhub.com/video/search?search=dance
+2025-10-03 10:57:42,265 - INFO - [pornhub] Found 74 video elements
+2025-10-03 10:57:42,266 - INFO - [pornhub] Extracted 5 video URLs
+2025-10-03 10:57:42,266 - INFO - [pornhub] Found 5 video URLs
+2025-10-03 10:57:42,266 - INFO - [pornhub] Downloading video 1/5: https://www.pornhub.com/view_video.php?viewkey=687ee48fe262e
+2025-10-03 10:58:00,090 - INFO - [pornhub] Downloaded: pornhub_Playing With My Sister's Petite Best Friend - Perfect Girlfriend - Alex Adams.mp4
+2025-10-03 10:58:00,090 - INFO - [pornhub] Downloading video 2/5: https://www.pornhub.com/view_video.php?viewkey=687ee48fe262e
+2025-10-03 10:58:04,415 - WARNING - [pornhub] yt-dlp succeeded but no new file found
+2025-10-03 10:58:04,415 - INFO - [pornhub] Downloading video 3/5: https://www.pornhub.com/view_video.php?viewkey=68c90b9de35b5
+2025-10-03 10:58:23,475 - INFO - [pornhub] Downloaded: pornhub_Sneaky Sex With Teen Step Sister ~ Alex Blake ~ Household Fantasy ~ Scott Stark.mp4
+2025-10-03 10:58:23,475 - INFO - [pornhub] Downloading video 4/5: https://www.pornhub.com/view_video.php?viewkey=68c90b9de35b5
+2025-10-03 10:58:28,029 - WARNING - [pornhub] yt-dlp succeeded but no new file found
+2025-10-03 10:58:28,029 - INFO - [pornhub] Downloading video 5/5: https://www.pornhub.com/view_video.php?viewkey=6882b98b5d354
+2025-10-03 10:59:58,052 - WARNING - [pornhub] yt-dlp timeout for https://www.pornhub.com/view_video.php?viewkey=6882b98b5d354
+2025-10-03 10:59:58,052 - INFO - [pornhub] Method 1 SUCCESS: 2 files
+2025-10-03 11:00:00,053 - INFO - [xvideos] Starting scrape for 'fitness' (max 5 files)
+2025-10-03 11:00:00,053 - INFO - [xvideos] Method 1: URL extraction + yt-dlp
+2025-10-03 11:00:00,053 - INFO - [xvideos] Fetching search results: https://www.xvideos.com/?k=fitness
+2025-10-03 11:00:01,109 - INFO - [xvideos] Found 27 video elements
+2025-10-03 11:00:01,110 - INFO - [xvideos] Extracted 5 video URLs
+2025-10-03 11:00:01,110 - INFO - [xvideos] Found 5 video URLs
+2025-10-03 11:00:01,110 - INFO - [xvideos] Downloading video 1/5: https://www.xvideos.com/video.upcokmhffc1/homemade_quickie_-_fit_slut_trains_her_ass_on_his_big_cock_-_abbie_maley
+2025-10-03 11:00:08,115 - WARNING - [xvideos] yt-dlp succeeded but no new file found
+2025-10-03 11:00:08,115 - INFO - [xvideos] Downloading video 2/5: https://www.xvideos.com/video.upticob3f6c/from_fitness_instructor_to_strip_club
+2025-10-03 11:00:13,384 - WARNING - [xvideos] yt-dlp succeeded but no new file found
+2025-10-03 11:00:13,384 - INFO - [xvideos] Downloading video 3/5: https://www.xvideos.com/video.otteefkba08/fit_missionary_compilation_5_-_26min_with_cumshot_and_creampie
+2025-10-03 11:00:19,178 - WARNING - [xvideos] yt-dlp succeeded but no new file found
+2025-10-03 11:00:19,178 - INFO - [xvideos] Downloading video 4/5: https://www.xvideos.com/video.ueovukma6c0/muscle_mommy_shower_orgy
+2025-10-03 11:00:25,097 - WARNING - [xvideos] yt-dlp succeeded but no new file found
+2025-10-03 11:00:25,097 - INFO - [xvideos] Downloading video 5/5: https://www.xvideos.com/video.otihedf661b/petite_big_tits_fitness_model_blonde_fucking_pov
+2025-10-03 11:00:30,930 - WARNING - [xvideos] yt-dlp succeeded but no new file found
+2025-10-03 11:00:30,930 - INFO - [xvideos] Method 2: Selenium extraction
+2025-10-03 11:00:30,931 - WARNING - [xvideos] Selenium method not available
+2025-10-03 11:00:30,931 - ERROR - [xvideos] All methods exhausted - 0 downloads
+2025-10-03 11:00:32,931 - INFO - [redtube] Starting scrape for 'yoga' (max 5 files)
+2025-10-03 11:00:32,931 - INFO - [redtube] Method 1: URL extraction + yt-dlp
+2025-10-03 11:00:32,931 - INFO - [redtube] Fetching search results: https://www.redtube.com/?search=yoga
+2025-10-03 11:00:34,470 - INFO - [redtube] Found 36 video elements
+2025-10-03 11:00:34,470 - INFO - [redtube] Extracted 5 video URLs
+2025-10-03 11:00:34,470 - INFO - [redtube] Found 5 video URLs
+2025-10-03 11:00:34,470 - INFO - [redtube] Downloading video 1/5: https://www.redtube.com/194174761
+2025-10-03 11:02:04,694 - WARNING - [redtube] yt-dlp timeout for https://www.redtube.com/194174761
+2025-10-03 11:02:04,694 - INFO - [redtube] Downloading video 2/5: https://www.redtube.com/190200881
+2025-10-03 11:02:31,184 - INFO - [redtube] Downloaded: redtube_Dirty Yoga teacher fucks student - Fitness Rooms.mp4
+2025-10-03 11:02:31,184 - INFO - [redtube] Downloading video 3/5: https://www.redtube.com/191000831
+2025-10-03 11:02:53,960 - INFO - [redtube] Downloaded: redtube_Stepsister in Sexy Leggings Was Doing Yoga, But I Persuaded Her To Have Sex.mp4
+2025-10-03 11:02:53,960 - INFO - [redtube] Downloading video 4/5: https://www.redtube.com/103940911
+2025-10-03 11:03:08,497 - INFO - [redtube] Downloaded: redtube_IGNORE4K. Tight but Feels Right. Hot sex with Jennifer Mendez.mp4
+2025-10-03 11:03:08,497 - INFO - [redtube] Downloading video 5/5: https://www.redtube.com/190984091
+2025-10-03 11:03:20,827 - INFO - [redtube] Downloaded: redtube_Fitness Girl In Tight Leggings Seduced me After Gym.mp4
+2025-10-03 11:03:20,827 - INFO - [redtube] Method 1 SUCCESS: 4 files
+2025-10-03 11:03:22,829 - INFO - [xhamster] Starting scrape for 'workout' (max 5 files)
+2025-10-03 11:03:22,829 - INFO - [xhamster] Method 1: URL extraction + yt-dlp
+2025-10-03 11:03:22,829 - INFO - [xhamster] Fetching search results: https://xhamster.com/search/workout
+2025-10-03 11:03:24,183 - INFO - [xhamster] Found 47 video elements
+2025-10-03 11:03:24,184 - INFO - [xhamster] Extracted 5 video URLs
+2025-10-03 11:03:24,184 - INFO - [xhamster] Found 5 video URLs
+2025-10-03 11:03:24,184 - INFO - [xhamster] Downloading video 1/5: https://xhamster.com/videos/after-an-intense-workout-exercise-my-girlfriend-asked-me-for-a-massage-so-she-can-relax-teamskeet-xh6kz0b
+2025-10-03 11:03:26,123 - WARNING - [xhamster] yt-dlp failed: ERROR: [XHamster] xh6kz0b: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest 
+2025-10-03 11:03:26,123 - INFO - [xhamster] Downloading video 2/5: https://xhamster.com/videos/intense-sexual-workout-with-cum-hungry-big-tit-blonde-xhHFtSy
+2025-10-03 11:03:28,860 - WARNING - [xhamster] yt-dlp failed: ERROR: [XHamster] xhHFtSy: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest 
+2025-10-03 11:03:28,861 - INFO - [xhamster] Downloading video 3/5: https://xhamster.com/videos/spring-workout-with-stunning-fit-milf-sandy-love-turns-into-wild-outdoor-fucking-milfbody-xhR7ySC
+2025-10-03 11:03:30,728 - WARNING - [xhamster] yt-dlp failed: ERROR: [XHamster] xhR7ySC: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest 
+2025-10-03 11:03:30,728 - INFO - [xhamster] Downloading video 4/5: https://xhamster.com/videos/workout-with-me-45-minute-naughty-gym-session-xhSnZ8a
+2025-10-03 11:03:32,848 - WARNING - [xhamster] yt-dlp failed: ERROR: [XHamster] xhSnZ8a: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest 
+2025-10-03 11:03:32,848 - INFO - [xhamster] Downloading video 5/5: https://xhamster.com/videos/fitnessrooms-multiple-orgasms-for-black-haired-gym-nymph-6940154
+2025-10-03 11:03:36,133 - WARNING - [xhamster] yt-dlp failed: ERROR: [XHamster] 6940154: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest 
+2025-10-03 11:03:36,133 - INFO - [xhamster] Method 2: Selenium extraction
+2025-10-03 11:03:36,133 - WARNING - [xhamster] Selenium method not available
+2025-10-03 11:03:36,133 - ERROR - [xhamster] All methods exhausted - 0 downloads
+2025-10-03 11:03:38,134 - INFO - [youporn] Starting scrape for 'exercise' (max 5 files)
+2025-10-03 11:03:38,134 - INFO - [youporn] Method 1: URL extraction + yt-dlp
+2025-10-03 11:03:38,134 - INFO - [youporn] Fetching search results: https://www.youporn.com/search/?query=exercise
+2025-10-03 11:03:39,649 - INFO - [youporn] Found 0 video elements
+2025-10-03 11:03:39,649 - INFO - [youporn] Extracted 0 video URLs
+2025-10-03 11:03:39,649 - INFO - [youporn] Method 2: Selenium extraction
+2025-10-03 11:03:39,649 - WARNING - [youporn] Selenium method not available
+2025-10-03 11:03:39,649 - ERROR - [youporn] All methods exhausted - 0 downloads
+2025-10-03 11:03:41,650 - INFO - [spankbang] Starting scrape for 'dance' (max 5 files)
+2025-10-03 11:03:41,650 - INFO - [spankbang] Method 1: URL extraction + yt-dlp
+2025-10-03 11:03:41,650 - INFO - [spankbang] Fetching search results: https://spankbang.com/s/dance/
+2025-10-03 11:03:42,071 - WARNING - [spankbang] Request failed (attempt 1/3): 403 Client Error: Forbidden for url: https://spankbang.com/s/dance/
+2025-10-03 11:03:42,071 - INFO - [spankbang] Retrying in 1.72s...
+2025-10-03 11:03:43,849 - WARNING - [spankbang] Request failed (attempt 2/3): 403 Client Error: Forbidden for url: https://spankbang.com/s/dance/
+2025-10-03 11:03:43,849 - INFO - [spankbang] Retrying in 2.93s...
+2025-10-03 11:03:46,815 - WARNING - [spankbang] Request failed (attempt 3/3): 403 Client Error: Forbidden for url: https://spankbang.com/s/dance/
+2025-10-03 11:03:46,815 - ERROR - [spankbang] All retries exhausted
+2025-10-03 11:03:46,815 - INFO - [spankbang] Method 2: Selenium extraction
+2025-10-03 11:03:46,815 - WARNING - [spankbang] Selenium method not available
+2025-10-03 11:03:46,815 - ERROR - [spankbang] All methods exhausted - 0 downloads
+2025-10-03 11:03:48,817 - INFO - [motherless] Starting scrape for 'music' (max 5 files)
+2025-10-03 11:03:48,817 - INFO - [motherless] Method 1: URL extraction + yt-dlp
+2025-10-03 11:03:48,817 - INFO - [motherless] Fetching search results: https://motherless.com/search/videos?term=music
+2025-10-03 11:03:51,630 - INFO - [motherless] Found 0 video elements
+2025-10-03 11:03:51,630 - INFO - [motherless] Extracted 0 video URLs
+2025-10-03 11:03:51,630 - INFO - [motherless] Method 2: Selenium extraction
+2025-10-03 11:03:51,630 - WARNING - [motherless] Selenium method not available
+2025-10-03 11:03:51,630 - ERROR - [motherless] All methods exhausted - 0 downloads
+2025-10-03 11:03:53,631 - INFO - [redgifs] Starting scrape for 'animation' (max 5 files)
+2025-10-03 11:03:53,631 - INFO - [redgifs] Method 1: URL extraction + yt-dlp
+2025-10-03 11:03:53,631 - INFO - [redgifs] Fetching search results: https://www.redgifs.com/gifs/animation
+2025-10-03 11:03:54,182 - INFO - [redgifs] Found 0 video elements
+2025-10-03 11:03:54,182 - INFO - [redgifs] Extracted 0 video URLs
+2025-10-03 11:03:54,182 - INFO - [redgifs] Method 2: Selenium extraction
+2025-10-03 11:03:54,183 - WARNING - [redgifs] Selenium method not available
+2025-10-03 11:03:54,183 - ERROR - [redgifs] All methods exhausted - 0 downloads
+================================================================================
+ADULT SOURCE COMPREHENSIVE TEST
+================================================================================
+
+Testing 8 sources with 5 files each...
+
+
+================================================================================
+Testing: PORNHUB (query: 'dance')
+================================================================================
+
+[SUCCESS] pornhub
+   Downloaded: 2 files in 137.25s
+   - pornhub_Playing With My Sister's Petite Best Friend - Perfect Girlfriend - Alex Adams.mp4 (207.92 MB)
+   - pornhub_Sneaky Sex With Teen Step Sister ~ Alex Blake ~ Household Fantasy ~ Scott Stark.mp4 (435.41 MB)
+
+================================================================================
+Testing: XVIDEOS (query: 'fitness')
+================================================================================
+
+[FAILED] xvideos - No files downloaded
+
+================================================================================
+Testing: REDTUBE (query: 'yoga')
+================================================================================
+
+[SUCCESS] redtube
+   Downloaded: 4 files in 167.90s
+   - redtube_Dirty Yoga teacher fucks student - Fitness Rooms.mp4 (329.62 MB)
+   - redtube_Stepsister in Sexy Leggings Was Doing Yoga, But I Persuaded Her To Have Sex.mp4 (489.96 MB)
+   - redtube_IGNORE4K. Tight but Feels Right. Hot sex with Jennifer Mendez.mp4 (254.21 MB)
+   - redtube_Fitness Girl In Tight Leggings Seduced me After Gym.mp4 (373.90 MB)
+
+================================================================================
+Testing: XHAMSTER (query: 'workout')
+================================================================================
+
+[FAILED] xhamster - No files downloaded
+
+================================================================================
+Testing: YOUPORN (query: 'exercise')
+================================================================================
+
+[FAILED] youporn - No files downloaded
+
+================================================================================
+Testing: SPANKBANG (query: 'dance')
+================================================================================
+
+[FAILED] spankbang - No files downloaded
+
+================================================================================
+Testing: MOTHERLESS (query: 'music')
+================================================================================
+
+[FAILED] motherless - No files downloaded
+
+================================================================================
+Testing: REDGIFS (query: 'animation')
+================================================================================
+
+[FAILED] redgifs - No files downloaded
+
+
+================================================================================
+TEST SUMMARY
+================================================================================
+
+Sources Tested:    8
+Successful:        2
+Failed:            6
+Total Files:       6
+
+Detailed Results:
+--------------------------------------------------------------------------------
+Source          Status     Files    Time       Query          
+--------------------------------------------------------------------------------
+pornhub         [PASS]     2        137.25     dance          
+xvideos         [FAIL]     0        30.88      fitness        
+redtube         [PASS]     4        167.90     yoga           
+xhamster        [FAIL]     0        13.30      workout        
+youporn         [FAIL]     0        1.51       exercise       
+spankbang       [FAIL]     0        5.17       dance          
+motherless      [FAIL]     0        2.81       music          
+redgifs         [FAIL]     0        0.55       animation      
+--------------------------------------------------------------------------------
+
+================================================================================
+
+Results saved to: adult_test_results.txt
+Detailed logs saved to: adult_source_tests.log

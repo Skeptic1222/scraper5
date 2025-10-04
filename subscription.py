@@ -91,12 +91,23 @@ SUBSCRIPTION_PLANS = {
     }
 }
 
-# All available sources
-ALL_SOURCES = [
-    'reddit', 'imgur', 'wikimedia', 'deviantart', 'pixabay', 'unsplash', 'pexels',
-    'facebook', 'instagram', 'twitter', 'tiktok', 'youtube', 'vimeo', 'pinterest',
-    'tumblr', 'flickr', '500px', 'giphy', 'tenor'
-]
+# Import sources_data to get all available sources dynamically
+from sources_data import get_content_sources
+
+# Get all available source IDs dynamically
+def _get_all_source_ids():
+    """Get all available source IDs from sources_data.py"""
+    sources = get_content_sources()
+    all_ids = []
+    for category, source_list in sources.items():
+        if category != 'all' and isinstance(source_list, list):
+            for source in source_list:
+                if isinstance(source, dict) and 'id' in source:
+                    all_ids.append(source['id'])
+    return all_ids
+
+# All available sources - now dynamically loaded from sources_data.py
+ALL_SOURCES = _get_all_source_ids()
 
 # Free trial sources
 TRIAL_SOURCES = [

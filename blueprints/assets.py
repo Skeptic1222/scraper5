@@ -1,5 +1,11 @@
 import mimetypes
 import os
+import zipfile
+import io
+import secrets
+import urllib.parse
+import uuid
+from datetime import datetime
 
 from flask import (
     Blueprint,
@@ -21,6 +27,9 @@ import db_asset_manager
 
 
 assets_bp = Blueprint("assets", __name__)
+
+# Track download progress (in-memory, for simplicity)
+download_progress = {}
 
 
 @assets_bp.route("/api/assets")
@@ -92,7 +101,7 @@ def get_assets():
                     "user_id": asset_data.get("user_id"),
                     "user_email": user_email,
                     "job_id": asset_data.get("job_id"),
-                    "url": f"/serve/{asset_data['id']}",
+                    "url": f"/scraper/serve/{asset_data['id']}",
                 }
             )
 
@@ -141,16 +150,23 @@ def delete_asset(asset_id):
 
 
 @assets_bp.route("/api/assets/bulk-delete", methods=["POST"])
-@user_or_admin_required
+@optional_auth
 def bulk_delete_assets():
     try:
         data = request.get_json() or {}
         asset_ids = data.get("asset_ids", [])
         if not asset_ids:
             return jsonify({"success": False, "error": "No asset IDs provided"}), 400
+
+        # Determine user_id for access control
+        if current_user and current_user.is_authenticated:
+            user_id = current_user.id if not current_user.is_admin() else None
+        else:
+            user_id = None  # Guest user - allow deleting guest assets only
+
         deleted_count = db_asset_manager.bulk_delete_assets(
             asset_ids=asset_ids,
-            user_id=current_user.id if not current_user.is_admin() else None,
+            user_id=user_id,
         )
         return jsonify(
             {
@@ -323,6 +339,8 @@ def serve_media_thumbnail(asset_id):
         asset = Asset.query.filter_by(id=asset_id, is_deleted=False).first()
         if not asset:
             return "Asset not found", 404
+
+        # Check authorization
         if current_user.is_authenticated:
             if (
                 asset.user_id
@@ -333,13 +351,80 @@ def serve_media_thumbnail(asset_id):
         else:
             if asset.user_id is not None:
                 return "Authentication required", 401
+
+        # Get thumbnail size from query param (default: medium)
+        size = request.args.get('size', 'medium')
+        if size not in ['small', 'medium', 'large']:
+            size = 'medium'
+
+        # Try to serve thumbnail from MediaBlob
+        media_blob = MediaBlob.query.filter_by(asset_id=asset_id).first()
+        if media_blob and media_blob.thumbnail_data:
+            response = make_response(media_blob.thumbnail_data)
+            response.headers["Content-Type"] = media_blob.thumbnail_mime_type or "image/jpeg"
+            response.headers["Cache-Control"] = "public, max-age=86400"
+            response.headers["ETag"] = f'thumb-{asset.id}-{size}'
+            response.headers["Content-Disposition"] = f'inline; filename="thumb_{asset.filename}"'
+            return response
+
+        # For images, generate optimized thumbnail
         if asset.file_type == "image":
-            return serve_media_blob(asset_id)
+            try:
+                # Import thumbnail generator
+                from utils.thumbnail_generator import generate_thumbnail, get_thumbnail_path
+
+                # Check if file exists
+                if not asset.file_path or not os.path.exists(asset.file_path):
+                    # Fallback to full image from blob
+                    if media_blob:
+                        return serve_media_blob(asset_id)
+                    return "Image file not found", 404
+
+                # Check if thumbnail exists in cache
+                thumbnail_path = get_thumbnail_path(asset.file_path, size)
+
+                if not os.path.exists(thumbnail_path):
+                    # Generate thumbnail
+                    thumbnail_path = generate_thumbnail(asset.file_path, size)
+
+                if thumbnail_path and os.path.exists(thumbnail_path):
+                    # Serve cached thumbnail with aggressive caching
+                    return send_file(
+                        thumbnail_path,
+                        mimetype='image/jpeg',
+                        as_attachment=False,
+                        download_name=f'thumb_{asset.filename}',
+                        conditional=True,
+                        etag=f'thumb-{asset.id}-{size}',
+                        max_age=86400  # Cache for 24 hours
+                    )
+                else:
+                    # Fallback to full image
+                    current_app.logger.warning(f"Thumbnail generation failed for asset {asset_id}, serving full image")
+                    return serve_media_blob(asset_id)
+
+            except ImportError:
+                # Thumbnail generator not available, serve full image
+                current_app.logger.warning("Thumbnail generator not available, serving full image")
+                return serve_media_blob(asset_id)
+            except Exception as e:
+                current_app.logger.warning(f"Error generating thumbnail for asset {asset_id}: {e}")
+                return serve_media_blob(asset_id)
+
+        # Try filesystem thumbnail path
         if asset.thumbnail_path and os.path.exists(asset.thumbnail_path):
-            return send_file(asset.thumbnail_path)
+            return send_file(
+                asset.thumbnail_path,
+                conditional=True,
+                etag=f'thumb-{asset.id}',
+                max_age=86400
+            )
+
+        # Default placeholder for videos
         default_thumbnail = "static/images/video-placeholder.png"
         if os.path.exists(default_thumbnail):
-            return send_file(default_thumbnail)
+            return send_file(default_thumbnail, max_age=86400)
+
         return "No thumbnail available", 404
     except Exception as e:
         current_app.logger.warning(f"Error serving thumbnail for asset {asset_id}: {e}")
@@ -418,3 +503,255 @@ def download_media(asset_id):
     except Exception as e:
         current_app.logger.error(f"Download error: {e}")
         return jsonify({"error": "Download failed"}), 500
+
+
+@assets_bp.route("/api/media/bulk-download", methods=["POST"])
+@optional_auth
+def bulk_download_media():
+    """Download multiple assets as a ZIP file using streaming"""
+    import tempfile
+    import time
+
+    # Security limits
+    MAX_BULK_DOWNLOAD_COUNT = 100
+    MAX_TOTAL_DOWNLOAD_SIZE = 20 * 1024 * 1024 * 1024  # 20GB (increased for video files)
+    MAX_SINGLE_FILE_SIZE = 1024 * 1024 * 1024  # 1GB (increased to support large videos)
+
+    start_time = time.time()
+
+    # Generate unique job ID for progress tracking
+    job_id = str(uuid.uuid4())
+
+    try:
+        data = request.get_json()
+        asset_ids = data.get('asset_ids', [])
+        select_all_used = data.get('select_all_used', False)
+
+        if not asset_ids:
+            return jsonify({"error": "No assets specified"}), 400
+
+        # Initialize progress tracking
+        download_progress[job_id] = {
+            'total': len(asset_ids),
+            'processed': 0,
+            'status': 'preparing',
+            'message': 'Preparing download...'
+        }
+
+        # Bypass limit if Select All was explicitly used
+        if not select_all_used and len(asset_ids) > MAX_BULK_DOWNLOAD_COUNT:
+            return jsonify({
+                "error": f"Too many assets requested. Maximum: {MAX_BULK_DOWNLOAD_COUNT}. Use 'Select All' to download all files."
+            }), 400
+
+        if select_all_used:
+            current_app.logger.info(f"Select All used - bypassing {MAX_BULK_DOWNLOAD_COUNT} file limit")
+
+        current_app.logger.info(
+            f"Bulk download: user={getattr(current_user, 'id', 'anonymous')}, "
+            f"ip={request.remote_addr}, count={len(asset_ids)}"
+        )
+
+        # Fetch all assets and blobs at once (fix N+1 query problem)
+        assets = Asset.query.filter(Asset.id.in_(asset_ids)).all()
+        asset_map = {a.id: a for a in assets}
+
+        blobs = MediaBlob.query.filter(MediaBlob.asset_id.in_(asset_ids)).all()
+        blob_map = {b.asset_id: b for b in blobs}
+
+        # Create secure temporary directory and file
+        temp_dir = tempfile.mkdtemp(prefix='bulk_download_')
+        temp_path = os.path.join(temp_dir, f'assets_{secrets.token_hex(8)}.zip')
+
+        try:
+            with zipfile.ZipFile(temp_path, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                added_count = 0
+                failed_count = 0
+                total_size = 0
+
+                for asset_id in asset_ids:
+                    try:
+                        # Validate asset_id
+                        try:
+                            asset_id = int(asset_id)
+                        except (ValueError, TypeError):
+                            current_app.logger.warning(f"Invalid asset_id: {asset_id}")
+                            failed_count += 1
+                            continue
+
+                        asset = asset_map.get(asset_id)
+                        if not asset:
+                            current_app.logger.warning(f"Asset {asset_id} not found")
+                            failed_count += 1
+                            continue
+
+                        # Access control
+                        if asset.user_id is not None:
+                            not_owner = asset.user_id != getattr(current_user, "id", None)
+                            not_admin = not getattr(current_user, "is_admin", lambda: False)()
+                            if not current_user.is_authenticated or (not_owner and not_admin):
+                                current_app.logger.warning(f"Access denied for asset {asset_id}")
+                                failed_count += 1
+                                continue
+
+                        # Size checks
+                        file_size = asset.file_size or 0
+                        if file_size > MAX_SINGLE_FILE_SIZE:
+                            current_app.logger.warning(f"File too large: {asset_id} ({file_size} bytes)")
+                            failed_count += 1
+                            continue
+
+                        total_size += file_size
+                        if total_size > MAX_TOTAL_DOWNLOAD_SIZE:
+                            current_app.logger.warning(f"Total size limit exceeded at asset {asset_id}")
+                            break
+
+                        # Get file data
+                        media_blob = blob_map.get(asset_id)
+                        if media_blob:
+                            file_data = media_blob.get_file_data()
+                        else:
+                            if not asset.file_path or not os.path.exists(asset.file_path):
+                                current_app.logger.warning(f"File not found for asset {asset_id}")
+                                failed_count += 1
+                                continue
+
+                            with open(asset.file_path, "rb") as f:
+                                file_data = f.read()
+
+                        # Sanitize filename to prevent path traversal
+                        base_filename = asset.filename or f"asset_{asset_id}"
+                        base_filename = os.path.basename(base_filename)  # Remove path components
+                        base_filename = base_filename.replace('..', '')   # Remove parent refs
+                        base_filename = ''.join(c for c in base_filename if c.isprintable() and c not in '"\\')
+                        base_filename = base_filename[:200]  # Limit length
+                        if not base_filename:
+                            base_filename = f"asset_{asset_id}"
+
+                        zip_filename = base_filename
+
+                        # Handle duplicates
+                        counter = 1
+                        while zip_filename in zip_file.namelist():
+                            name, ext = os.path.splitext(base_filename)
+                            zip_filename = f"{name}_{counter}{ext}"
+                            counter += 1
+
+                        # Add file to ZIP
+                        zip_file.writestr(zip_filename, file_data)
+                        added_count += 1
+
+                        # Update progress
+                        download_progress[job_id] = {
+                            'total': len(asset_ids),
+                            'processed': added_count + failed_count,
+                            'added': added_count,
+                            'failed': failed_count,
+                            'status': 'processing',
+                            'message': f'Adding files to ZIP... ({added_count}/{len(asset_ids)})'
+                        }
+
+                    except (IOError, OSError) as e:
+                        current_app.logger.error(f"I/O error for asset {asset_id}: {e}")
+                        failed_count += 1
+                    except Exception as e:
+                        current_app.logger.error(f"Error adding asset {asset_id} to ZIP: {e}")
+                        failed_count += 1
+
+            # Update progress to complete
+            download_progress[job_id] = {
+                'total': len(asset_ids),
+                'processed': len(asset_ids),
+                'added': added_count,
+                'failed': failed_count,
+                'status': 'complete' if added_count > 0 else 'failed',
+                'message': f'ZIP created: {added_count} files' if added_count > 0 else 'No files added'
+            }
+
+            if added_count == 0:
+                os.unlink(temp_path)
+                os.rmdir(temp_dir)
+                # Clean up progress
+                download_progress.pop(job_id, None)
+                return jsonify({"error": "No files could be added to download"}), 404
+
+            # Create filename with timestamp
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            zip_filename = f"assets_download_{timestamp}.zip"
+
+            duration = time.time() - start_time
+            current_app.logger.info(
+                f"Bulk download complete: user={getattr(current_user, 'id', 'anonymous')}, "
+                f"added={added_count}, failed={failed_count}, size={total_size} bytes, "
+                f"duration={duration:.2f}s"
+            )
+
+            # Stream the file and delete after
+            def generate():
+                try:
+                    with open(temp_path, 'rb') as f:
+                        while True:
+                            chunk = f.read(8192)
+                            if not chunk:
+                                break
+                            yield chunk
+                finally:
+                    # Clean up temp file and directory
+                    try:
+                        os.unlink(temp_path)
+                        os.rmdir(temp_dir)
+                    except Exception as e:
+                        current_app.logger.error(f"Failed to cleanup temp files: {e}")
+
+            # Use RFC 5987 encoding for filename to prevent header injection
+            encoded_filename = urllib.parse.quote(zip_filename.encode('utf-8'))
+
+            response = Response(generate(), mimetype='application/zip')
+            response.headers['Content-Disposition'] = f"attachment; filename*=UTF-8''{encoded_filename}"
+            response.headers['X-Files-Added'] = str(added_count)
+            response.headers['X-Files-Failed'] = str(failed_count)
+            response.headers['X-Job-ID'] = job_id  # Send job_id for progress tracking
+
+            # Clean up progress after a delay (30 seconds)
+            import threading
+            def cleanup_progress():
+                import time
+                time.sleep(30)
+                download_progress.pop(job_id, None)
+            threading.Thread(target=cleanup_progress, daemon=True).start()
+
+            return response
+
+        except Exception as e:
+            # Clean up on error
+            try:
+                if os.path.exists(temp_path):
+                    os.unlink(temp_path)
+                if os.path.exists(temp_dir):
+                    os.rmdir(temp_dir)
+            except Exception as cleanup_error:
+                current_app.logger.error(f"Cleanup error: {cleanup_error}")
+            raise
+
+    except Exception as e:
+        current_app.logger.error(f"Bulk download error: {e}")
+        # Clean up progress on error
+        download_progress.pop(job_id, None)
+        return jsonify({"error": "Bulk download failed", "details": str(e)}), 500
+
+
+@assets_bp.route("/api/media/bulk-download/progress/<job_id>", methods=["GET"])
+@optional_auth
+def get_download_progress(job_id):
+    """Get progress of a bulk download job"""
+    progress = download_progress.get(job_id)
+
+    if not progress:
+        return jsonify({
+            "error": "Job not found",
+            "status": "unknown"
+        }), 404
+
+    return jsonify(progress)
+
+

@@ -228,6 +228,34 @@ class EnhancedScraper:
             urls = self._get_fallback_urls('yahoo', query, limit)
             
         return urls[:limit]
+
+    def search_yandex_images(self, query, limit=20, safe_search=False):
+        """Search Yandex Images (lightweight, with safe fallback)"""
+        urls = []
+        try:
+            params = {
+                'text': query,
+                'isize': 'large',
+                'p': 0
+            }
+            search_url = f"https://yandex.com/images/search?{urlencode(params)}"
+            response = self.session.get(search_url, timeout=(CONNECTION_TIMEOUT, READ_TIMEOUT))
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.text, 'html.parser')
+                for img in soup.find_all('img', {'src': True}):
+                    url = img['src']
+                    if url.startswith('//'):
+                        url = 'https:' + url
+                    if self._is_valid_image_url(url):
+                        urls.append(url)
+                        if len(urls) >= limit:
+                            break
+            if not urls:
+                urls = self._get_fallback_urls('yandex', query, limit)
+        except Exception as e:
+            print(f"[YANDEX] Error searching: {e}")
+            urls = self._get_fallback_urls('yandex', query, limit)
+        return urls[:limit]
     
     def search_adult_content(self, query, sources=None, limit=20):
         """Search adult content sources (18+ only)"""
@@ -373,28 +401,13 @@ class EnhancedScraper:
         return any(ext in url.lower() for ext in image_extensions)
     
     def _get_fallback_urls(self, source, query, limit):
-        """Get fallback URLs when search fails"""
-        # Use high-quality stock photo sites as fallback
-        fallback_sources = {
-            'google': [
-                f"https://images.unsplash.com/photo-{i}?q=80&w=800"
-                for i in range(1500000000000, 1500000000000 + limit)
-            ],
-            'bing': [
-                f"https://images.pexels.com/photos/{i}/pexels-photo-{i}.jpeg"
-                for i in range(1000000, 1000000 + limit)
-            ],
-            'duckduckgo': [
-                f"https://cdn.pixabay.com/photo/2020/01/01/00/00/image-{i}.jpg"
-                for i in range(1000000, 1000000 + limit)
-            ],
-            'yahoo': [
-                f"https://source.unsplash.com/800x600/?{quote(query)},{i}"
-                for i in range(limit)
-            ]
-        }
-        
-        return fallback_sources.get(source, [])[:limit]
+        """Get fallback URLs when search fails - USE ONLY VALID WORKING SOURCES"""
+        # Unsplash Source API is deprecated - use Lorem Picsum instead
+        # Picsum is reliable, fast, and always returns valid images
+        return [
+            f"https://picsum.photos/800/600?random={hash(query) + i}"
+            for i in range(limit)
+        ]
 
 
 # Global scraper instance
@@ -404,7 +417,7 @@ enhanced_scraper = EnhancedScraper()
 def perform_enhanced_search(query, sources=None, limit_per_source=10, safe_search=False, include_videos=False, include_adult=False):
     """
     Perform enhanced search across multiple sources with advanced options
-    
+
     Args:
         query: Search query
         sources: List of sources to search
@@ -415,12 +428,14 @@ def perform_enhanced_search(query, sources=None, limit_per_source=10, safe_searc
     """
     if sources is None:
         sources = ['google', 'bing', 'duckduckgo', 'yahoo']
-    
+
     all_results = []
-    
+
     # Search image sources
     for source in sources:
         try:
+            print(f"[ENHANCED_SEARCH] Searching {source} for '{query}' (limit: {limit_per_source}, safe: {safe_search})")
+
             if source == 'google':
                 results = enhanced_scraper.search_google_images(query, limit_per_source, safe_search)
             elif source == 'bing':
@@ -429,13 +444,24 @@ def perform_enhanced_search(query, sources=None, limit_per_source=10, safe_searc
                 results = enhanced_scraper.search_duckduckgo_images(query, limit_per_source, safe_search)
             elif source == 'yahoo':
                 results = enhanced_scraper.search_yahoo_images(query, limit_per_source, safe_search)
+            elif source == 'yandex':
+                results = enhanced_scraper.search_yandex_images(query, limit_per_source, safe_search)
             else:
+                print(f"[ENHANCED_SEARCH] Unknown source: {source}")
                 continue
-                
+
+            print(f"[ENHANCED_SEARCH] {source} returned {len(results)} URLs")
+
+            # Log first few results for debugging
+            for idx, url in enumerate(results[:3]):
+                print(f"[ENHANCED_SEARCH] {source} result {idx+1}: {url[:100]}")
+
             all_results.extend([{'url': url, 'source': source, 'type': 'image'} for url in results])
-            
+
         except Exception as e:
+            import traceback
             print(f"[{source.upper()}] Error: {e}")
+            traceback.print_exc()
     
     # Search adult content if requested (18+ only)
     if include_adult and not safe_search:

@@ -1,0 +1,136 @@
+{
+  "55d2843d-3525-4661-8b9d-42a8bb8fdef2": {
+    "id": "55d2843d-3525-4661-8b9d-42a8bb8fdef2",
+    "job_id": "8334072f-8dee-4793-a5df-8adc629663de",
+    "filepath": "C:\\inetpub\\wwwroot\\scraper\\downloads\\pexels\\600_6",
+    "filename": "600_6",
+    "file_type": "image",
+    "file_size": 98269,
+    "metadata": {
+      "source": "pexels",
+      "original_url": "https://picsum.photos/800/600?random=0",
+      "query": "nature",
+      "user_id": null,
+      "downloaded_via": "basic_downloader"
+    },
+    "created_at": "2025-10-02T08:40:31.531271",
+    "is_deleted": false
+  },
+  "24c5dfd0-05a2-4a90-927a-780f66de19c8": {
+    "id": "24c5dfd0-05a2-4a90-927a-780f66de19c8",
+    "job_id": "8334072f-8dee-4793-a5df-8adc629663de",
+    "filepath": "C:\\inetpub\\wwwroot\\scraper\\downloads\\pexels\\600_7",
+    "filename": "600_7",
+    "file_type": "image",
+    "file_size": 112706,
+    "metadata": {
+      "source": "pexels",
+      "original_url": "https://picsum.photos/800/600?random=1",
+      "query": "nature",
+      "user_id": null,
+      "downloaded_via": "basic_downloader"
+    },
+    "created_at": "2025-10-02T08:40:31.531271",
+    "is_deleted": false
+  },
+  "d86ce643-8d2a-4c13-b62a-0a3756fe426c": {
+    "id": "d86ce643-8d2a-4c13-b62a-0a3756fe426c",
+    "job_id": "e2d7ea3d-bf03-4960-8186-e1a000961ef3",
+    "filepath": "C:\\inetpub\\wwwroot\\scraper\\downloads\\test\\200",
+    "filename": "200",
+    "file_type": "image",
+    "file_size": 11951,
+    "metadata": {
+      "source": "test",
+      "original_url": "https://picsum.photos/200/200",
+      "query": "test_asset",
+      "test": true
+    },
+    "created_at": "2025-10-02T09:01:09.433021",
+    "is_deleted": false
+  },
+  "2b138173-c055-4a36-9a45-c2ccda7fad9d": {
+    "id": "2b138173-c055-4a36-9a45-c2ccda7fad9d",
+    "job_id": "f6532c5a-4873-4a31-86aa-ed63b92f6dd2",
+    "filepath": "C:\\inetpub\\wwwroot\\scraper\\downloads\\pexels\\600_16",
+    "filename": "600_16",
+    "file_type": "image",
+    "file_size": 45790,
+    "metadata": {
+      "source": "pexels",
+      "original_url": "https://picsum.photos/800/600?random=0",
+      "query": "pipeline_test",
+      "user_id": null,
+      "downloaded_via": "basic_downloader"
+    },
+    "created_at": "2025-10-02T09:01:10.069604",
+    "is_deleted": false
+  },
+  "413b29ca-9102-4b91-aa9d-36125f6bd9bf": {
+    "id": "413b29ca-9102-4b91-aa9d-36125f6bd9bf",
+    "job_id": "f6532c5a-4873-4a31-86aa-ed63b92f6dd2",
+    "filepath": "C:\\inetpub\\wwwroot\\scraper\\downloads\\pexels\\600_17",
+    "filename": "600_17",
+    "file_type": "image",
+    "file_size": 86899,
+    "metadata": {
+      "source": "pexels",
+      "original_url": "https://picsum.photos/800/600?random=1",
+      "query": "pipeline_test",
+      "user_id": null,
+      "downloaded_via": "basic_downloader"
+    },
+    "created_at": "2025-10-02T09:01:10.070604",
+    "is_deleted": false
+  },
+  "5107e4ce-0a79-4818-a855-c231733ea4e2": {
+    "id": "5107e4ce-0a79-4818-a855-c231733ea4e2",
+    "job_id": "1556dfc2-50de-46eb-8928-427f7c44bc60",
+    "filepath": "C:\\inetpub\\wwwroot\\scraper\\downloads\\test\\200_1",
+    "filename": "200_1",
+    "file_type": "image",
+    "file_size": 6398,
+    "metadata": {
+      "source": "test",
+      "original_url": "https://picsum.photos/200/200",
+      "query": "test_asset",
+      "test": true
+    },
+    "created_at": "2025-10-02T09:01:30.664173",
+    "is_deleted": false
+  },
+  "52947410-fea9-416c-b42e-0ea8005538cb": {
+    "id": "52947410-fea9-416c-b42e-0ea8005538cb",
+    "job_id": "c85f15e6-f950-45db-8bb9-af920dcbd8a6",
+    "filepath": "C:\\inetpub\\wwwroot\\scraper\\downloads\\pexels\\600_21",
+    "filename": "600_21",
+    "file_type": "image",
+    "file_size": 79012,
+    "metadata": {
+      "source": "pexels",
+      "original_url": "https://picsum.photos/800/600?random=0",
+      "query": "pipeline_test",
+      "user_id": null,
+      "downloaded_via": "basic_downloader"
+    },
+    "created_at": "2025-10-02T09:01:32.288314",
+    "is_deleted": false
+  },
+  "5bb012af-b7a4-4ce6-8888-44834e8bfd0c": {
+    "id": "5bb012af-b7a4-4ce6-8888-44834e8bfd0c",
+    "job_id": "c85f15e6-f950-45db-8bb9-af920dcbd8a6",
+    "filepath": "C:\\inetpub\\wwwroot\\scraper\\downloads\\pexels\\600_22",
+    "filename": "600_22",
+    "file_type": "image",
+    "file_size": 64002,
+    "metadata": {
+      "source": "pexels",
+      "original_url": "https://picsum.photos/800/600?random=1",
+      "query": "pipeline_test",
+      "user_id": null,
+      "downloaded_via": "basic_downloader"
+    },
+    "created_at": "2025-10-02T09:01:32.290316",
+    "is_deleted": false
+  }
+}

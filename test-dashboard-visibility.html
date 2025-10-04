@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard Visibility Test</title>
+    <script>
+        function runTest() {
+            const section = document.getElementById('dashboard-section');
+            const container = document.getElementById('dashboard-dynamic-content');
+
+            const report = {
+                sectionExists: !!section,
+                containerExists: !!container,
+                sectionClasses: section?.className,
+                sectionDisplay: section ? window.getComputedStyle(section).display : 'N/A',
+                sectionVisibility: section ? window.getComputedStyle(section).visibility : 'N/A',
+                sectionOpacity: section ? window.getComputedStyle(section).opacity : 'N/A',
+                sectionHeight: section ? window.getComputedStyle(section).height : 'N/A',
+                sectionWidth: section ? window.getComputedStyle(section).width : 'N/A',
+                containerHTML: container ? container.innerHTML.substring(0, 200) : 'N/A',
+                containerChildren: container ? container.children.length : 0,
+                containerDisplay: container ? window.getComputedStyle(container).display : 'N/A',
+                containerHeight: container ? window.getComputedStyle(container).height : 'N/A',
+                boundingRect: section ? section.getBoundingClientRect() : null
+            };
+
+            console.table(report);
+            alert(JSON.stringify(report, null, 2));
+        }
+    </script>
+</head>
+<body onload="setTimeout(runTest, 2000)">
+    <h1>Paste this into browser console on /scraper page:</h1>
+    <pre>
+// Dashboard Visibility Test
+(function() {
+    const section = document.getElementById('dashboard-section');
+    const container = document.getElementById('dashboard-dynamic-content');
+
+    console.log('=== DASHBOARD VISIBILITY TEST ===');
+    console.log('Section exists:', !!section);
+    console.log('Container exists:', !!container);
+    console.log('Section classes:', section?.className);
+    console.log('Section display:', section ? window.getComputedStyle(section).display : 'N/A');
+    console.log('Section visibility:', section ? window.getComputedStyle(section).visibility : 'N/A');
+    console.log('Section opacity:', section ? window.getComputedStyle(section).opacity : 'N/A');
+    console.log('Section height:', section ? window.getComputedStyle(section).height : 'N/A');
+    console.log('Section width:', section ? window.getComputedStyle(section).width : 'N/A');
+    console.log('Container children count:', container ? container.children.length : 0);
+    console.log('Container HTML (first 200 chars):', container ? container.innerHTML.substring(0, 200) : 'N/A');
+    console.log('Container display:', container ? window.getComputedStyle(container).display : 'N/A');
+    console.log('Container height:', container ? window.getComputedStyle(container).height : 'N/A');
+    console.log('Bounding rect:', section ? section.getBoundingClientRect() : null);
+    console.log('=== END TEST ===');
+})();
+    </pre>
+</body>
+</html>

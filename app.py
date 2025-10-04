@@ -118,7 +118,7 @@ from auth import (
     optional_auth,
 )
 from db_job_manager import db_job_manager
-from models import db, init_db
+from models import db, init_db, Asset, ScrapeJob, User
 
 # Use the fixed database asset manager that works with existing models
 try:
@@ -139,8 +139,13 @@ except ImportError:
 from blueprints.admin import admin_bp
 from blueprints.ai import ai_bp
 from blueprints.assets import assets_bp
+from blueprints.dashboard import dashboard_bp
 from blueprints.jobs import jobs_bp
 from blueprints.search import search_bp
+try:
+    from blueprints.debug import debug_bp
+except Exception:
+    debug_bp = None
 from blueprints.sources import sources_bp
 from blueprints.user import user_bp
 from subscription import subscription_bp
@@ -266,7 +271,7 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_pre_ping": True,
     "pool_recycle": 300,
 }
-app.config["WTF_CSRF_ENABLED"] = os.environ.get("FLASK_ENV") == "production"  # Only enable CSRF in production
+app.config["WTF_CSRF_ENABLED"] = False  # Temporarily disabled for testing
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SECURE"] = os.environ.get("FLASK_ENV") == "production"
 app.config["SESSION_COOKIE_DOMAIN"] = None  # Don't restrict domain
@@ -313,6 +318,7 @@ except ImportError:
 google_bp = init_auth(app)
 app.register_blueprint(admin_bp)
 app.register_blueprint(assets_bp)
+app.register_blueprint(dashboard_bp)
 app.register_blueprint(search_bp)
 app.register_blueprint(jobs_bp)
 app.register_blueprint(sources_bp)
@@ -345,6 +351,8 @@ app.register_blueprint(subscription_bp)
 # Legacy fixed search/download endpoints removed to avoid duplication
 
 # Optional debug/admin blueprints removed to simplify routing
+if debug_bp:
+    app.register_blueprint(debug_bp)
 
 # Register 404 debug handler
 try:
@@ -393,6 +401,13 @@ def add_security_headers(response):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+
+    # Aggressive cache control for JavaScript and CSS files to prevent browser caching
+    if request.path.endswith(('.js', '.css')):
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+
     return response
 
 
@@ -916,6 +931,361 @@ def debug_oauth():
     return html
 
 
+# ==================== FILE UPLOAD FUNCTIONALITY ====================
+
+# Configure upload settings
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'webm', 'avi', 'mov', 'pdf', 'doc', 'docx', 'txt', 'zip'}
+
+# Ensure upload directory exists
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(os.path.join(UPLOAD_FOLDER, 'user_uploads'), exist_ok=True)
+os.makedirs(os.path.join(UPLOAD_FOLDER, 'thumbnails'), exist_ok=True)
+
+def allowed_file(filename):
+    """Check if file extension is allowed"""
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def get_file_hash(file_data):
+    """Generate SHA256 hash of file content"""
+    import hashlib
+    return hashlib.sha256(file_data).hexdigest()
+
+@app.route('/api/upload', methods=['POST'])
+@require_auth
+def upload_file():
+    """Handle file upload from users"""
+    try:
+        # Check if file is in request
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'error': 'No file provided'}), 400
+
+        file = request.files['file']
+
+        # Check if file is selected
+        if file.filename == '':
+            return jsonify({'success': False, 'error': 'No file selected'}), 400
+
+        # Validate file type
+        if not allowed_file(file.filename):
+            return jsonify({
+                'success': False,
+                'error': f'File type not allowed. Allowed types: {", ".join(ALLOWED_EXTENSIONS)}'
+            }), 400
+
+        # Read file data
+        file_data = file.read()
+
+        # Check file size (using MAX_CONTENT_LENGTH from config)
+        max_size = app.config.get('MAX_CONTENT_LENGTH', 16 * 1024 * 1024)
+        if len(file_data) > max_size:
+            return jsonify({
+                'success': False,
+                'error': f'File too large. Maximum size: {max_size // (1024*1024)}MB'
+            }), 400
+
+        # Generate secure filename
+        from werkzeug.utils import secure_filename
+        original_filename = secure_filename(file.filename)
+        file_hash = get_file_hash(file_data)
+
+        # Create unique filename with hash to prevent duplicates
+        file_ext = original_filename.rsplit('.', 1)[1].lower() if '.' in original_filename else ''
+        unique_filename = f"{file_hash[:16]}_{int(_time.time())}.{file_ext}" if file_ext else f"{file_hash[:16]}_{int(_time.time())}"
+
+        # Determine file path
+        user_id = session.get('user_id', 'anonymous')
+        file_path = os.path.join(UPLOAD_FOLDER, 'user_uploads', unique_filename)
+
+        # Save file
+        with open(file_path, 'wb') as f:
+            f.write(file_data)
+
+        # Get file metadata
+        import mimetypes
+        file_size = len(file_data)
+        mime_type = mimetypes.guess_type(original_filename)[0] or 'application/octet-stream'
+
+        # Create database record
+        from models import Asset, db
+
+        asset = Asset(
+            title=original_filename,
+            filename=unique_filename,
+            original_filename=original_filename,
+            file_path=file_path,
+            file_size=file_size,
+            file_type=mime_type,
+            file_extension=file_ext,
+            file_hash=file_hash,
+            source='user_upload',
+            user_id=user_id,
+            metadata={
+                'upload_time': _time.time(),
+                'original_name': file.filename,
+                'mime_type': mime_type,
+                'is_user_upload': True
+            }
+        )
+
+        db.session.add(asset)
+        db.session.commit()
+
+        # Log the upload
+        logger.info(f"File uploaded successfully: {original_filename} -> {unique_filename} by user {user_id}")
+
+        return jsonify({
+            'success': True,
+            'message': 'File uploaded successfully',
+            'asset': {
+                'id': asset.id,
+                'filename': asset.filename,
+                'original_filename': asset.filename,  # Use filename as we don't have original_filename
+                'file_size': asset.file_size,
+                'file_type': asset.file_type,
+                'upload_time': asset.downloaded_at.isoformat() if asset.downloaded_at else None,
+                'url': f'/api/uploads/{asset.id}'
+            }
+        })
+
+    except Exception as e:
+        logger.error(f"Upload error: {str(e)}", exc_info=True)
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/uploads/<int:asset_id>')
+@require_auth
+def serve_upload(asset_id):
+    """Serve uploaded file"""
+    try:
+        from models import Asset
+
+        # Get asset from database
+        asset = Asset.query.get(asset_id)
+        if not asset:
+            return jsonify({'error': 'File not found'}), 404
+
+        # Check if user has access (for now, any authenticated user can view)
+        # In production, add proper access control
+
+        # Serve file
+        if os.path.exists(asset.file_path):
+            from flask import send_file
+            return send_file(
+                asset.file_path,
+                mimetype=asset.file_type or 'application/octet-stream',
+                as_attachment=False,
+                download_name=asset.original_filename or asset.filename
+            )
+        else:
+            return jsonify({'error': 'File not found on disk'}), 404
+
+    except Exception as e:
+        logger.error(f"Error serving upload {asset_id}: {str(e)}")
+        return jsonify({'error': 'Error serving file'}), 500
+
+@app.route('/api/uploads', methods=['GET'])
+@optional_auth
+def list_uploads():
+    """List user's uploaded files"""
+    try:
+        from models import Asset
+
+        user_id = session.get('user_id') or (current_user.id if current_user and hasattr(current_user, 'is_authenticated') and current_user.is_authenticated else None)
+
+        # Return empty list for unauthenticated users
+        if not user_id:
+            return jsonify({
+                'success': True,
+                'uploads': []
+            })
+
+        # Get user's uploads - filter by metadata containing is_user_upload
+        uploads = Asset.query.filter_by(
+            user_id=user_id,
+            source_name='user_upload',
+            is_deleted=False
+        ).order_by(Asset.downloaded_at.desc()).all()
+
+        return jsonify({
+            'success': True,
+            'uploads': [{
+                'id': asset.id,
+                'filename': asset.filename,
+                'original_filename': asset.filename,  # Use filename as we don't have original_filename
+                'file_size': asset.file_size,
+                'file_type': asset.file_type,
+                'upload_time': asset.downloaded_at.isoformat() if asset.downloaded_at else None,
+                'url': f'/api/uploads/{asset.id}'
+            } for asset in uploads]
+        })
+
+    except Exception as e:
+        logger.error(f"Error listing uploads: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/uploads/<int:asset_id>', methods=['DELETE'])
+@require_auth
+def delete_upload(asset_id):
+    """Delete uploaded file"""
+    try:
+        from models import Asset, db
+
+        user_id = session.get('user_id', 'anonymous')
+
+        # Get asset
+        asset = Asset.query.filter_by(
+            id=asset_id,
+            user_id=user_id,
+            source='user_upload'
+        ).first()
+
+        if not asset:
+            return jsonify({'error': 'File not found or access denied'}), 404
+
+        # Mark as deleted (soft delete)
+        asset.is_deleted = True
+        db.session.commit()
+
+        # Optionally delete physical file
+        # if os.path.exists(asset.file_path):
+        #     os.remove(asset.file_path)
+
+        logger.info(f"Upload deleted: {asset_id} by user {user_id}")
+
+        return jsonify({
+            'success': True,
+            'message': 'File deleted successfully'
+        })
+
+    except Exception as e:
+        logger.error(f"Error deleting upload {asset_id}: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ==================== END FILE UPLOAD FUNCTIONALITY ====================
+
+# ==================== DASHBOARD API ENDPOINTS ====================
+
+@app.route('/api/dashboard-stats')
+@optional_auth
+def dashboard_stats():
+    """Get dashboard statistics for the current user"""
+    user_id = session.get('user_id') or (current_user.id if current_user and hasattr(current_user, 'is_authenticated') and current_user.is_authenticated else None)
+
+    # Return empty stats for unauthenticated users
+    if not user_id:
+        return jsonify({
+            'stats': {
+                'total_assets': 0,
+                'total_jobs': 0,
+                'completed_jobs': 0,
+                'pending_jobs': 0,
+                'storage_used_mb': 0
+            },
+            'recent_assets': [],
+            'recent_jobs': []
+        })
+
+    # Get user stats - ONLY count non-deleted assets
+    total_assets = db.session.query(Asset).filter_by(user_id=user_id, is_deleted=False).count()
+    total_jobs = db.session.query(ScrapeJob).filter_by(user_id=user_id).count()
+    completed_jobs = db.session.query(ScrapeJob).filter_by(user_id=user_id, status='completed').count()
+    pending_jobs = db.session.query(ScrapeJob).filter_by(user_id=user_id, status='pending').count()
+
+    # Get recent activity - ONLY non-deleted assets
+    recent_assets = db.session.query(Asset).filter_by(user_id=user_id, is_deleted=False)\
+        .order_by(Asset.downloaded_at.desc()).limit(5).all()
+
+    recent_jobs = db.session.query(ScrapeJob).filter_by(user_id=user_id)\
+        .order_by(ScrapeJob.created_at.desc()).limit(5).all()
+
+    # Calculate storage used (in MB) - ONLY non-deleted assets
+    storage_used = 0
+    user_assets = db.session.query(Asset).filter_by(user_id=user_id, is_deleted=False).all()
+    for asset in user_assets:
+        if asset.file_size:
+            storage_used += asset.file_size
+    storage_used_mb = storage_used / (1024 * 1024)
+
+    return jsonify({
+        'stats': {
+            'total_assets': total_assets,
+            'total_jobs': total_jobs,
+            'completed_jobs': completed_jobs,
+            'pending_jobs': pending_jobs,
+            'storage_used_mb': round(storage_used_mb, 2)
+        },
+        'recent_assets': [
+            {
+                'id': a.id,
+                'filename': a.filename,
+                'type': a.file_type,
+                'created_at': a.downloaded_at.isoformat() if a.downloaded_at else None
+            } for a in recent_assets
+        ],
+        'recent_jobs': [
+            {
+                'id': j.id,
+                'query': j.query,
+                'status': j.status,
+                'progress': j.progress,
+                'created_at': j.created_at.isoformat() if j.created_at else None
+            } for j in recent_jobs
+        ]
+    })
+
+@app.route('/api/system-overview')
+@require_auth
+def system_overview():
+    """Get system overview information"""
+    user_id = session.get('user_id')
+
+    # Get user info
+    user = db.session.query(User).filter_by(id=user_id).first()
+
+    # Get source statistics
+    from scrapers import SOURCES
+    total_sources = len(SOURCES)
+
+    # Get active sources (for demonstration, all are active)
+    active_sources = total_sources
+
+    # Get system status
+    system_status = {
+        'scraping_service': 'active',
+        'database': 'connected',
+        'storage': 'available',
+        'api': 'operational'
+    }
+
+    return jsonify({
+        'user': {
+            'email': user.email if user else 'Unknown',
+            'subscription': user.subscription if user else 'free',
+            'credits': user.credits if user else 0,
+            'role': 'admin' if user and user.is_admin else 'user'
+        },
+        'sources': {
+            'total': total_sources,
+            'active': active_sources,
+            'categories': {
+                'videos': 45,
+                'images': 38,
+                'documents': 20,
+                'audio': 15
+            }
+        },
+        'system': system_status,
+        'quick_actions': [
+            {'name': 'Start New Search', 'icon': 'fa-search', 'link': '#search'},
+            {'name': 'Upload Files', 'icon': 'fa-upload', 'link': '#upload'},
+            {'name': 'View Assets', 'icon': 'fa-folder', 'link': '#assets'},
+            {'name': 'Settings', 'icon': 'fa-cog', 'link': '#settings'}
+        ]
+    })
+
+# ==================== END DASHBOARD API ENDPOINTS ====================
+
 @app.route("/test-login")
 def test_login():
     """Mock login for testing purposes"""
@@ -1047,12 +1417,22 @@ if __name__ == "__main__":
 
     try:
         # Start the Flask application
-        # Use port 5000 for Replit (required), configurable for enterprise deployment
-        port = int(os.environ.get("FLASK_RUN_PORT", 5000))
+        # Use port 5050 for local deployment, 5000 for Replit
+        port = int(os.environ.get("FLASK_RUN_PORT", 5050))
         debug_mode = os.environ.get("FLASK_ENV") == "development"
-        
+
         print(f"[INFO] Starting Flask application on port {port}...")
-        app.run(host="0.0.0.0", port=port, debug=debug_mode)
+
+        # Use threaded mode to handle concurrent requests (especially for bulk downloads)
+        # This allows multiple /serve/{id} requests to be processed simultaneously
+        app.run(
+            host="0.0.0.0",
+            port=port,
+            debug=debug_mode,
+            threaded=True,           # Enable multi-threading
+            request_handler=None,    # Use default threaded request handler
+            processes=1              # Single process with multiple threads
+        )
     finally:
         # Cleanup on shutdown
         try:

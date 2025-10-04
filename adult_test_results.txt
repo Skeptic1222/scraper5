@@ -1,0 +1,51 @@
+Adult Source Test Results
+================================================================================
+
+pornhub:
+  Success: True
+  Files: 2
+  Time: 137.25s
+  Query: dance
+
+xvideos:
+  Success: False
+  Files: 0
+  Time: 30.88s
+  Query: fitness
+
+redtube:
+  Success: True
+  Files: 4
+  Time: 167.90s
+  Query: yoga
+
+xhamster:
+  Success: False
+  Files: 0
+  Time: 13.30s
+  Query: workout
+
+youporn:
+  Success: False
+  Files: 0
+  Time: 1.51s
+  Query: exercise
+
+spankbang:
+  Success: False
+  Files: 0
+  Time: 5.17s
+  Query: dance
+
+motherless:
+  Success: False
+  Files: 0
+  Time: 2.81s
+  Query: music
+
+redgifs:
+  Success: False
+  Files: 0
+  Time: 0.55s
+  Query: animation
+

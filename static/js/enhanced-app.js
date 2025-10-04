@@ -128,7 +128,7 @@ class EnhancedMediaScraperApp {
             query: query,
             search_type: 'comprehensive',
             max_content: parseInt(document.getElementById('max-items')?.value || '25'),
-            safe_search: document.getElementById('safe-search-toggle')?.checked !== false,
+            safe_search: document.getElementById('safe-search-toggle') ? document.getElementById('safe-search-toggle').checked : false,
             prevent_duplicates: document.getElementById('prevent-duplicates')?.checked !== false,
             quality: document.getElementById('download-quality')?.value || 'medium'
         };

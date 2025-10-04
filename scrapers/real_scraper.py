@@ -6,7 +6,8 @@ import json
 import os
 import time
 import uuid
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError
 from threading import Lock
 from urllib.parse import urlparse, quote
 import requests
@@ -17,15 +18,24 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Performance settings
-MAX_WORKERS = 5
+MAX_WORKERS = int(os.getenv('MAX_CONCURRENT_SOURCES', '5'))
 CHUNK_SIZE = 8192
-CONNECTION_TIMEOUT = 10
+CONNECTION_TIMEOUT = int(os.getenv('REQUEST_TIMEOUT', '10'))
 READ_TIMEOUT = 30
 MAX_RETRIES = 2
+DOWNLOAD_TIMEOUT = 15  # Timeout for individual downloads
 
 # Global cache for downloaded files
 DOWNLOAD_CACHE = {}
 CACHE_LOCK = Lock()
+
+# Configure logging
+os.makedirs('logs', exist_ok=True)
+error_logger = logging.getLogger('real_scraper_errors')
+error_logger.setLevel(logging.INFO)
+error_handler = logging.FileHandler('logs/download_errors.log')
+error_handler.setFormatter(logging.Formatter('%(asctime)s | %(levelname)s | %(message)s'))
+error_logger.addHandler(error_handler)
 
 def search_google_images(query, limit=10, safe_search=True):
     """Search Google Images for real image URLs"""
@@ -129,7 +139,19 @@ def search_pexels(query, limit=10):
         return []
 
 def download_file(url, output_dir, headers=None):
-    """Download a single file from URL"""
+    """Download a single file from URL with timeout and logging"""
+    start_time = time.time()
+
+    # PRE-CHECK: Block known fake URLs before downloading
+    try:
+        from scrapers.hash_detection import is_fake_url
+        if is_fake_url(url):
+            error_logger.info(f"BLOCKED | Fake URL: {url[:100]}")
+            print(f"[DOWNLOAD] Blocked fake URL: {url[:80]}...")
+            return None
+    except ImportError:
+        pass  # Hash detection not available
+
     try:
         if not headers:
             headers = {
@@ -138,7 +160,7 @@ def download_file(url, output_dir, headers=None):
                 'Accept-Encoding': 'gzip, deflate',
                 'Connection': 'keep-alive'
             }
-        
+
         # Add timeout and stream download
         response = requests.get(
             url,
@@ -148,11 +170,11 @@ def download_file(url, output_dir, headers=None):
             verify=False
         )
         response.raise_for_status()
-        
+
         # Generate filename
         parsed = urlparse(url)
         filename = os.path.basename(parsed.path) or f"download_{uuid.uuid4().hex[:8]}"
-        
+
         # Ensure extension
         if not any(filename.endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.gif', '.mp4', '.webm']):
             content_type = response.headers.get('content-type', '')
@@ -169,13 +191,13 @@ def download_file(url, output_dir, headers=None):
                     break
             else:
                 filename += '.jpg'  # Default
-        
+
         filepath = os.path.join(output_dir, filename)
-        
+
         # Download in chunks
         total_size = int(response.headers.get('content-length', 0))
         downloaded = 0
-        
+
         with open(filepath, 'wb') as f:
             for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
                 if chunk:
@@ -184,11 +206,31 @@ def download_file(url, output_dir, headers=None):
                     if total_size > 0:
                         progress = int((downloaded / total_size) * 100)
                         # Could add progress callback here
-        
+
+        elapsed = time.time() - start_time
+
+        # HASH VALIDATION - Check for fakes and duplicates
+        try:
+            from scrapers.hash_detection import validate_downloaded_file
+            if not validate_downloaded_file(filepath, url):
+                error_logger.warning(f"REJECTED | File: {filename} | Reason: Fake or duplicate | URL: {url[:100]}")
+                print(f"[DOWNLOAD] Rejected (fake/duplicate): {filename}")
+                return None
+        except ImportError:
+            pass  # Hash detection not available
+
+        error_logger.info(f"SUCCESS | File: {filename} | Size: {os.path.getsize(filepath)} bytes | Time: {elapsed:.2f}s | URL: {url[:100]}")
         print(f"[DOWNLOAD] Success: {filename} ({os.path.getsize(filepath)} bytes)")
         return filepath
-        
+
+    except requests.exceptions.Timeout as e:
+        elapsed = time.time() - start_time
+        error_logger.error(f"TIMEOUT | URL: {url[:100]} | Time: {elapsed:.2f}s | Error: {str(e)}")
+        print(f"[DOWNLOAD] Timeout for {url}: {e}")
+        return None
     except Exception as e:
+        elapsed = time.time() - start_time
+        error_logger.error(f"FAILED | URL: {url[:100]} | Time: {elapsed:.2f}s | Error: {str(e)}")
         print(f"[DOWNLOAD] Failed for {url}: {e}")
         return None
 
@@ -248,30 +290,32 @@ def search_and_download(query, sources, max_per_source=10, output_dir=None, safe
             all_download_tasks.append(url)
             source_url_map[url] = source
     
-    # Download all URLs in parallel
+    # Download all URLs in parallel with timeout
     print(f"[SCRAPE] Downloading {len(all_download_tasks)} files from {len(sources)} sources...")
-    
+    error_logger.info(f"=== SCRAPE START === | Query: {query} | URLs: {len(all_download_tasks)} | Sources: {sources}")
+
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         # Submit all downloads
         future_to_url = {
             executor.submit(download_file, url, output_dir): url
             for url in all_download_tasks
         }
-        
-        # Process completed downloads
+
+        # Process completed downloads with per-future timeout only (avoid aborting iterator)
         completed = 0
         for future in as_completed(future_to_url):
             url = future_to_url[future]
             source = source_url_map.get(url)
-            
+
             try:
-                filepath = future.result()
+                # Get result with individual timeout
+                filepath = future.result(timeout=DOWNLOAD_TIMEOUT)
                 completed += 1
-                
+
                 if filepath:
                     results['sources'][source]['downloaded'] += 1
                     results['total_downloaded'] += 1
-                    
+
                     # Determine file type
                     if any(filepath.endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.gif']):
                         results['sources'][source]['images'] += 1
@@ -279,7 +323,7 @@ def search_and_download(query, sources, max_per_source=10, output_dir=None, safe
                     elif any(filepath.endswith(ext) for ext in ['.mp4', '.webm']):
                         results['sources'][source]['videos'] += 1
                         results['total_videos'] += 1
-                
+
                 # Update progress
                 if progress_callback:
                     progress = int((completed / len(all_download_tasks)) * 100)
@@ -290,9 +334,15 @@ def search_and_download(query, sources, max_per_source=10, output_dir=None, safe
                         results['total_images'],
                         results['total_videos']
                     )
-                    
+
+            except TimeoutError:
+                error_logger.error(f"TIMEOUT | Download exceeded {DOWNLOAD_TIMEOUT}s | URL: {url[:100]}")
+                print(f"[DOWNLOAD] Timeout for {url}")
             except Exception as e:
+                error_logger.error(f"EXCEPTION | URL: {url[:100]} | Error: {str(e)}")
                 print(f"[DOWNLOAD] Exception processing {url}: {e}")
-    
+
+    # Log summary
+    error_logger.info(f"=== SCRAPE COMPLETE === | Query: {query} | Downloaded: {results['total_downloaded']} | Images: {results['total_images']} | Videos: {results['total_videos']}")
     print(f"[SCRAPE] Search complete. Downloaded {results['total_downloaded']} files")
     return results

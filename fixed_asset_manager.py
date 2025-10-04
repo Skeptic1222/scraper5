@@ -100,6 +100,41 @@ class FixedAssetManager:
             return None
 
     @staticmethod
+    def add_asset(job_id, filepath, file_type, metadata=None):
+        """
+        Add asset using job_id and filepath (compatibility wrapper for add_asset calls)
+        Converts parameters to save_asset format
+        """
+        try:
+            # Extract user_id from metadata or default
+            user_id = 1  # Default user for testing
+            if metadata and isinstance(metadata, dict):
+                user_id = metadata.get('user_id', 1)
+
+            filename = os.path.basename(filepath)
+
+            # Get source and original_url from metadata
+            source = metadata.get('source_name', 'unknown') if metadata else 'unknown'
+            original_url = metadata.get('source_url', '') if metadata else ''
+            title = metadata.get('title', '') if metadata else ''
+
+            # Call save_asset with converted parameters
+            return FixedAssetManager.save_asset(
+                user_id=user_id,
+                filename=filename,
+                file_path=filepath,
+                source=source,
+                content_type=None,  # Auto-detect
+                original_url=original_url,
+                title=title,
+                metadata=metadata
+            )
+
+        except Exception as e:
+            print(f"[ERROR] Failed to add asset: {e}")
+            return None
+
+    @staticmethod
     def get_asset_content(asset_id):
         """Get the actual media content for an asset"""
         try:

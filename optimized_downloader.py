@@ -215,12 +215,29 @@ def comprehensive_multi_source_scrape_optimized(query, search_type='comprehensiv
     """Optimized multi-source scraper with parallel downloads"""
     print(f"[SCRAPE] Starting optimized search for '{query}' with sources: {enabled_sources}")
 
-    # Import the real scraper
+    # Try to use the enhanced working downloader first
+    try:
+        from enhanced_working_downloader import comprehensive_multi_source_scrape as enhanced_scrape
+        return enhanced_scrape(
+            query=query,
+            search_type=search_type,
+            enabled_sources=enabled_sources,
+            max_content_per_source=max_content_per_source,
+            output_dir=output_dir,
+            progress_callback=progress_callback,
+            safe_search=safe_search,
+            use_queue=use_queue,
+            job_id=job_id
+        )
+    except ImportError:
+        pass
+
+    # Fallback to real scraper
     from scrapers.real_scraper import search_and_download
-    
+
     # Create output directory
     if not output_dir:
-        output_dir = os.path.join('downloads', f'{query.replace(" ", "_")}_{int(time.time())}')
+        output_dir = os.path.join('C:\\inetpub\\wwwroot\\scraper\\downloads', f'{query.replace(" ", "_")}_{int(time.time())}')
     os.makedirs(output_dir, exist_ok=True)
 
     # Define progress callback wrapper

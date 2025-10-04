@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IIS Proxy Test</title>
+</head>
+<body>
+    <h1>Testing IIS Reverse Proxy to Flask</h1>
+
+    <h2>Direct Flask Test (Port 3050)</h2>
+    <button onclick="testDirect()">Test Direct Connection</button>
+    <div id="direct-result"></div>
+
+    <h2>Through IIS Proxy (/scraper)</h2>
+    <button onclick="testProxy()">Test Through IIS</button>
+    <div id="proxy-result"></div>
+
+    <script>
+    function testDirect() {
+        fetch('http://localhost:3050/')
+            .then(response => {
+                document.getElementById('direct-result').innerHTML =
+                    '<p style="color:green">✓ Direct connection works! Status: ' + response.status + '</p>';
+            })
+            .catch(error => {
+                document.getElementById('direct-result').innerHTML =
+                    '<p style="color:red">✗ Direct connection failed: ' + error + '</p>';
+            });
+    }
+
+    function testProxy() {
+        fetch('/scraper')
+            .then(response => {
+                document.getElementById('proxy-result').innerHTML =
+                    '<p style="color:green">✓ IIS proxy works! Status: ' + response.status + '</p>';
+            })
+            .catch(error => {
+                document.getElementById('proxy-result').innerHTML =
+                    '<p style="color:red">✗ IIS proxy failed: ' + error + '</p>';
+            });
+    }
+    </script>
+</body>
+</html>

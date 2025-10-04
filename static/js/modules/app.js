@@ -925,7 +925,8 @@ class MediaScraperApp {
      */
     async loadSources() {
         try {
-            const safeSearch = document.getElementById('safe-search-toggle')?.checked || true;
+            const safeToggleEl = document.getElementById('safe-search-toggle') || document.getElementById('safe-search');
+            const safeSearch = safeToggleEl ? !!safeToggleEl.checked : false;
             const response = await apiClient.get(`${this.config.apiEndpoints.sources}?safe_search=${safeSearch}`);
             
             if (response.success) {

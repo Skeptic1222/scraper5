@@ -1,0 +1,30 @@
+{
+  "test_date": "2025-10-03T23:38:16.304015",
+  "ytdlp_version": "2025.10.01.232815",
+  "results": [
+    {
+      "source": "Pornhub",
+      "url": "https://www.pornhub.com/view_video.php?viewkey=ph5d3f3e3d8c8e9",
+      "success": false,
+      "error": "ERROR: [PornHub] ph5d3f3e3d8c8e9: Unable to download webpage: HTTP Error 404: Not Found (caused by <HTTPError 404: Not Found>)\n",
+      "time_taken": 1.7307071685791016,
+      "files_downloaded": 0
+    },
+    {
+      "source": "Xvideos",
+      "url": "https://www.xvideos.com/video27448047/dance",
+      "success": false,
+      "error": "ERROR: [XVideos] 27448047: Unable to download webpage: HTTP Error 404: Not Found (caused by <HTTPError 404: Not Found>)\n",
+      "time_taken": 1.985914945602417,
+      "files_downloaded": 0
+    },
+    {
+      "source": "YouTube",
+      "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "success": false,
+      "error": "Return code: 101",
+      "time_taken": 14.571027040481567,
+      "files_downloaded": 0
+    }
+  ]
+}

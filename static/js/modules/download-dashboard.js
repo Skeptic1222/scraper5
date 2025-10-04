@@ -645,7 +645,8 @@ class DownloadDashboard {
         // Clear current data
         this.activeDownloads.clear();
         this.downloadQueue = [];
-        
+        this.completedDownloads = [];
+
         let totalSpeed = 0;
         let activeThreads = 0;
         

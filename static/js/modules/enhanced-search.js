@@ -49,9 +49,11 @@ class EnhancedSearchManager {
         this.setupProgressControlButtons();
         
         // Safe search toggle (support legacy/new IDs)
-        const safeSearchToggle = document.getElementById('safe-search') || document.getElementById('safe-search-toggle');
-        if (safeSearchToggle) {
-            safeSearchToggle.addEventListener('change', () => this.handleSafeSearchToggle());
+        const safeTogglePrimary = document.getElementById('safe-search-toggle');
+        const safeToggleAlt = document.getElementById('safe-search');
+        const activeSafeToggle = safeTogglePrimary || safeToggleAlt;
+        if (activeSafeToggle) {
+            activeSafeToggle.addEventListener('change', () => this.handleSafeSearchToggle());
         }
         
         // Adult content toggle (support legacy/new IDs)
@@ -166,8 +168,11 @@ class EnhancedSearchManager {
             console.log('📋 Loading sources from API...');
             
             // Use correct API URL with prefix and safe_search toggle
-            const safeToggle = document.getElementById('safe-search') || document.getElementById('safe-search-toggle');
-            const safeSearch = Boolean(safeToggle && safeToggle.checked);
+            const safeTogglePrimary = document.getElementById('safe-search-toggle');
+            const safeToggleAlt = document.getElementById('safe-search');
+            const safeSearch = (safeTogglePrimary && typeof safeTogglePrimary.checked === 'boolean')
+                ? safeTogglePrimary.checked
+                : (safeToggleAlt && typeof safeToggleAlt.checked === 'boolean' ? safeToggleAlt.checked : false);
             const apiUrl = (window.APP_BASE || '') + `/api/sources?safe_search=${safeSearch}`;
             console.log('📋 API URL:', apiUrl);
             
@@ -281,8 +286,11 @@ class EnhancedSearchManager {
 
     async fetchSourcesFromApi() {
         try {
-            const safeToggle = document.getElementById('safe-search') || document.getElementById('safe-search-toggle');
-            const safeSearch = Boolean(safeToggle && safeToggle.checked);
+            const safeTogglePrimary = document.getElementById('safe-search-toggle');
+            const safeToggleAlt = document.getElementById('safe-search');
+            const safeSearch = (safeTogglePrimary && typeof safeTogglePrimary.checked === 'boolean')
+                ? safeTogglePrimary.checked
+                : (safeToggleAlt && typeof safeToggleAlt.checked === 'boolean' ? safeToggleAlt.checked : false);
             const apiUrl = (window.APP_BASE || '') + `/api/sources?safe_search=${safeSearch}`;
             console.log('📋 API URL (refresh):', apiUrl);
 
@@ -388,6 +396,20 @@ class EnhancedSearchManager {
                 ${isAdultCategory ? '<span class="badge bg-danger ms-1">18+</span>' : ''}
             </h4>
         `;
+        // Add category-level actions
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'ms-auto';
+        const onlyCatBtn = document.createElement('button');
+        onlyCatBtn.type = 'button';
+        onlyCatBtn.className = 'btn btn-sm btn-outline-secondary';
+        onlyCatBtn.textContent = 'Only This Category';
+        onlyCatBtn.title = 'Deselect others and select all in this category';
+        onlyCatBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.selectOnlyCategory(categoryName);
+        });
+        actionsDiv.appendChild(onlyCatBtn);
+        headerDiv.appendChild(actionsDiv);
         
         // Category sources
         const sourcesList = document.createElement('ul');
@@ -461,6 +483,10 @@ class EnhancedSearchManager {
             const label = document.createElement('label');
             label.setAttribute('for', `source-${(source.id || '').toString().replace(/\s+/g,'_')}`);
             label.textContent = source.name;
+            // Color-code by implementation status if available
+            if (typeof source.implemented !== 'undefined') {
+                label.classList.add(source.implemented ? 'text-success' : 'text-danger');
+            }
             nameP.appendChild(label);
         } else {
             nameP.textContent = source.name;
@@ -473,6 +499,14 @@ class EnhancedSearchManager {
         // Badges
         const badgesDiv = document.createElement('div');
         badgesDiv.className = 'source-badges-enhanced';
+
+        // Implemented/Pending badge
+        if (typeof source.implemented !== 'undefined') {
+            const implBadge = document.createElement('span');
+            implBadge.className = `badge ${source.implemented ? 'bg-success' : 'bg-danger'} source-badge-enhanced`;
+            implBadge.textContent = source.implemented ? 'Working' : 'Pending';
+            badgesDiv.appendChild(implBadge);
+        }
         
         if (source.nsfw) {
             const nsfwBadge = document.createElement('span');
@@ -488,11 +522,18 @@ class EnhancedSearchManager {
             badgesDiv.appendChild(premiumBadge);
         }
         
-        if (source.enabled) {
-            const activeBadge = document.createElement('span');
-            activeBadge.className = 'badge bg-success source-badge-enhanced';
-            activeBadge.innerHTML = '<i class="fas fa-check"></i> Active';
-            badgesDiv.appendChild(activeBadge);
+        // Per-source Only quick action
+        if (isAvailable) {
+            const onlyBtn = document.createElement('button');
+            onlyBtn.type = 'button';
+            onlyBtn.className = 'btn btn-link btn-sm p-0 ms-2';
+            onlyBtn.textContent = 'Only';
+            onlyBtn.title = 'Select only this source';
+            onlyBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.selectOnlySource(source.id);
+            });
+            badgesDiv.appendChild(onlyBtn);
         }
         
         infoDiv.appendChild(nameP);
@@ -514,6 +555,52 @@ class EnhancedSearchManager {
         });
         
         return li;
+    }
+
+    selectOnlySource(sourceId) {
+        try {
+            const container = document.getElementById('source-categories') || document;
+            const items = container.querySelectorAll('.source-item-enhanced, [data-source-id]');
+            items.forEach(item => {
+                const cb = item.querySelector('.source-checkbox-enhanced, .source-checkbox, input[type="checkbox"][data-source], input[type="checkbox"][data-source-id]');
+                if (cb) cb.checked = false;
+            });
+            this.selectedSources.clear();
+            const target = document.querySelector(`[data-source-id="${sourceId}"] .source-checkbox-enhanced`) || document.querySelector(`[data-source-id="${sourceId}"] input[type="checkbox"]`);
+            if (target) {
+                target.checked = true;
+                this.selectedSources.add(sourceId);
+            }
+            this.updateSelectedSourcesCount();
+        } catch (e) {
+            console.warn('Failed to select only source', sourceId, e);
+        }
+    }
+
+    selectOnlyCategory(categoryName) {
+        try {
+            // Deselect all
+            const container = document.getElementById('source-categories') || document;
+            const items = container.querySelectorAll('.source-item-enhanced, [data-source-id]');
+            items.forEach(item => {
+                const cb = item.querySelector('.source-checkbox-enhanced, .source-checkbox, input[type="checkbox"][data-source], input[type="checkbox"][data-source-id]');
+                if (cb && cb.checked) cb.checked = false;
+            });
+            this.selectedSources.clear();
+
+            // Select all in category
+            const sources = this.sources[categoryName] || [];
+            sources.forEach(src => {
+                const cb = document.querySelector(`[data-source-id="${src.id}"] .source-checkbox-enhanced`) || document.querySelector(`[data-source-id="${src.id}"] input[type="checkbox"]`);
+                if (cb) {
+                    cb.checked = true;
+                    this.selectedSources.add(src.id);
+                }
+            });
+            this.updateSelectedSourcesCount();
+        } catch (e) {
+            console.warn('Failed to select only category', categoryName, e);
+        }
     }
     
     getCategoryIcon(categoryName) {
@@ -679,7 +766,7 @@ class EnhancedSearchManager {
     }
     
     handleSafeSearchToggle() {
-        const safeToggle = document.getElementById('safe-search') || document.getElementById('safe-search-toggle');
+        const safeToggle = document.getElementById('safe-search-toggle') || document.getElementById('safe-search');
         const safeSearch = Boolean(safeToggle && safeToggle.checked);
         console.log('🔒 Safe search toggled:', safeSearch ? 'ON' : 'OFF');
         
@@ -838,7 +925,7 @@ class EnhancedSearchManager {
         
         try {
             // Start the search job - use APP_BASE prefix for API call
-            const searchUrl = `${window.APP_BASE || ''}/api/search`;
+            const searchUrl = `${window.APP_BASE || ''}/api/comprehensive-search`;
             const response = await fetch(searchUrl, {
                 method: 'POST',
                 headers: {

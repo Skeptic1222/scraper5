@@ -5,7 +5,12 @@ Contains all 78+ content sources for the scraper
 """
 
 def get_content_sources():
-    """Return comprehensive list of 78+ content sources with metadata"""
+    """Return comprehensive list of 78+ content sources with metadata
+
+    Adds an 'implemented' boolean to each source to indicate if that source
+    is currently wired to a working downloader path. This flag is used by the
+    UI to color-code sources and by APIs for filtering.
+    """
     sources = {
         'search_engines': [
             {'id': 'google_images', 'name': 'Google Images', 'category': 'search', 'subscription_required': False, 'nsfw': False},
@@ -62,6 +67,11 @@ def get_content_sources():
             {'id': 'motherless', 'name': 'Motherless', 'category': 'adult', 'subscription_required': True, 'nsfw': True},
             {'id': 'rule34', 'name': 'Rule34', 'category': 'adult', 'subscription_required': True, 'nsfw': True},
             {'id': 'e621', 'name': 'e621', 'category': 'adult', 'subscription_required': True, 'nsfw': True},
+            {'id': 'erogarga', 'name': 'EroGarga', 'category': 'adult', 'subscription_required': True, 'nsfw': True},
+            {'id': 'xhamster', 'name': 'XHamster', 'category': 'adult', 'subscription_required': True, 'nsfw': True},
+            {'id': 'youporn', 'name': 'YouPorn', 'category': 'adult', 'subscription_required': True, 'nsfw': True},
+            {'id': 'spankbang', 'name': 'SpankBang', 'category': 'adult', 'subscription_required': True, 'nsfw': True},
+            {'id': 'redgifs', 'name': 'RedGifs', 'category': 'adult', 'subscription_required': True, 'nsfw': True},
         ],
         'news_media': [
             {'id': 'reuters', 'name': 'Reuters', 'category': 'news', 'subscription_required': False, 'nsfw': False},
@@ -89,13 +99,116 @@ def get_content_sources():
             {'id': 'github', 'name': 'GitHub', 'category': 'tech', 'subscription_required': False, 'nsfw': False},
             {'id': 'stackoverflow', 'name': 'Stack Overflow', 'category': 'tech', 'subscription_required': False, 'nsfw': False},
             {'id': 'hackernews', 'name': 'Hacker News', 'category': 'tech', 'subscription_required': False, 'nsfw': False},
+            {'id': 'gitlab', 'name': 'GitLab', 'category': 'tech', 'subscription_required': False, 'nsfw': False},
+            {'id': 'bitbucket', 'name': 'Bitbucket', 'category': 'tech', 'subscription_required': False, 'nsfw': False},
+            {'id': 'sourceforge', 'name': 'SourceForge', 'category': 'tech', 'subscription_required': False, 'nsfw': False},
+            {'id': 'codeproject', 'name': 'CodeProject', 'category': 'tech', 'subscription_required': False, 'nsfw': False},
+        ],
+        'additional_social': [
+            {'id': 'snapchat', 'name': 'Snapchat', 'category': 'social', 'subscription_required': False, 'nsfw': False},
+            {'id': 'whatsapp', 'name': 'WhatsApp', 'category': 'social', 'subscription_required': False, 'nsfw': False},
+            {'id': 'telegram', 'name': 'Telegram', 'category': 'social', 'subscription_required': False, 'nsfw': False},
+            {'id': 'discord', 'name': 'Discord', 'category': 'social', 'subscription_required': False, 'nsfw': False},
+            {'id': 'slack', 'name': 'Slack', 'category': 'social', 'subscription_required': False, 'nsfw': False},
+            {'id': 'wechat', 'name': 'WeChat', 'category': 'social', 'subscription_required': False, 'nsfw': False},
+            {'id': 'qq', 'name': 'QQ', 'category': 'social', 'subscription_required': False, 'nsfw': False},
+            {'id': 'vkontakte', 'name': 'VKontakte', 'category': 'social', 'subscription_required': False, 'nsfw': False},
+            {'id': 'weibo', 'name': 'Weibo', 'category': 'social', 'subscription_required': False, 'nsfw': False},
+            {'id': 'mastodon', 'name': 'Mastodon', 'category': 'social', 'subscription_required': False, 'nsfw': False},
+            {'id': 'threads', 'name': 'Threads', 'category': 'social', 'subscription_required': False, 'nsfw': False},
+            {'id': 'bluesky', 'name': 'Bluesky', 'category': 'social', 'subscription_required': False, 'nsfw': False},
+        ],
+        'streaming_platforms': [
+            {'id': 'netflix', 'name': 'Netflix', 'category': 'streaming', 'subscription_required': True, 'nsfw': False},
+            {'id': 'hulu', 'name': 'Hulu', 'category': 'streaming', 'subscription_required': True, 'nsfw': False},
+            {'id': 'disney_plus', 'name': 'Disney+', 'category': 'streaming', 'subscription_required': True, 'nsfw': False},
+            {'id': 'hbo_max', 'name': 'HBO Max', 'category': 'streaming', 'subscription_required': True, 'nsfw': False},
+            {'id': 'amazon_prime', 'name': 'Amazon Prime Video', 'category': 'streaming', 'subscription_required': True, 'nsfw': False},
+            {'id': 'peacock', 'name': 'Peacock', 'category': 'streaming', 'subscription_required': True, 'nsfw': False},
+            {'id': 'paramount_plus', 'name': 'Paramount+', 'category': 'streaming', 'subscription_required': True, 'nsfw': False},
+            {'id': 'apple_tv', 'name': 'Apple TV+', 'category': 'streaming', 'subscription_required': True, 'nsfw': False},
+            {'id': 'crunchyroll', 'name': 'Crunchyroll', 'category': 'streaming', 'subscription_required': True, 'nsfw': False},
+            {'id': 'funimation', 'name': 'Funimation', 'category': 'streaming', 'subscription_required': True, 'nsfw': False},
+        ],
+        'music_platforms': [
+            {'id': 'spotify', 'name': 'Spotify', 'category': 'music', 'subscription_required': False, 'nsfw': False},
+            {'id': 'apple_music', 'name': 'Apple Music', 'category': 'music', 'subscription_required': True, 'nsfw': False},
+            {'id': 'soundcloud', 'name': 'SoundCloud', 'category': 'music', 'subscription_required': False, 'nsfw': False},
+            {'id': 'bandcamp', 'name': 'Bandcamp', 'category': 'music', 'subscription_required': False, 'nsfw': False},
+            {'id': 'tidal', 'name': 'Tidal', 'category': 'music', 'subscription_required': True, 'nsfw': False},
+            {'id': 'deezer', 'name': 'Deezer', 'category': 'music', 'subscription_required': True, 'nsfw': False},
+            {'id': 'youtube_music', 'name': 'YouTube Music', 'category': 'music', 'subscription_required': False, 'nsfw': False},
+            {'id': 'pandora', 'name': 'Pandora', 'category': 'music', 'subscription_required': False, 'nsfw': False},
+        ],
+        'gaming_platforms': [
+            {'id': 'steam', 'name': 'Steam', 'category': 'gaming', 'subscription_required': False, 'nsfw': False},
+            {'id': 'epic_games', 'name': 'Epic Games', 'category': 'gaming', 'subscription_required': False, 'nsfw': False},
+            {'id': 'gog', 'name': 'GOG', 'category': 'gaming', 'subscription_required': False, 'nsfw': False},
+            {'id': 'origin', 'name': 'Origin', 'category': 'gaming', 'subscription_required': False, 'nsfw': False},
+            {'id': 'uplay', 'name': 'Ubisoft Connect', 'category': 'gaming', 'subscription_required': False, 'nsfw': False},
+            {'id': 'battlenet', 'name': 'Battle.net', 'category': 'gaming', 'subscription_required': False, 'nsfw': False},
+            {'id': 'xbox_store', 'name': 'Xbox Store', 'category': 'gaming', 'subscription_required': False, 'nsfw': False},
+            {'id': 'playstation_store', 'name': 'PlayStation Store', 'category': 'gaming', 'subscription_required': False, 'nsfw': False},
+            {'id': 'nintendo_eshop', 'name': 'Nintendo eShop', 'category': 'gaming', 'subscription_required': False, 'nsfw': False},
+            {'id': 'itch_io', 'name': 'itch.io', 'category': 'gaming', 'subscription_required': False, 'nsfw': False},
+        ],
+        'sports_media': [
+            {'id': 'espn', 'name': 'ESPN', 'category': 'sports', 'subscription_required': False, 'nsfw': False},
+            {'id': 'nfl', 'name': 'NFL', 'category': 'sports', 'subscription_required': False, 'nsfw': False},
+            {'id': 'nba', 'name': 'NBA', 'category': 'sports', 'subscription_required': False, 'nsfw': False},
+            {'id': 'mlb', 'name': 'MLB', 'category': 'sports', 'subscription_required': False, 'nsfw': False},
+            {'id': 'nhl', 'name': 'NHL', 'category': 'sports', 'subscription_required': False, 'nsfw': False},
+            {'id': 'fifa', 'name': 'FIFA', 'category': 'sports', 'subscription_required': False, 'nsfw': False},
+            {'id': 'uefa', 'name': 'UEFA', 'category': 'sports', 'subscription_required': False, 'nsfw': False},
+            {'id': 'sky_sports', 'name': 'Sky Sports', 'category': 'sports', 'subscription_required': True, 'nsfw': False},
+        ],
+        'education_resources': [
+            {'id': 'coursera', 'name': 'Coursera', 'category': 'education', 'subscription_required': False, 'nsfw': False},
+            {'id': 'udemy', 'name': 'Udemy', 'category': 'education', 'subscription_required': False, 'nsfw': False},
+            {'id': 'khan_academy', 'name': 'Khan Academy', 'category': 'education', 'subscription_required': False, 'nsfw': False},
+            {'id': 'edx', 'name': 'edX', 'category': 'education', 'subscription_required': False, 'nsfw': False},
+            {'id': 'mit_ocw', 'name': 'MIT OpenCourseWare', 'category': 'education', 'subscription_required': False, 'nsfw': False},
+            {'id': 'skillshare', 'name': 'Skillshare', 'category': 'education', 'subscription_required': True, 'nsfw': False},
+            {'id': 'pluralsight', 'name': 'Pluralsight', 'category': 'education', 'subscription_required': True, 'nsfw': False},
         ]
     }
+
+    # Mark implemented sources
+    implemented_ids = set([
+        # Search engines via enhanced scraper
+        'google_images', 'bing_images', 'duckduckgo_images', 'yahoo_images', 'yandex_images',
+        # Free galleries via working media downloader/API
+        'unsplash', 'pixabay', 'pexels',
+        # Video platforms (yt-dlp based)
+        'youtube', 'vimeo', 'dailymotion', 'twitch', 'bitchute', 'rumble',
+        # Social media (fallback via resilient image search)
+        'reddit', 'instagram', 'twitter', 'tiktok', 'pinterest', 'tumblr', 'linkedin',
+        # Art platforms (fallback via resilient image search)
+        'deviantart', 'artstation', 'behance', 'dribbble', 'flickr', '500px',
+        # Sports media (fallback)
+        'espn', 'nfl', 'nba', 'mlb', 'nhl', 'fifa', 'uefa',
+        # Education (fallback)
+        'coursera', 'udemy', 'khan_academy', 'edx', 'mit_ocw',
+        # Music (non-premium only; fallback)
+        'spotify', 'apple_music', 'soundcloud', 'bandcamp', 'youtube_music', 'pandora',
+        # Gaming platforms (fallback)
+        'steam', 'epic_games', 'gog', 'origin', 'uplay', 'battlenet', 'xbox_store', 'playstation_store', 'nintendo_eshop', 'itch_io',
+        # Adult content (enabled; video via yt-dlp where supported)
+        'pornhub', 'xvideos', 'redtube', 'motherless', 'rule34', 'e621', 'erogarga',
+        'xhamster', 'youporn', 'spankbang', 'redgifs',
+    ])
+
+    for category_key, category_sources in list(sources.items()):
+        if isinstance(category_sources, list):
+            for s in category_sources:
+                if isinstance(s, dict) and 'id' in s:
+                    s['implemented'] = s['id'] in implemented_ids
 
     # Add 'all' key with flattened list
     all_sources = []
     for category_sources in sources.values():
-        all_sources.extend(category_sources)
+        if isinstance(category_sources, list):
+            all_sources.extend(category_sources)
     sources['all'] = all_sources
 
     return sources

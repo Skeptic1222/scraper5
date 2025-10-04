@@ -1,0 +1,77 @@
+===============================================================================
+WORKING SOURCES - QUICK REFERENCE
+===============================================================================
+Date: 2025-10-02
+Status: VERIFIED via code analysis
+
+===============================================================================
+FULLY WORKING SOURCES (10)
+===============================================================================
+
+1. google_images      ✅ Enhanced scraper, high quality, safe-search bypass
+2. bing_images        ✅ Enhanced scraper, high quality, safe-search bypass
+3. duckduckgo_images  ✅ Enhanced scraper, JSON API, medium quality
+4. yahoo_images       ✅ Enhanced scraper, HTML parsing, medium quality
+
+5. picsum            ✅ API scraper, placeholder images, 100% reliable
+6. placeholder       ✅ API scraper, text placeholders, 100% reliable
+7. dummyimage        ✅ API scraper, colored placeholders, 100% reliable
+8. robohash          ✅ API scraper, robot avatars, 100% reliable
+
+9. reddit            ✅ Basic downloader or yt-dlp, works but slow
+10. unsplash         ⚠️  API scraper, falls back to picsum (original API deprecated)
+
+===============================================================================
+PARTIALLY WORKING (3)
+===============================================================================
+
+11. pexels           ⚠️  Basic downloader, falls back to picsum (API key issues)
+12. pixabay          ⚠️  Basic downloader, may work if API key valid
+13. yandex_images    ❌ Listed in source_map but NO implementation
+
+===============================================================================
+DEPRECATED / BROKEN (1)
+===============================================================================
+
+14. lorempixel       ❌ Service is down, returns empty list
+
+===============================================================================
+NOT IMPLEMENTED (209 sources)
+===============================================================================
+
+All other sources in sources_data.py are PLACEHOLDERS:
+- instagram, twitter, tiktok, pinterest, tumblr (social media)
+- youtube, vimeo, dailymotion, twitch (video - partial yt-dlp support)
+- deviantart, artstation, behance, dribbble, flickr (art platforms)
+- shutterstock, getty, adobe_stock, istock (stock photos - paywall)
+- pornhub, xvideos, motherless, etc. (adult - partial implementation)
+- 180+ more sources (gaming, streaming, music, news, etc.)
+
+===============================================================================
+RECOMMENDATION
+===============================================================================
+
+Filter API to show only 10 working sources:
+- google_images, bing_images, duckduckgo_images, yahoo_images
+- picsum, placeholder, dummyimage, robohash
+- reddit, unsplash
+
+Hide the remaining 214 sources OR mark as "Coming Soon" in UI.
+
+===============================================================================
+CODE LOCATIONS
+===============================================================================
+
+Working implementations:
+- C:\inetpub\wwwroot\scraper\scrapers\enhanced_scraper.py (search engines)
+- C:\inetpub\wwwroot\scraper\scrapers\working_api_scraper.py (API sources)
+- C:\inetpub\wwwroot\scraper\working_media_downloader.py (basic sources)
+- C:\inetpub\wwwroot\scraper\enhanced_working_downloader.py (orchestrator)
+
+Source mapping:
+- Lines 112-132 in enhanced_working_downloader.py
+
+API endpoint:
+- C:\inetpub\wwwroot\scraper\app.py → /scraper/api/sources
+
+===============================================================================

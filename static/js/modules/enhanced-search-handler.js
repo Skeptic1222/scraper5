@@ -321,6 +321,17 @@ class EnhancedSearchHandler {
             return;
         }
 
+        // Get safe search toggle state - check multiple possible IDs
+        let safeSearchEnabled = true; // Default to safe
+        const safeSearchToggle = document.getElementById('safe-search-toggle') ||
+                                 document.getElementById('safe-search') ||
+                                 document.querySelector('input[name="safe-search"]');
+
+        if (safeSearchToggle) {
+            safeSearchEnabled = safeSearchToggle.checked;
+            console.log('[Enhanced Search] Safe search toggle:', safeSearchEnabled ? 'ENABLED' : 'DISABLED');
+        }
+
         // Get enhanced options
         const includeVideos = document.getElementById('include-videos')?.checked || false;
         const includeAdult = document.getElementById('include-adult')?.checked || false;
@@ -334,11 +345,17 @@ class EnhancedSearchHandler {
             selectedSources.push('google', 'bing', 'duckduckgo');
         }
 
+        console.log('[Enhanced Search] Query:', query);
+        console.log('[Enhanced Search] Safe search:', safeSearchEnabled);
+        console.log('[Enhanced Search] Bypass safe search:', bypassSafeSearch);
+        console.log('[Enhanced Search] Include videos:', includeVideos);
+        console.log('[Enhanced Search] Include adult:', includeAdult);
+
         // Show loading state
         this.showLoadingState();
 
         try {
-            const response = await fetch('/api/enhanced-search', {
+            const response = await fetch((window.APP_BASE || '/scraper') + '/api/enhanced-search', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -349,7 +366,7 @@ class EnhancedSearchHandler {
                     max_content: 30,
                     include_videos: includeVideos,
                     include_adult: includeAdult,
-                    bypass_safe_search: bypassSafeSearch
+                    bypass_safe_search: bypassSafeSearch || !safeSearchEnabled
                 })
             });
 
@@ -376,7 +393,17 @@ class EnhancedSearchHandler {
     async performRegularSearch(query, sources) {
         // Fallback to regular comprehensive search
         try {
-            const response = await fetch('/api/comprehensive-search', {
+            // Get safe search toggle state
+            let safeSearchEnabled = true;
+            const safeSearchToggle = document.getElementById('safe-search-toggle') ||
+                                     document.getElementById('safe-search') ||
+                                     document.querySelector('input[name="safe-search"]');
+
+            if (safeSearchToggle) {
+                safeSearchEnabled = safeSearchToggle.checked;
+            }
+
+            const response = await fetch((window.APP_BASE || '/scraper') + '/api/comprehensive-search', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -385,7 +412,8 @@ class EnhancedSearchHandler {
                     query: query,
                     search_type: 'all',
                     max_content: 20,
-                    enabled_sources: sources
+                    enabled_sources: sources,
+                    safe_search: safeSearchEnabled
                 })
             });
 

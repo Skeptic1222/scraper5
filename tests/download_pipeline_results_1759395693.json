@@ -1,0 +1,58 @@
+{
+  "passed": 8,
+  "failed": 0,
+  "warnings": 0,
+  "total": 8,
+  "success_rate": 100.0,
+  "results": [
+    {
+      "test": "Basic Media Downloader",
+      "status": "PASS",
+      "downloaded": 2,
+      "failed": 0
+    },
+    {
+      "test": "Direct URL Download",
+      "status": "PASS",
+      "file": "300_1",
+      "size": 16961
+    },
+    {
+      "test": "Job Manager Integration",
+      "status": "PASS",
+      "job_id": "85ac2b06-8668-41d7-ad26-c860bb837055"
+    },
+    {
+      "test": "Asset Manager Integration",
+      "status": "PASS",
+      "asset_id": "5107e4ce-0a79-4818-a855-c231733ea4e2",
+      "stats": {
+        "total": 6,
+        "images": 6,
+        "videos": 0,
+        "all": 6
+      }
+    },
+    {
+      "test": "Enhanced Downloader Pipeline",
+      "status": "PASS",
+      "job_id": "c85f15e6-f950-45db-8bb9-af920dcbd8a6",
+      "downloaded": 2
+    },
+    {
+      "test": "Progress Callback System",
+      "status": "PASS",
+      "callbacks_received": 2
+    },
+    {
+      "test": "File Path Handling",
+      "status": "PASS",
+      "filepath": "C:\\inetpub\\wwwroot\\scraper\\downloads\\test_source\\150_1"
+    },
+    {
+      "test": "Error Handling",
+      "status": "PASS"
+    }
+  ],
+  "timestamp": 1759395693.6546159
+}

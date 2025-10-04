@@ -1,0 +1,159 @@
+================================================================================
+DOWNLOAD HANG FIX - QUICK REFERENCE SUMMARY
+================================================================================
+
+PROBLEM
+-------
+Downloads hanging indefinitely on Pexels source, causing dashboard to poll
+endlessly with no progress. Job stuck for hours in "running" state.
+
+ROOT CAUSE
+----------
+1. No global job timeout - jobs could run forever
+2. as_completed() timeout parameter only affects iterator, not individual sources
+3. No automatic cleanup for stuck jobs
+4. Missing comprehensive logging to diagnose hangs
+
+SOLUTION IMPLEMENTED
+--------------------
+1. Added GLOBAL_JOB_TIMEOUT=300 (5 minutes max for entire job)
+2. Per-source timeout enforcement via future.result(timeout=30)
+3. Global timeout check within processing loop
+4. Exception handler for as_completed() timeout
+5. Comprehensive logging at all levels
+6. Automatic cleanup script for jobs stuck >10 minutes
+
+STUCK JOB FIXED
+---------------
+Job ID: d882637a-7978-4881-ae3d-55ee43a9ae4c
+Status: Changed from "running" to "error"
+Source: Was stuck on Pexels
+Message: "Job timed out - stuck on pexels source. Fixed by timeout implementation."
+
+FILES MODIFIED
+--------------
+1. C:\inetpub\wwwroot\scraper\enhanced_working_downloader.py
+   - Added global job timeout tracking (line 220)
+   - Added timeout configuration (line 228)
+   - Added timeout enforcement (lines 284-288)
+   - Added global timeout handler (lines 369-380)
+   - Enhanced logging throughout (lines 248, 296, 350-367)
+
+2. C:\inetpub\wwwroot\scraper\.env
+   - Added GLOBAL_JOB_TIMEOUT=300
+
+NEW FILES CREATED
+-----------------
+3. C:\inetpub\wwwroot\scraper\cleanup_stuck_jobs.py
+   - Marks jobs stuck >10 minutes as failed
+   - Schedule via Task Scheduler (every 10 minutes)
+
+4. C:\inetpub\wwwroot\scraper\verify_fix.py
+   - Verification script (all checks PASSED)
+
+5. C:\inetpub\wwwroot\scraper\check_jobs_sqlite.py
+   - Diagnostic tool to check job status
+
+6. C:\inetpub\wwwroot\scraper\fix_stuck_job.py
+   - One-time script to fix currently stuck job (DONE)
+
+7. C:\inetpub\wwwroot\scraper\DOWNLOAD_HANG_FIX_REPORT.md
+   - Comprehensive documentation
+
+TIMEOUT HIERARCHY
+-----------------
+Level 1: REQUEST_TIMEOUT=10s       (per HTTP request)
+Level 2: SOURCE_TIMEOUT=30s        (per source, all requests combined)
+Level 3: GLOBAL_JOB_TIMEOUT=300s   (entire job, 5 minutes)
+Level 4: Cleanup after 10 minutes  (automatic via cleanup script)
+
+VERIFICATION
+------------
+Status: ALL CHECKS PASSED
+- Job start time tracking: PASS
+- Global timeout configuration: PASS
+- Global timeout enforcement: PASS
+- Global timeout exception handler: PASS
+- Enhanced logging: PASS
+- Configuration logging: PASS
+- Import test: PASS
+- No stuck jobs: PASS
+
+RESTART INSTRUCTIONS
+--------------------
+1. Kill Flask process:
+   pkill -f python
+
+2. Start Flask server:
+   cd /c/inetpub/wwwroot/scraper
+   python app.py
+
+3. Monitor logs:
+   tail -f logs/download_errors.log
+
+4. Test download:
+   - Query: "cats"
+   - Sources: google_images, bing_images
+   - Expected: Completes within 60 seconds
+
+EXPECTED LOG ENTRIES
+--------------------
+On job start:
+  === JOB START === | Job ID: <id> | Query: <query> | Sources: <list>
+  CONFIG: MAX_CONCURRENT_SOURCES=5, SOURCE_TIMEOUT=30s, GLOBAL_TIMEOUT=300s
+
+On source completion:
+  SOURCE COMPLETED: <source> | Downloaded: <count> | Time: <elapsed>s
+
+On source timeout:
+  TIMEOUT: Source '<source>' exceeded 30s timeout | <details>
+
+On global timeout:
+  GLOBAL TIMEOUT: Job <id> exceeded 300s
+
+On job completion:
+  === JOB COMPLETE === | Job ID: <id> | Downloaded: <count> | Images: <count> | Videos: <count>
+
+MONITORING COMMANDS
+-------------------
+# Check for stuck jobs
+python check_jobs_sqlite.py
+
+# View download logs
+tail -f logs/download_errors.log
+
+# Run cleanup manually
+python cleanup_stuck_jobs.py
+
+# Verify fix is in place
+python verify_fix.py
+
+KNOWN LIMITATIONS
+-----------------
+1. Threads not gracefully terminated on timeout (they complete current download)
+2. Pexels source may still be slow (but won't hang indefinitely)
+3. SQLite may have locking issues under heavy load
+
+FUTURE IMPROVEMENTS
+-------------------
+1. Add per-request timeout in requests library
+2. Implement thread cancellation for timed-out sources
+3. Add retry logic for transient failures
+4. Create dashboard alert for jobs approaching timeout
+5. Add source-level health monitoring
+
+ROLLBACK PLAN
+-------------
+If issues occur:
+1. git checkout enhanced_working_downloader.py
+2. Remove GLOBAL_JOB_TIMEOUT=300 from .env
+3. python fix_stuck_job.py
+4. pkill -f python && python app.py
+
+STATUS
+------
+COMPLETE - All fixes implemented and verified
+Ready for production testing
+
+Last Updated: 2025-10-02 21:47 UTC
+Verified By: verify_fix.py (ALL CHECKS PASSED)

@@ -1,0 +1,127 @@
+/**
+ * Asset Toolbar Styles
+ * Enhanced styling for asset selection and management
+ */
+
+/* Asset Toolbar Container */
+.asset-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+/* Selection Controls */
+#select-all-btn,
+#deselect-all-btn {
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+#select-all-btn:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+}
+
+#deselect-all-btn:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(108, 117, 125, 0.3);
+}
+
+/* Delete Button */
+#delete-selected-btn {
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+#delete-selected-btn:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(220, 53, 69, 0.4);
+}
+
+#delete-selected-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Selection Count Badge */
+#selected-count {
+    transition: all 0.3s ease;
+    min-width: 20px;
+}
+
+#selected-count.badge.bg-warning {
+    animation: pulse 2s infinite;
+}
+
+/* Asset Card Selection State */
+.asset-card.selected {
+    border: 2px solid #007bff;
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.2);
+}
+
+/* Checkbox Styling */
+.asset-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #007bff;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 10;
+    transition: transform 0.1s ease;
+}
+
+.asset-checkbox:hover {
+    transform: scale(1.1);
+}
+
+.asset-checkbox:checked {
+    accent-color: #28a745;
+}
+
+/* Button Toolbar Responsive */
+@media (max-width: 768px) {
+    .btn-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+    }
+
+    .btn-toolbar .btn-group {
+        margin-bottom: 0.5rem;
+        width: 100%;
+    }
+
+    .btn-toolbar .btn {
+        width: 100%;
+    }
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Delete All Assets Button (Settings) */
+#delete-all-assets-btn {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#delete-all-assets-btn:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
+}

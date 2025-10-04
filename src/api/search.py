@@ -19,7 +19,10 @@ from ..services.method_fallback import MethodFallbackSystem
 
 logger = logging.getLogger(__name__)
 
-search_bp = Blueprint('search', __name__)
+# DISABLED: Conflicts with blueprints/search.py - both register as 'search' blueprint
+# This async implementation doesn't work in WSGI/FastCGI environment
+# TODO: Merge functionality into blueprints/search.py or convert to use threading
+search_bp = Blueprint('search_async_DISABLED', __name__)
 
 # Initialize fallback system
 fallback_system = MethodFallbackSystem()

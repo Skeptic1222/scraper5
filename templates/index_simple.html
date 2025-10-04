@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enhanced Media Scraper</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --primary-color: #6c5ce7;
@@ -117,12 +118,67 @@
             gap: 1rem;
             margin-top: 1rem;
         }
-        
+
         .asset-item {
             background: white;
             border-radius: 0.5rem;
             overflow: hidden;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .asset-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .asset-checkbox {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            z-index: 10;
+            accent-color: #3b82f6;
+        }
+
+        .file-type-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: white;
+            z-index: 5;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .file-type-badge.image {
+            background: rgba(59, 130, 246, 0.95);
+        }
+
+        .file-type-badge.video {
+            background: rgba(16, 185, 129, 0.95);
+        }
+
+        .file-info {
+            padding: 0.5rem;
+            font-size: 0.85rem;
+            color: #666;
+            text-align: center;
+        }
+
+        .file-ext {
+            font-weight: 600;
+            color: #333;
         }
     </style>
 </head>
@@ -183,8 +239,10 @@
                     <button class="btn btn-secondary" onclick="showSection('assets')">View Asset Library</button>
                 </div>
             </div>
-        </section>
+</section>
 
+<!-- Safe Search Indicator for simple view -->
+<script src="{{ url_for('static', filename='js/modules/safe-search-indicator.js') }}"></script>
         <!-- Search Section -->
         <section id="search-section" class="content-section">
             <h2>🔍 Enhanced Search</h2>
@@ -251,12 +309,25 @@
         <!-- Assets Section -->
         <section id="assets-section" class="content-section">
             <h2>📁 Asset Library</h2>
+
+            <!-- Asset Toolbar -->
+            <div class="asset-toolbar" style="margin: 1rem 0; display: flex; gap: 0.5rem; align-items: center; padding: 0.75rem; background: #f8f9fa; border-radius: 0.5rem;">
+                <button id="select-all-btn" class="btn btn-sm btn-secondary">
+                    <i class="fas fa-check-square"></i> Select All
+                </button>
+                <button id="delete-selected-btn" class="btn btn-sm btn-danger" style="display: none;">
+                    <i class="fas fa-trash"></i> Delete Selected (<span id="selected-count">0</span>)
+                </button>
+                <div style="flex: 1;"></div>
+                <span id="selection-status" style="color: #666; font-size: 0.9rem;"></span>
+            </div>
+
             <div class="asset-filters mt-3">
                 <button class="btn btn-sm btn-outline-primary active" onclick="filterAssets('all')">All</button>
                 <button class="btn btn-sm btn-outline-primary" onclick="filterAssets('images')">Images</button>
                 <button class="btn btn-sm btn-outline-primary" onclick="filterAssets('videos')">Videos</button>
             </div>
-            
+
             <div id="assets-grid" class="assets-grid">
                 <p class="text-muted">No assets downloaded yet. Start a search to download content.</p>
             </div>
@@ -268,7 +339,7 @@
             <div class="settings-content mt-4">
                 <h3>Preferences</h3>
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="safe-search" checked>
+                    <input class="form-check-input" type="checkbox" id="safe-search">
                     <label class="form-check-label" for="safe-search">
                         Enable Safe Search
                     </label>
@@ -286,7 +357,13 @@
         </section>
     </div>
 
+    <!-- Include Asset Selection Module -->
+    <script src="/scraper/static/js/asset-selection.js"></script>
+
     <script>
+        // Configure APP_BASE for API calls (CRITICAL: No ports!)
+        window.APP_BASE = '/scraper';
+
         // Simple section switching
         function showSection(sectionName) {
             console.log('Switching to section:', sectionName);
@@ -326,41 +403,147 @@
             });
             
             // Load dashboard stats
-            fetch('/api/stats')
+            loadDashboardStats();
+
+            // Load assets when viewing assets section
+            const assetsNavItem = document.querySelector('[data-section="assets"]');
+            if (assetsNavItem) {
+                assetsNavItem.addEventListener('click', function() {
+                    setTimeout(() => loadAssets(), 100);
+                });
+            }
+
+            // Load assets initially if we're on assets page
+            if (window.location.hash === '#assets') {
+                showSection('assets');
+                setTimeout(() => loadAssets(), 100);
+            }
+        });
+
+        function loadDashboardStats() {
+            const apiUrl = `${window.APP_BASE}/api/assets`;
+            fetch(apiUrl)
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success && data.stats) {
-                        document.getElementById('total-downloads').textContent = data.stats.total_downloads || 0;
-                        document.getElementById('total-images').textContent = data.stats.total_images || 0;
-                        document.getElementById('total-videos').textContent = data.stats.total_videos || 0;
-                        document.getElementById('success-rate').textContent = (data.stats.success_rate || 100) + '%';
+                    if (data.success || data.assets) {
+                        const total = data.assets ? data.assets.length : 0;
+                        const images = data.counts?.images || 0;
+                        const videos = data.counts?.videos || 0;
+
+                        document.getElementById('total-downloads').textContent = total;
+                        document.getElementById('total-images').textContent = images;
+                        document.getElementById('total-videos').textContent = videos;
+                        document.getElementById('success-rate').textContent = '100%';
                     }
                 })
                 .catch(err => console.log('Stats API error:', err));
-            
-            // Handle search form
-            document.getElementById('search-form').addEventListener('submit', function(e) {
+        }
+
+        async function loadAssets() {
+            const assetsGrid = document.getElementById('assets-grid');
+            if (!assetsGrid) {
+                console.warn('Assets grid not found');
+                return;
+            }
+
+            try {
+                // Show loading state
+                assetsGrid.innerHTML = '<p class="text-muted"><i class="fas fa-spinner fa-spin"></i> Loading assets...</p>';
+
+                const apiUrl = `${window.APP_BASE}/api/assets`;
+                console.log('Loading assets from:', apiUrl);
+
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                if (!data.success && !data.assets) {
+                    throw new Error(data.error || 'Failed to load assets');
+                }
+
+                const assets = data.assets || [];
+                console.log(`Loaded ${assets.length} assets`);
+
+                // Clear grid
+                assetsGrid.innerHTML = '';
+
+                if (assets.length === 0) {
+                    assetsGrid.innerHTML = '<p class="text-muted">No assets downloaded yet. Start a search to download content.</p>';
+                    return;
+                }
+
+                // Render each asset using the selection module's card creator
+                assets.forEach(asset => {
+                    if (window.AssetSelection && window.AssetSelection.createAssetCard) {
+                        const card = window.AssetSelection.createAssetCard(asset);
+                        assetsGrid.appendChild(card);
+                    } else {
+                        // Fallback if module not loaded
+                        const fallbackCard = createFallbackAssetCard(asset);
+                        assetsGrid.appendChild(fallbackCard);
+                    }
+                });
+
+                // Update dashboard stats
+                loadDashboardStats();
+
+            } catch (error) {
+                console.error('Error loading assets:', error);
+                assetsGrid.innerHTML = `<p class="text-danger">Error loading assets: ${error.message}</p>`;
+            }
+        }
+
+        function createFallbackAssetCard(asset) {
+            const div = document.createElement('div');
+            div.className = 'asset-item';
+            div.dataset.assetId = asset.id;
+            div.innerHTML = `
+                <input type="checkbox" class="asset-checkbox" data-asset-id="${asset.id}">
+                <div class="file-type-badge ${asset.file_type || 'unknown'}">
+                    <i class="fas fa-${asset.file_type === 'video' ? 'video' : 'image'}"></i>
+                    ${(asset.file_type || 'unknown').toUpperCase()}
+                </div>
+                <img src="${window.APP_BASE}/api/media/${asset.id}/thumbnail"
+                     alt="${asset.filename || 'Asset'}"
+                     onerror="this.src='${window.APP_BASE}/static/img/placeholder.png'">
+                <div class="file-info">
+                    <span class="file-ext">.${(asset.filename || 'file').split('.').pop()}</span>
+                </div>
+            `;
+            return div;
+        }
+
+        // Expose loadAssets globally for integration with asset selection module
+        window.loadAssets = loadAssets;
+
+        // Add search form handler inside DOMContentLoaded
+        const searchForm = document.getElementById('search-form');
+        if (searchForm) {
+            searchForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 const query = document.getElementById('search-query').value;
                 const selectedSources = Array.from(document.querySelectorAll('.source-checkbox:checked'))
                     .map(cb => cb.id);
-                
+
                 if (!query) {
                     alert('Please enter a search query');
                     return;
                 }
-                
+
                 if (selectedSources.length === 0) {
                     alert('Please select at least one source');
                     return;
                 }
-                
+
                 document.getElementById('search-results').innerHTML = '<div class="alert alert-info">Searching...</div>';
-                
+
                 // Here you would make the actual search API call
                 console.log('Searching for:', query, 'in sources:', selectedSources);
             });
-        });
+        }
 
         function selectAllSources() {
             const checkboxes = document.querySelectorAll('.source-checkbox');

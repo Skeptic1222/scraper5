@@ -1,0 +1,123 @@
+================================================================================
+RESTART FLASK APP TO ENABLE PARALLEL DOWNLOADS
+================================================================================
+
+The parallel download fix has been applied. You MUST restart Flask for it to take effect.
+
+================================================================================
+OPTION 1: Quick Restart (Recommended)
+================================================================================
+
+1. Open PowerShell as Administrator
+
+2. Stop all Python processes:
+   PS> Get-Process python | Stop-Process -Force
+
+3. Navigate to scraper directory:
+   PS> cd C:\inetpub\wwwroot\scraper
+
+4. Start Flask app:
+   PS> python app.py
+
+5. Verify it's running:
+   - Open browser to http://localhost/scraper
+   - You should see the login page
+
+================================================================================
+OPTION 2: Graceful Restart (If running as service)
+================================================================================
+
+1. Open Services (services.msc)
+
+2. Find "Enhanced Media Scraper" service
+
+3. Right-click → Restart
+
+================================================================================
+VERIFICATION CHECKLIST
+================================================================================
+
+After restarting, verify parallel downloads are working:
+
+□ Step 1: Open http://localhost/scraper
+□ Step 2: Log in (or use test admin if enabled)
+□ Step 3: Enter a search query (e.g., "cats")
+□ Step 4: Select 3-5 sources from different categories
+□ Step 5: Click "Comprehensive Search"
+□ Step 6: Watch the progress indicator
+□ Step 7: Open logs\download_errors.log
+□ Step 8: Look for concurrent "Starting source:" messages
+
+WHAT YOU SHOULD SEE:
+  2025-10-02 22:00:01 | INFO | === JOB START === | Job ID: abc123 | Query: cats
+  2025-10-02 22:00:01 | INFO | CONFIG: MAX_CONCURRENT_SOURCES=5, SOURCE_TIMEOUT=30s
+  2025-10-02 22:00:01 | INFO | Starting source: google_images | Query: cats | Max: 10
+  2025-10-02 22:00:01 | INFO | Starting source: bing_images | Query: cats | Max: 10
+  2025-10-02 22:00:01 | INFO | Starting source: yahoo_images | Query: cats | Max: 10
+  ^^^ All start at the same timestamp (parallel execution)
+
+WHAT YOU SHOULD NOT SEE:
+  2025-10-02 22:00:01 | INFO | Starting source: google_images
+  2025-10-02 22:00:15 | INFO | COMPLETED: google_images
+  2025-10-02 22:00:15 | INFO | Starting source: bing_images
+  ^^^ Sequential execution (means app needs restart)
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+PROBLEM: Still seeing sequential downloads after restart
+
+SOLUTION 1: Verify .env is being loaded
+  - Check app.py line 65: load_dotenv(override=True)
+  - Verify .env exists in C:\inetpub\wwwroot\scraper\.env
+
+SOLUTION 2: Check which Python process is running
+  PS> Get-Process python
+  - Kill ALL Python processes
+  - Start only one: python app.py
+
+SOLUTION 3: Verify enhanced_working_downloader is being used
+  PS> python test_import_downloader.py
+  - Should show "[OK] Enhanced downloader available (first choice)"
+
+SOLUTION 4: Check for import errors
+  PS> python -c "from enhanced_working_downloader import run_download_job; print('OK')"
+  - Should print "OK"
+
+================================================================================
+PERFORMANCE EXPECTATIONS
+================================================================================
+
+BEFORE FIX (Sequential):
+  - 5 sources × 30s each = 150 seconds maximum
+  - Downloads one source at a time
+  - Slow sources block fast sources
+
+AFTER FIX (Parallel):
+  - 5 sources running concurrently = 30 seconds maximum
+  - All sources start simultaneously
+  - Slow sources don't block fast sources
+  - 5x faster for multi-source searches
+
+EXAMPLE:
+  Query: "cats" with 5 sources, 10 images each
+
+  Sequential: ~120-150 seconds (2-2.5 minutes)
+  Parallel:   ~20-30 seconds (0.3-0.5 minutes)
+
+  Speedup: 4-5x faster!
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+1. Restart Flask (see Option 1 or 2 above)
+2. Test with a multi-source search
+3. Check logs\download_errors.log
+4. Enjoy 5x faster downloads!
+
+For detailed technical information, see:
+  PARALLEL_DOWNLOAD_FIX_REPORT.txt
+
+================================================================================

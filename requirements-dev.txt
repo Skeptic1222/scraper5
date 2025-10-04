@@ -1,2 +1,32 @@
+# Code Formatting and Linting
 black==24.8.0
 ruff==0.6.1
+
+# Testing Framework
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+pytest-html==4.1.1
+pytest-timeout==2.2.0
+pytest-mock==3.12.0
+pytest-xdist==3.5.0  # Parallel test execution
+
+# Browser Automation (E2E Testing)
+playwright==1.40.0
+
+# Test Data Generation
+faker==20.1.0
+
+# Flask Testing Utilities
+Flask-Testing==0.8.1
+
+# Performance Testing
+locust==2.20.0  # Optional: Load testing
+pytest-benchmark==4.0.0  # Optional: Benchmark tests
+
+# Code Coverage
+coverage[toml]==7.3.2
+
+# Mocking and Fixtures
+responses==0.24.1  # Mock HTTP requests
+freezegun==1.4.0  # Mock datetime

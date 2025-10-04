@@ -1,0 +1,98 @@
+# Claude Code Project Coordination File
+# Last Updated: 2025-10-02 21:00
+# This file helps multiple Claude Code instances coordinate without conflicts
+# COPY THIS TO: C:\inetpub\wwwroot\sitelist.txt for global coordination
+
+## Active Projects and Their Boundaries
+
+### 1. AY-I-T (Main Site)
+- URL: http://localhost/
+- Path: C:\inetpub\wwwroot\ay-i-t
+- Port: 80 (IIS)
+- Backend Port: [TBD - please update]
+- Process Name: [TBD]
+- Notes: Root site
+
+### 2. Scheduler
+- URL: http://localhost/scheduler
+- Path: C:\inetpub\wwwroot\scheduler
+- Port: 80 (IIS)
+- Backend Port: [TBD - please update]
+- Process Name: [TBD]
+- Notes: Scheduling application
+
+### 3. Scraper (Enhanced Media Scraper) - THIS PROJECT
+- URL: http://localhost/scraper
+- Path: C:\inetpub\wwwroot\scraper
+- Port: 80 (IIS)
+- Backend Port: 5050 (Flask/Python)
+- Process Name: python.exe (app.py)
+- Database: SQLite (scraper.db) / SQL Server Express (Scraped)
+- Notes: Media scraping application with Flask backend
+- Status: Active development - Asset deletion features
+
+### 4. MediaVault
+- URL: http://localhost/mediavault
+- Path: C:\inetpub\wwwroot\mediavault
+- Port: 80 (IIS)
+- Backend Port: [TBD - please update]
+- Process Name: [TBD]
+- Notes: Media storage application
+
+### 5. DnD (Dungeons & Dragons)
+- URL: http://localhost/dnd
+- Path: C:\inetpub\wwwroot\dnd
+- Port: 80 (IIS)
+- Backend Port: [TBD - please update]
+- Process Name: [TBD]
+- Notes: D&D application
+
+## Reserved Ports (DO NOT USE)
+- 80: IIS (shared by all projects via URL paths)
+- 443: IIS HTTPS (if configured)
+- 5050: Scraper Flask backend
+- [Other projects please add your ports here]
+
+## Process Management Rules
+1. DO NOT kill processes belonging to other projects
+2. Check process command line before killing (e.g., look for specific app.py paths)
+3. Use project-specific identifiers when possible
+4. For Python processes, check which directory they're running from
+
+## IIS Configuration Rules
+1. DO NOT modify root site settings
+2. Only modify application-specific web.config files
+3. DO NOT change global IIS settings
+4. DO NOT modify URL Rewrite rules for other projects
+5. Each project should use its own application pool if possible
+
+## Database Connections
+- Scraper: SQLite (scraper.db) / SQL Server Express (Scraped database)
+- [Other projects please add your databases here]
+
+## Coordination Protocol
+1. Each Claude Code instance should read this file before making system changes
+2. Update this file when adding new ports or services
+3. Check for conflicts before claiming new ports
+4. Use project-specific prefixes for:
+   - Log files
+   - Temporary files
+   - Database names
+   - Service names
+
+## Active Claude Code Sessions (as of last update)
+1. ay-i-t: [Status unknown]
+2. scheduler: [Status unknown]
+3. scraper: ACTIVE - Working on UI improvements (buttons, deletion features)
+4. mediavault: [Status unknown]
+5. dnd: [Status unknown]
+
+## Known Conflicts to Avoid
+- Multiple Python processes on same port
+- Modifying shared IIS modules
+- Using common file names in wwwroot
+- Killing processes without checking ownership
+
+---
+Remember: We're all working on the same system. Coordination prevents conflicts!
+Each project should maintain their own copy and sync regularly.

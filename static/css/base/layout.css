@@ -137,11 +137,11 @@ body {
 /* Content Sections */
 .content-section {
     display: none !important;
-    animation: fadeIn 0.3s ease;
 }
 
 .content-section.active {
     display: block !important;
+    animation: fadeIn 0.3s ease;
 }
 
 @keyframes fadeIn {

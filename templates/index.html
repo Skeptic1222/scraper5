@@ -2,7 +2,7 @@
 
 {% block content %}
 <!-- Dashboard Section -->
-<section id="dashboard-section" class="content-section" data-section="dashboard-section">
+<section id="dashboard-section" class="content-section active" data-section="dashboard-section">
     <div class="section-header">
         <h1><i class="fas fa-home"></i> Dashboard</h1>
     </div>
@@ -19,69 +19,325 @@
     </div>
 </section>
 
-<!-- Search Section -->
-<section id="search-section" class="content-section active">
-    <div class="section-header">
-        <h1><i class="fas fa-search"></i> Search & Download</h1>
-    </div>
-    
-    <div class="card">
-        <div class="card-header">
-            <h2>Search Configuration</h2>
-        </div>
-        <div class="card-body">
-            <form id="search-form" novalidate>
-                <div class="mb-3">
-                    <label for="search-query" class="form-label">Search Query</label>
-                    <div class="input-group">
-                        <input type="text" 
-                               class="form-control form-control-lg" 
-                               id="search-query" 
-                               name="search-query"
-                               placeholder="Enter keywords to search..." 
-                               required>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-search"></i> Search
+<!-- Enhanced Search & Download Section -->
+<section id="search-section" class="content-section" aria-labelledby="search-heading">
+    <header class="section-header mb-4">
+        <h1 id="search-heading">
+            <i class="fas fa-search" aria-hidden="true"></i>
+            Search & Download
+        </h1>
+    </header>
+
+    <div class="search-controls">
+        <form id="search-form" novalidate aria-labelledby="search-form-heading">
+            <h2 id="search-form-heading" class="visually-hidden">Search Configuration</h2>
+
+            <!-- Search Mode Toggle -->
+            <div class="mb-3">
+                <div class="btn-group w-100" role="group">
+                    <input type="radio" class="btn-check" name="search-mode" id="mode-keyword" value="keyword" checked>
+                    <label class="btn btn-outline-primary" for="mode-keyword">
+                        <i class="fas fa-search"></i> Keyword Search
+                    </label>
+
+                    <input type="radio" class="btn-check" name="search-mode" id="mode-url" value="url">
+                    <label class="btn btn-outline-primary" for="mode-url">
+                        <i class="fas fa-link"></i> Paste URL
+                    </label>
+                </div>
+            </div>
+
+            <!-- Keyword Search Input (default) -->
+            <div class="mb-3" id="keyword-search-container">
+                <div class="input-group input-group-lg">
+                    <input type="text"
+                           class="form-control"
+                           id="search-query"
+                           name="search-query"
+                           placeholder="Enter keywords or @username..."
+                           required>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="fas fa-rocket"></i> Search
+                    </button>
+                </div>
+            </div>
+
+            <!-- URL Paste Input (hidden by default) -->
+            <div class="mb-3" id="url-paste-container" style="display: none;">
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="fas fa-link"></i>
+                    </span>
+                    <input type="url"
+                           class="form-control"
+                           id="url-paste-input"
+                           name="url-paste-input"
+                           placeholder="Paste URL (YouTube, Reddit, Imgur, Pornhub, etc.)">
+                    <button type="button" class="btn btn-success px-4" id="url-scrape-btn">
+                        <i class="fas fa-download"></i> Scrape URL
+                    </button>
+                </div>
+                <small class="text-muted">
+                    <i class="fas fa-info-circle"></i>
+                    Supports: YouTube, Pornhub, Xvideos, Reddit, Imgur, Pinterest, Instagram, Twitter, and 1000+ other sites
+                </small>
+            </div>
+
+            <!-- Compact Options in Horizontal Row -->
+            <div class="row g-2 mb-3">
+                <div class="col-md-2">
+                    <label class="form-label small mb-1"><strong>Content Type</strong></label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="content-images" checked>
+                        <label class="form-check-label small" for="content-images">Images</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="content-videos" checked>
+                        <label class="form-check-label small" for="content-videos">Videos</label>
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <label for="max-results" class="form-label small mb-1"><strong>Per Source</strong></label>
+                    <select class="form-select form-select-sm" id="max-results">
+                        <option value="10">10</option>
+                        <option value="25" selected>25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label for="total-file-limit" class="form-label small mb-1"><strong>Total Files</strong></label>
+                    <select class="form-select form-select-sm" id="total-file-limit">
+                        <option value="0" selected>No Limit</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="250">250</option>
+                        <option value="500">500</option>
+                        <option value="1000">1000</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label for="total-size-limit" class="form-label small mb-1"><strong>Total Size</strong></label>
+                    <select class="form-select form-select-sm" id="total-size-limit">
+                        <option value="0" selected>No Limit</option>
+                        <option value="100">100 MB</option>
+                        <option value="500">500 MB</option>
+                        <option value="1024">1 GB</option>
+                        <option value="2048">2 GB</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label for="image-size" class="form-label small mb-1"><strong>Image Size</strong></label>
+                    <select class="form-select form-select-sm" id="image-size">
+                        <option value="any" selected>Any</option>
+                        <option value="medium">Medium+</option>
+                        <option value="large">Large+</option>
+                        <option value="xlarge">XL+</option>
+                        <option value="4k">4K</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label for="video-quality" class="form-label small mb-1"><strong>Video Quality</strong></label>
+                    <select class="form-select form-select-sm" id="video-quality">
+                        <option value="best" selected>Best</option>
+                        <option value="1080p">1080p</option>
+                        <option value="720p">720p</option>
+                        <option value="480p">480p</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Hidden advanced options -->
+            <input type="hidden" id="image-format" value="any">
+            <input type="hidden" id="high-quality-images" value="false">
+            <input type="hidden" id="video-format" value="any">
+            <input type="hidden" id="extract-audio" value="false">
+
+            <!-- Source Selection -->
+            <div class="card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <strong><i class="fas fa-globe"></i> Content Sources</strong>
+                        <span class="badge bg-secondary ms-2" id="selected-sources-count">0 selected</span>
+                    </div>
+
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-secondary" id="select-all-sources">
+                            <i class="fas fa-check-square"></i> All
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="deselect-all-sources">
+                            <i class="fas fa-square"></i> None
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" id="select-recommended-sources">
+                            <i class="fas fa-star"></i> Recommended
                         </button>
                     </div>
-                    <input type="hidden" id="search-type" name="search-type" value="comprehensive">
-                </div>
-                
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <label class="form-label mb-0">
-                            <i class="fas fa-layer-group"></i> Content Sources
-                            <span class="badge bg-secondary ms-2" id="selected-sources-count">0 selected</span>
-                        </label>
-                        <div>
-                            <button type="button" class="btn btn-sm btn-outline-primary" id="select-all-sources">
-                                Select All
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" id="deselect-all-sources">
-                                Clear
-                            </button>
+
+                    <div class="d-flex gap-2">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" id="safe-search">
+                            <label class="form-check-label small" for="safe-search">
+                                <i class="fas fa-shield-alt text-success"></i> Safe
+                            </label>
+                        </div>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" id="adult-only-mode">
+                            <label class="form-check-label small text-danger" for="adult-only-mode">
+                                <i class="fas fa-exclamation-triangle"></i> Adult Only
+                            </label>
                         </div>
                     </div>
-                    
-                    <div id="source-categories" class="border rounded p-3" style="background: #f8f9fa;">
-                        <div class="text-center text-muted">
-                            <div class="spinner-border mb-3" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                            <p>Loading content sources...</p>
+                </div>
+
+                <div class="card-body p-0">
+                    <div id="source-categories" style="max-height: 500px; overflow-y: auto;">
+                        <!-- Sources loaded here by JavaScript -->
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary"></div>
+                            <div class="mt-2 text-muted">Loading sources...</div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Progress -->
+            <div id="search-progress-container" class="mt-4" style="display: none;">
+                <div class="card border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="h6 mb-0">
+                            <i class="fas fa-download"></i> Download Progress
+                            <button type="button" class="btn btn-sm btn-outline-light float-end" id="cancel-search">
+                                <i class="fas fa-stop"></i> Cancel
+                            </button>
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="small fw-bold">Overall Progress</span>
+                                <span class="small" id="overall-progress-text">0%</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                     id="overall-progress-bar" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div class="row text-center">
+                            <div class="col-3">
+                                <div class="stat-value text-primary" id="downloaded-count">0</div>
+                                <div class="stat-label small">Downloaded</div>
+                            </div>
+                            <div class="col-3">
+                                <div class="stat-value text-success" id="success-count">0</div>
+                                <div class="stat-label small">Success</div>
+                            </div>
+                            <div class="col-3">
+                                <div class="stat-value text-warning" id="retry-count">0</div>
+                                <div class="stat-label small">Retries</div>
+                            </div>
+                            <div class="col-3">
+                                <div class="stat-value text-danger" id="error-count">0</div>
+                                <div class="stat-label small">Errors</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <h4 class="h6 mb-2">
+                                <i class="fas fa-list"></i> Live Log
+                                <button type="button" class="btn btn-sm btn-outline-secondary float-end" id="clear-log">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </h4>
+                            <div id="search-progress-log" class="bg-dark text-light p-2 rounded small"
+                                 style="height: 200px; overflow-y: auto; font-family: monospace;">
+                                <div class="text-muted">Ready to start download...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- Upload Section -->
+<section id="upload-section" class="content-section">
+    <div class="section-header">
+        <h1><i class="fas fa-cloud-upload-alt"></i> Upload Files</h1>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2>Upload Your Files</h2>
+        </div>
+        <div class="card-body">
+            <!-- Upload Form -->
+            <form id="upload-form" enctype="multipart/form-data">
+                <div class="upload-area" id="upload-area">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt fa-3x"></i>
+                    </div>
+                    <h3>Drag & Drop Files Here</h3>
+                    <p>or click to browse</p>
+                    <input type="file" id="file-input" name="file" multiple hidden accept=".png,.jpg,.jpeg,.gif,.mp4,.webm,.avi,.mov,.pdf,.doc,.docx,.txt,.zip">
+                    <button type="button" class="btn btn-primary" onclick="document.getElementById('file-input').click()">
+                        <i class="fas fa-folder-open"></i> Browse Files
+                    </button>
+                </div>
+
+                <div class="mt-3">
+                    <small class="text-muted">
+                        Accepted formats: PNG, JPG, GIF, MP4, WEBM, AVI, MOV, PDF, DOC, DOCX, TXT, ZIP
+                        <br>Maximum file size: 16MB
+                    </small>
+                </div>
+
+                <!-- Upload Progress -->
+                <div id="upload-progress" class="mt-3" style="display: none;">
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <small class="text-muted" id="upload-status">Uploading...</small>
+                </div>
+
+                <!-- Upload Results -->
+                <div id="upload-results" class="mt-3" style="display: none;">
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> <span id="upload-message"></span>
+                    </div>
+                </div>
+
+                <!-- Upload Errors -->
+                <div id="upload-errors" class="mt-3" style="display: none;">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i> <span id="upload-error-message"></span>
                     </div>
                 </div>
             </form>
         </div>
     </div>
-    
-    <!-- Search Progress -->
-    <div id="search-progress" style="display: none;" class="mt-3">
-    </div>
-    
-    <!-- Search Results -->
-    <div id="search-results" class="mt-4">
+
+    <!-- Uploaded Files List -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2>Your Uploaded Files</h2>
+            <button class="btn btn-sm btn-secondary" onclick="refreshUploadsList()">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+        <div class="card-body">
+            <div id="uploads-list">
+                <div class="text-center text-muted">
+                    <i class="fas fa-spinner fa-spin"></i> Loading uploads...
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 
@@ -92,21 +348,55 @@
     </div>
     
     <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h2>Your Assets</h2>
-            <div>
-                <!-- View Toggle Buttons -->
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-sm btn-outline-primary active" data-view="thumbnail">
-                        <i class="fas fa-th"></i> Thumbnail
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-primary" data-view="list">
-                        <i class="fas fa-list"></i> List View
-                    </button>
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="mb-0">Your Assets</h2>
+            </div>
+
+            <!-- Asset Management Toolbar - Always Visible -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex flex-wrap gap-2" style="padding: 10px; background: #f8f9fa; border-radius: 5px; margin-bottom: 10px;">
+                        <!-- Selection Controls Group -->
+                        <div class="btn-group" role="group" aria-label="Selection controls">
+                            <button type="button" id="select-all-btn" class="btn btn-primary" style="display: inline-block !important; visibility: visible !important;">
+                                <i class="fas fa-check-square"></i> Select All
+                            </button>
+                            <button type="button" id="deselect-all-btn" class="btn btn-outline-secondary" style="display: inline-block !important; visibility: visible !important;">
+                                <i class="fas fa-square"></i> Deselect All
+                            </button>
+                        </div>
+
+                        <!-- Download Button -->
+                        <button type="button" id="download-selected-btn" class="btn btn-success" style="display: inline-block !important; visibility: visible !important;">
+                            <i class="fas fa-download"></i> Download Selected
+                        </button>
+
+                        <!-- Delete Button -->
+                        <button type="button" id="delete-selected-btn" class="btn btn-danger" style="display: inline-block !important; visibility: visible !important;">
+                            <i class="fas fa-trash"></i> Delete Selected
+                            <span class="badge bg-warning text-dark ms-2" id="selected-count">0</span>
+                        </button>
+
+                        <!-- Separator -->
+                        <div class="vr"></div>
+
+                        <!-- View Controls Group -->
+                        <div class="btn-group" role="group" aria-label="View controls">
+                            <button type="button" class="btn btn-outline-info active" data-view="thumbnail">
+                                <i class="fas fa-th"></i> Grid
+                            </button>
+                            <button type="button" class="btn btn-outline-info" data-view="list">
+                                <i class="fas fa-list"></i> List
+                            </button>
+                        </div>
+
+                        <!-- Refresh Button -->
+                        <button type="button" class="btn btn-outline-success" id="refresh-assets">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                    </div>
                 </div>
-                <button class="btn btn-sm btn-outline-primary ms-2" id="refresh-assets">
-                    <i class="fas fa-sync"></i> Refresh
-                </button>
             </div>
         </div>
         <div class="card-body">
@@ -136,8 +426,8 @@
             <div class="mb-3">
                 <label class="form-label">Safe Search</label>
                 <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="safe-search-toggle" checked>
-                    <label class="form-check-label" for="safe-search-toggle">
+                    <input class="form-check-input" type="checkbox" id="settings-safe-search-toggle">
+                    <label class="form-check-label" for="settings-safe-search-toggle">
                         Enable Safe Search (filters adult content)
                     </label>
                 </div>
@@ -172,6 +462,19 @@
             <p><strong>Authentication:</strong> Bypass Mode (Testing)</p>
         </div>
     </div>
+
+    <div class="card mt-3 border-danger">
+        <div class="card-header bg-danger text-white">
+            <h2><i class="fas fa-exclamation-triangle"></i> Danger Zone</h2>
+        </div>
+        <div class="card-body">
+            <h5 class="text-danger">Delete All Assets</h5>
+            <p class="text-muted">Permanently delete all downloaded assets from the system. This action cannot be undone.</p>
+            <button id="delete-all-assets-btn" class="btn btn-danger">
+                <i class="fas fa-trash-alt"></i> Delete All Assets
+            </button>
+        </div>
+    </div>
 </section>
 {% endblock %}
 
@@ -182,6 +485,37 @@
 <!-- Download Dashboard Module -->
 <script src="{{ url_for('static', filename='js/simple-dashboard.js') }}"></script>
 
+<!-- Initialize Dashboard -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize dashboard when DOM is ready
+    if (window.downloadDashboard && window.downloadDashboard.init) {
+        console.log('Initializing dashboard...');
+        window.downloadDashboard.init();
+    } else {
+        console.log('Calling createSimpleDashboard directly...');
+        if (typeof createSimpleDashboard === 'function') {
+            createSimpleDashboard();
+        }
+    }
+
+    // Also reinitialize when dashboard section becomes active
+    const dashboardNav = document.querySelector('[data-section="dashboard-section"]');
+    if (dashboardNav) {
+        dashboardNav.addEventListener('click', function() {
+            setTimeout(function() {
+                if (window.downloadDashboard && window.downloadDashboard.init) {
+                    window.downloadDashboard.init();
+                }
+            }, 100);
+        });
+    }
+});
+</script>
+
+<!-- Enhanced Job Dashboard -->
+<script src="{{ url_for('static', filename='js/enhanced-job-dashboard.js') }}"></script>
+
 <!-- Enhanced Search UI -->
 <script src="{{ url_for('static', filename='js/modules/enhanced-search-ui.js') }}"></script>
 
@@ -191,14 +525,472 @@
 <!-- Enhanced Search Handler -->
 <script src="{{ url_for('static', filename='js/modules/enhanced-search-handler.js') }}"></script>
 
+<!-- Upload Handler -->
+<script src="{{ url_for('static', filename='js/modules/upload-handler.js') }}"></script>
+
 <!-- Asset Library -->
-<script src="{{ url_for('static', filename='js/modules/asset-library-enhanced.js') }}"></script>
+<script src="{{ url_for('static', filename='js/modules/asset-library-enhanced.js') }}?v={{ range(1, 99999) | random }}"></script>
+
+<!-- Asset Selection and Bulk Delete -->
+<script src="{{ url_for('static', filename='js/asset-selection.js') }}?v={{ range(1, 99999) | random }}"></script>
+
+<!-- Debug Button Visibility -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔍 DEBUG: Checking asset toolbar buttons...');
+
+    const selectAllBtn = document.getElementById('select-all-btn');
+    const deselectAllBtn = document.getElementById('deselect-all-btn');
+    const deleteSelectedBtn = document.getElementById('delete-selected-btn');
+
+    if (selectAllBtn) {
+        console.log('✅ Select All button found:', selectAllBtn);
+        console.log('   Display:', window.getComputedStyle(selectAllBtn).display);
+        console.log('   Visibility:', window.getComputedStyle(selectAllBtn).visibility);
+    } else {
+        console.error('❌ Select All button NOT FOUND');
+    }
+
+    if (deselectAllBtn) {
+        console.log('✅ Deselect All button found:', deselectAllBtn);
+        console.log('   Display:', window.getComputedStyle(deselectAllBtn).display);
+        console.log('   Visibility:', window.getComputedStyle(deselectAllBtn).visibility);
+    } else {
+        console.error('❌ Deselect All button NOT FOUND');
+    }
+
+    if (deleteSelectedBtn) {
+        console.log('✅ Delete Selected button found:', deleteSelectedBtn);
+        console.log('   Display:', window.getComputedStyle(deleteSelectedBtn).display);
+        console.log('   Visibility:', window.getComputedStyle(deleteSelectedBtn).visibility);
+    } else {
+        console.error('❌ Delete Selected button NOT FOUND');
+    }
+
+    // Check if buttons are in the assets section
+    const assetsSection = document.getElementById('assets-section');
+    if (assetsSection) {
+        const isVisible = window.getComputedStyle(assetsSection).display !== 'none';
+        console.log('📁 Assets section visible:', isVisible);
+        if (!isVisible) {
+            console.log('⚠️ Assets section is hidden. Navigate to Asset Library to see buttons.');
+        }
+    }
+});
+</script>
 
 <!-- Media Viewer -->
 <script src="{{ url_for('static', filename='js/modules/media-viewer.js') }}"></script>
 
+<!-- Settings Manager -->
+<script src="{{ url_for('static', filename='js/modules/settings.js') }}"></script>
+
+<!-- Safe Search Visual Indicator -->
+<script src="{{ url_for('static', filename='js/modules/safe-search-indicator.js') }}"></script>
+
+<!-- URL Scraper Module -->
+<script src="{{ url_for('static', filename='js/modules/url-scraper.js') }}"></script>
+
+<!-- FAILSAFE: URL Mode Toggle Injection -->
 <script>
-// Simple test - just log that the page loaded
-console.log('Enhanced Media Scraper page loaded');
+(function() {
+    'use strict';
+
+    function injectUrlModeToggle() {
+        console.log('🔍 Checking for URL mode toggle...');
+
+        // Check if toggle already exists
+        if (document.getElementById('mode-url')) {
+            console.log('✅ URL mode toggle already exists');
+            return;
+        }
+
+        console.warn('⚠️ URL mode toggle NOT FOUND - injecting now!');
+
+        // Find the search form
+        const searchForm = document.getElementById('search-form');
+        if (!searchForm) {
+            console.error('❌ Search form not found - cannot inject URL mode');
+            return;
+        }
+
+        // Find the main search input container
+        const searchQuery = document.getElementById('search-query');
+        if (!searchQuery) {
+            console.error('❌ Search query input not found');
+            return;
+        }
+
+        const keywordContainer = searchQuery.closest('.mb-3');
+        if (!keywordContainer) {
+            console.error('❌ Cannot find keyword container');
+            return;
+        }
+
+        // Create mode toggle HTML
+        const toggleHTML = `
+            <div class="mb-3">
+                <div class="btn-group w-100" role="group">
+                    <input type="radio" class="btn-check" name="search-mode" id="mode-keyword" value="keyword" checked>
+                    <label class="btn btn-outline-primary" for="mode-keyword">
+                        <i class="fas fa-search"></i> Keyword Search
+                    </label>
+
+                    <input type="radio" class="btn-check" name="search-mode" id="mode-url" value="url">
+                    <label class="btn btn-outline-primary" for="mode-url">
+                        <i class="fas fa-link"></i> Paste URL
+                    </label>
+                </div>
+            </div>
+        `;
+
+        // Create URL paste container HTML
+        const urlContainerHTML = `
+            <div class="mb-3" id="url-paste-container" style="display: none;">
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="fas fa-link"></i>
+                    </span>
+                    <input type="url"
+                           class="form-control"
+                           id="url-paste-input"
+                           name="url-paste-input"
+                           placeholder="Paste URL (YouTube, Reddit, Imgur, Pornhub, etc.)">
+                    <button type="button" class="btn btn-success px-4" id="url-scrape-btn">
+                        <i class="fas fa-download"></i> Scrape URL
+                    </button>
+                </div>
+                <small class="text-muted">
+                    <i class="fas fa-info-circle"></i>
+                    Supports: YouTube, Pornhub, Xvideos, Reddit, Imgur, Pinterest, Instagram, Twitter, and 1000+ other sites
+                </small>
+            </div>
+        `;
+
+        // Insert toggle before keyword container
+        keywordContainer.insertAdjacentHTML('beforebegin', toggleHTML);
+
+        // Add ID to keyword container
+        if (!keywordContainer.id) {
+            keywordContainer.id = 'keyword-search-container';
+        }
+
+        // Insert URL container after keyword container
+        keywordContainer.insertAdjacentHTML('afterend', urlContainerHTML);
+
+        console.log('✅ URL mode toggle injected successfully!');
+
+        // Set up event listeners after a short delay
+        setTimeout(() => {
+            const modeKeyword = document.getElementById('mode-keyword');
+            const modeUrl = document.getElementById('mode-url');
+            const urlContainer = document.getElementById('url-paste-container');
+            const sourceCategories = document.querySelector('#source-categories')?.closest('.card');
+
+            if (modeKeyword) {
+                modeKeyword.addEventListener('change', () => {
+                    if (modeKeyword.checked) {
+                        keywordContainer.style.display = 'block';
+                        if (urlContainer) urlContainer.style.display = 'none';
+                        if (sourceCategories) sourceCategories.style.display = 'block';
+                    }
+                });
+            }
+
+            if (modeUrl) {
+                modeUrl.addEventListener('change', () => {
+                    if (modeUrl.checked) {
+                        keywordContainer.style.display = 'none';
+                        if (urlContainer) urlContainer.style.display = 'block';
+                        if (sourceCategories) sourceCategories.style.display = 'none';
+                    }
+                });
+            }
+
+            console.log('✅ URL mode event listeners attached');
+        }, 100);
+    }
+
+    // Try injection on DOM ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', injectUrlModeToggle);
+    } else {
+        injectUrlModeToggle();
+    }
+
+    // Also try after short delay to ensure form is loaded
+    setTimeout(injectUrlModeToggle, 500);
+})();
+</script>
+
+<!-- FAILSAFE: Asset Toolbar Button Injection -->
+<script>
+(function() {
+    'use strict';
+
+    console.log('🔧 FAILSAFE: Asset toolbar button injection starting...');
+
+    /**
+     * Inject the missing buttons into the card-header
+     */
+    function injectAssetButtons() {
+        const assetsSection = document.getElementById('assets-section');
+        if (!assetsSection) {
+            console.log('⏳ Assets section not found yet, will retry...');
+            return false;
+        }
+
+        const cardHeader = assetsSection.querySelector('.card-header');
+        if (!cardHeader) {
+            console.log('⏳ Card header not found yet, will retry...');
+            return false;
+        }
+
+        // Check if buttons already exist
+        if (document.getElementById('select-all-btn')) {
+            console.log('✅ Buttons already exist, no injection needed');
+            return true;
+        }
+
+        console.log('🚨 Buttons NOT found - injecting now!');
+
+        // Clear the existing card-header content
+        cardHeader.innerHTML = '';
+        cardHeader.className = 'card-header';
+
+        // Create the complete toolbar structure
+        const toolbarHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="mb-0">Your Assets</h2>
+            </div>
+
+            <!-- Asset Management Toolbar - Always Visible -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex flex-wrap gap-2" style="padding: 10px; background: #f8f9fa; border-radius: 5px; margin-bottom: 10px;">
+                        <!-- Selection Controls Group -->
+                        <div class="btn-group" role="group" aria-label="Selection controls">
+                            <button type="button" id="select-all-btn" class="btn btn-primary" style="display: inline-block !important; visibility: visible !important;">
+                                <i class="fas fa-check-square"></i> Select All
+                            </button>
+                            <button type="button" id="deselect-all-btn" class="btn btn-outline-secondary" style="display: inline-block !important; visibility: visible !important;">
+                                <i class="fas fa-square"></i> Deselect All
+                            </button>
+                        </div>
+
+                        <!-- Download Button -->
+                        <button type="button" id="download-selected-btn" class="btn btn-success" style="display: inline-block !important; visibility: visible !important;">
+                            <i class="fas fa-download"></i> Download Selected
+                        </button>
+
+                        <!-- Delete Button -->
+                        <button type="button" id="delete-selected-btn" class="btn btn-danger" style="display: inline-block !important; visibility: visible !important;">
+                            <i class="fas fa-trash"></i> Delete Selected
+                            <span class="badge bg-warning text-dark ms-2" id="selected-count">0</span>
+                        </button>
+
+                        <!-- Separator -->
+                        <div class="vr"></div>
+
+                        <!-- View Controls Group -->
+                        <div class="btn-group" role="group" aria-label="View controls">
+                            <button type="button" class="btn btn-outline-info active" data-view="thumbnail">
+                                <i class="fas fa-th"></i> Grid
+                            </button>
+                            <button type="button" class="btn btn-outline-info" data-view="list">
+                                <i class="fas fa-list"></i> List
+                            </button>
+                        </div>
+
+                        <!-- Refresh Button -->
+                        <button type="button" class="btn btn-outline-success" id="refresh-assets">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        cardHeader.innerHTML = toolbarHTML;
+
+        // Re-attach event listeners (since asset-selection.js might have already run)
+        setTimeout(function() {
+            const selectAllBtn = document.getElementById('select-all-btn');
+            const deselectAllBtn = document.getElementById('deselect-all-btn');
+            const deleteBtn = document.getElementById('delete-selected-btn');
+            const refreshBtn = document.getElementById('refresh-assets');
+
+            if (selectAllBtn && window.AssetSelection) {
+                selectAllBtn.addEventListener('click', function() {
+                    const checkboxes = document.querySelectorAll('.asset-checkbox');
+                    checkboxes.forEach(cb => cb.checked = true);
+
+                    // Track that Select All was used
+                    if (window.assetLibrary) {
+                        window.assetLibrary.selectAllUsed = true;
+                        console.log('[Select All] Flag set - will bypass download limits');
+                    }
+
+                    if (window.AssetSelection && window.AssetSelection.updateSelectionUI) {
+                        window.AssetSelection.updateSelectionUI();
+                    }
+                });
+            }
+
+            if (deselectAllBtn && window.AssetSelection) {
+                deselectAllBtn.addEventListener('click', function() {
+                    const checkboxes = document.querySelectorAll('.asset-checkbox');
+                    checkboxes.forEach(cb => cb.checked = false);
+
+                    // Clear the Select All flag
+                    if (window.assetLibrary) {
+                        window.assetLibrary.selectAllUsed = false;
+                    }
+
+                    if (window.AssetSelection && window.AssetSelection.clearSelection) {
+                        window.AssetSelection.clearSelection();
+                    }
+                });
+            }
+
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', async function() {
+                    const checkboxes = Array.from(document.querySelectorAll('.asset-checkbox:checked'));
+                    if (checkboxes.length === 0) {
+                        alert('Please select assets to delete');
+                        return;
+                    }
+
+                    if (!confirm(`Delete ${checkboxes.length} asset(s)?`)) {
+                        return;
+                    }
+
+                    const assetIds = checkboxes.map(cb => cb.dataset.assetId);
+
+                    try {
+                        const response = await fetch('/scraper/api/assets/bulk-delete', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ asset_ids: assetIds })
+                        });
+
+                        const result = await response.json();
+                        if (result.success) {
+                            alert(`Deleted ${result.deleted_count || assetIds.length} assets`);
+                            if (window.assetLibrary && window.assetLibrary.loadAssets) {
+                                window.assetLibrary.loadAssets();
+                            }
+                        } else {
+                            alert('Error: ' + (result.error || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        alert('Error deleting assets: ' + error.message);
+                    }
+                });
+            }
+
+            if (refreshBtn && window.assetLibrary) {
+                refreshBtn.addEventListener('click', function() {
+                    if (window.assetLibrary.loadAssets) {
+                        window.assetLibrary.loadAssets();
+                    }
+                });
+            }
+
+            // Re-attach view switcher
+            document.querySelectorAll('[data-view]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('[data-view]').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    if (window.assetLibrary && window.assetLibrary.switchView) {
+                        window.assetLibrary.switchView(this.dataset.view);
+                    }
+                });
+            });
+
+            console.log('✅ Event listeners reattached to injected buttons');
+        }, 100);
+
+        console.log('✅ Asset toolbar buttons injected successfully!');
+        return true;
+    }
+
+    /**
+     * Monitor for card-header changes and re-inject if needed
+     */
+    function setupMutationObserver() {
+        const assetsSection = document.getElementById('assets-section');
+        if (!assetsSection) {
+            return;
+        }
+
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                // Check if card-header was modified
+                const cardHeader = assetsSection.querySelector('.card-header');
+                if (cardHeader && !document.getElementById('select-all-btn')) {
+                    console.log('🔄 Card-header was modified, re-injecting buttons...');
+                    injectAssetButtons();
+                }
+            });
+        });
+
+        observer.observe(assetsSection, {
+            childList: true,
+            subtree: true
+        });
+
+        console.log('👁️ MutationObserver active - monitoring for button removal');
+    }
+
+    // Try injection immediately
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                if (injectAssetButtons()) {
+                    setupMutationObserver();
+                }
+            }, 500);
+        });
+    } else {
+        setTimeout(function() {
+            if (injectAssetButtons()) {
+                setupMutationObserver();
+            }
+        }, 500);
+    }
+
+    // Also try when assets section becomes visible
+    document.addEventListener('click', function(e) {
+        const navItem = e.target.closest('[data-section="assets-section"]');
+        if (navItem) {
+            setTimeout(function() {
+                injectAssetButtons();
+                setupMutationObserver();
+            }, 300);
+        }
+    });
+
+    // Retry every 2 seconds for the first 10 seconds if buttons still missing
+    let retryCount = 0;
+    const retryInterval = setInterval(function() {
+        retryCount++;
+        if (retryCount > 5) {
+            clearInterval(retryInterval);
+            return;
+        }
+
+        if (!document.getElementById('select-all-btn')) {
+            console.log(`🔄 Retry ${retryCount}/5: Attempting to inject buttons...`);
+            if (injectAssetButtons()) {
+                setupMutationObserver();
+                clearInterval(retryInterval);
+            }
+        } else {
+            clearInterval(retryInterval);
+        }
+    }, 2000);
+
+})();
 </script>
 {% endblock %}

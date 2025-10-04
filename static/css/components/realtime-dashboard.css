@@ -1,0 +1,278 @@
+/* Real-Time Dashboard Styles */
+
+/* Metric Cards */
+.metric-card {
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.metric-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.metric-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.metric-updated {
+    animation: metricPulse 0.3s ease;
+}
+
+@keyframes metricPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+/* Stat Boxes */
+.stat-box {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.stat-box:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.stat-box i {
+    font-size: 1.5rem;
+}
+
+.stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    flex: 1;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-transform: uppercase;
+}
+
+/* Active Downloads */
+.active-downloads-container {
+    max-height: 200px;
+    overflow-y: auto;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 0.5rem;
+}
+
+.download-item {
+    background: white;
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-left: 3px solid #0d6efd;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.download-item:last-child {
+    margin-bottom: 0;
+}
+
+.download-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.download-info i {
+    font-size: 1rem;
+}
+
+.download-info .filename {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #495057;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.download-progress {
+    margin-top: 0.5rem;
+}
+
+/* Recent Files */
+.recent-files-container {
+    max-height: 250px;
+    overflow-y: auto;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+}
+
+.file-entry {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background 0.2s ease;
+}
+
+.file-entry:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.file-entry i {
+    font-size: 0.875rem;
+    min-width: 16px;
+}
+
+.file-entry .filename {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-entry .timestamp {
+    font-size: 0.7rem;
+    color: #adb5bd;
+    white-space: nowrap;
+}
+
+.file-entry.completed {
+    animation: slideInDown 0.3s ease;
+}
+
+.file-entry.failed {
+    animation: slideInDown 0.3s ease;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Scrollbar Styling */
+.active-downloads-container::-webkit-scrollbar,
+.recent-files-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.active-downloads-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.active-downloads-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.active-downloads-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.recent-files-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.recent-files-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+}
+
+.recent-files-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* Loading Animation */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+/* Progress Bar Enhancements */
+.progress {
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    transition: width 0.3s ease;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .metric-value {
+        font-size: 1.5rem;
+    }
+
+    .metric-label {
+        font-size: 0.65rem;
+    }
+
+    .stat-box {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+
+    .stat-box i {
+        font-size: 1.25rem;
+    }
+
+    .stat-value {
+        font-size: 1.1rem;
+    }
+
+    .recent-files-container {
+        max-height: 150px;
+        font-size: 0.75rem;
+    }
+
+    .active-downloads-container {
+        max-height: 150px;
+    }
+}
+
+/* Card Header Transitions */
+.card-header.bg-success {
+    transition: background-color 0.5s ease;
+}
+
+.card-header.bg-danger {
+    transition: background-color 0.5s ease;
+}

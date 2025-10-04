@@ -491,12 +491,14 @@ class MediaBlob(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     asset_id = db.Column(db.Integer, db.ForeignKey("assets.id"), nullable=False, unique=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)  # Enforce user ownership
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)  # Allow guest users (None)
     media_data = db.Column(db.LargeBinary, nullable=False)  # The actual file data
     mime_type = db.Column(db.String(100), nullable=False)
     file_hash = db.Column(db.String(64))  # SHA-256 hash for deduplication
     compressed = db.Column(db.Boolean, default=False)  # Whether data is compressed
     encryption_key = db.Column(db.String(64))  # Optional encryption key
+    thumbnail_data = db.Column(db.LargeBinary)  # Thumbnail image data
+    thumbnail_mime_type = db.Column(db.String(100))  # Thumbnail MIME type
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_accessed = db.Column(db.DateTime, default=datetime.utcnow)
     access_count = db.Column(db.Integer, default=0)

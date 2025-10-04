@@ -80,7 +80,8 @@ class SearchManager {
             const searchQuery = SecurityUtils.sanitizeSearchInput(formData.get('search-query') || '');
             const searchType = formData.get('search-type') || 'comprehensive';
             const maxItems = parseInt(formData.get('max-items')) || 25;
-            const safeSearch = document.getElementById('safe-search-toggle')?.checked || true;
+            const safeToggleEl = document.getElementById('safe-search-toggle') || document.getElementById('safe-search');
+            const safeSearch = safeToggleEl ? safeToggleEl.checked : false;
 
             // Validate input
             if (!searchQuery.trim()) {
@@ -126,7 +127,7 @@ class SearchManager {
             let data;
             try {
                 // Try real API first
-                const response = await fetch('/api/comprehensive-search', {
+                const response = await fetch((window.APP_BASE || '/scraper') + '/api/comprehensive-search', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -210,7 +211,7 @@ class SearchManager {
      */
     handleSafeSearchToggle(event) {
         const isEnabled = event.target.checked;
-        console.log('🔒 Safe search toggled:', isEnabled ? 'ON' : 'OFF');
+        console.log('[Search] Safe search toggled:', isEnabled ? 'ON' : 'OFF');
         
         this.updateSafeSearchStatus(isEnabled);
         
@@ -258,7 +259,8 @@ class SearchManager {
      */
     async loadSources() {
         try {
-            const safeSearch = document.getElementById('safe-search-toggle')?.checked || true;
+            const safeToggleEl = document.getElementById('safe-search-toggle') || document.getElementById('safe-search');
+            const safeSearch = safeToggleEl ? safeToggleEl.checked : false;
             
             let data;
             try {

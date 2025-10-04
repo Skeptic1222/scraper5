@@ -1,0 +1,68 @@
+{
+  "passed": 11,
+  "failed": 0,
+  "total": 11,
+  "success_rate": 100.0,
+  "results": [
+    {
+      "test": "Guest Access",
+      "status": "PASS",
+      "result": "ccf28fef-2500-4310-831a-f40f0eb978fa"
+    },
+    {
+      "test": "Source Limits",
+      "status": "PASS",
+      "result": "19a8fc8b-2d54-47fd-bc11-559db559f184"
+    },
+    {
+      "test": "Safe Search Enforcement",
+      "status": "PASS",
+      "result": "30f057ad-85f7-4fce-98fc-c4b6edd59d47"
+    },
+    {
+      "test": "Enhanced Search",
+      "status": "PASS",
+      "result": "32805d34-c390-49d1-8bab-1d6a62897890"
+    },
+    {
+      "test": "Job Status Invalid ID",
+      "status": "PASS",
+      "result": null
+    },
+    {
+      "test": "Query Validation",
+      "status": "PASS",
+      "result": null
+    },
+    {
+      "test": "Max Content Limits",
+      "status": "PASS",
+      "result": "ca729a05-4c46-42ca-8812-e766f2428a69"
+    },
+    {
+      "test": "Safe Search Toggle",
+      "status": "PASS",
+      "result": null
+    },
+    {
+      "test": "Source Selection",
+      "status": "PASS",
+      "result": null
+    },
+    {
+      "test": "Concurrent Jobs",
+      "status": "PASS",
+      "result": [
+        "f1b52c37-3273-4fc8-9340-bbe839682c7d",
+        "c51327ea-6c06-4a4b-a866-777d2de8f27c",
+        "c7a5e803-1e7b-4a8b-b9e3-4d6c8981eee7"
+      ]
+    },
+    {
+      "test": "Response Times",
+      "status": "PASS",
+      "result": null
+    }
+  ],
+  "timestamp": 1759395659.6277437
+}

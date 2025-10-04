@@ -1,0 +1,19 @@
+{
+  "timestamp": "2025-10-02T10:10:22.256885",
+  "base_url": "http://localhost/scraper",
+  "results": {
+    "api_sources": true,
+    "scraper_directory": true,
+    "scraper_imports": false,
+    "downloader_imports": true,
+    "comprehensive_search": true,
+    "job_tracking": true,
+    "download_directories": true,
+    "downloaded_files": false
+  },
+  "summary": {
+    "total": 8,
+    "passed": false,
+    "failed": 8
+  }
+}

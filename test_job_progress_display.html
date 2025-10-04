@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Progress Display Test</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            padding: 20px;
+            background: #f3f4f6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #1f2937;
+            margin-bottom: 20px;
+        }
+        .test-section {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 10px 20px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .btn:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-vial"></i> Job Progress Display Test</h1>
+
+        <div class="test-section">
+            <h2>Test 1: Single Running Job (35% Complete)</h2>
+            <div id="test1"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 2: Multiple Active Jobs</h2>
+            <div id="test2"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 3: Job Nearing Completion (95%)</h2>
+            <div id="test3"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Live API Test</h2>
+            <button onclick="testJobsAPI()" class="btn">
+                <i class="fas fa-plug"></i> Test /api/jobs Endpoint
+            </button>
+            <pre id="api-result" style="margin-top: 10px; background: #f9fafb; padding: 10px; border-radius: 4px; overflow-x: auto; max-height: 400px;"></pre>
+        </div>
+    </div>
+
+    <script>
+        // Simulate the renderJobProgress function from simple-dashboard.js
+        function renderJobProgress(job) {
+            const progress = job.progress || 0;
+            const downloaded = job.downloaded || 0;
+            const detected = job.detected || 0;
+            const query = job.query || 'Download Job';
+            const message = job.message || 'Processing...';
+            const currentFile = job.current_file || '';
+
+            const statusColors = {
+                'running': '#3b82f6',
+                'downloading': '#10b981',
+                'pending': '#f59e0b'
+            };
+            const statusColor = statusColors[job.status] || '#6b7280';
+
+            return `
+                <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; background: #f9fafb; margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold; color: #1f2937; margin-bottom: 5px;">
+                                <i class="fas fa-search" style="color: ${statusColor};"></i>
+                                ${query}
+                            </div>
+                            <div style="font-size: 0.85rem; color: #6b7280;">
+                                ${message}
+                            </div>
+                        </div>
+                        <div style="text-align: right; min-width: 100px;">
+                            <div style="font-size: 1.5rem; font-weight: bold; color: ${statusColor};">
+                                ${progress.toFixed(0)}%
+                            </div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">
+                                ${downloaded} / ${detected || '?'} files
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: #e5e7eb; border-radius: 4px; height: 8px; overflow: hidden; margin-bottom: 8px;">
+                        <div style="background: ${statusColor}; height: 100%; width: ${progress}%; transition: width 0.3s ease;"></div>
+                    </div>
+
+                    ${currentFile ? `
+                        <div style="font-size: 0.75rem; color: #6b7280; margin-top: 8px; display: flex; align-items: center;">
+                            <i class="fas fa-download" style="margin-right: 5px; color: ${statusColor};"></i>
+                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                ${currentFile}
+                            </span>
+                        </div>
+                    ` : ''}
+
+                    <div style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.8rem; color: #6b7280;">
+                        ${job.images > 0 ? `<div><i class="fas fa-image"></i> ${job.images} images</div>` : ''}
+                        ${job.videos > 0 ? `<div><i class="fas fa-video"></i> ${job.videos} videos</div>` : ''}
+                        ${job.failed > 0 ? `<div style="color: #ef4444;"><i class="fas fa-exclamation-triangle"></i> ${job.failed} failed</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Test cases
+        const test1Job = {
+            id: 'test-1',
+            query: 'Cute puppies',
+            status: 'running',
+            progress: 35,
+            downloaded: 7,
+            detected: 20,
+            message: 'Downloading from Google Images...',
+            current_file: 'puppy_golden_retriever_001.jpg',
+            images: 7,
+            videos: 0,
+            failed: 0
+        };
+
+        const test2Jobs = [
+            {
+                id: 'test-2a',
+                query: 'Mountain landscapes',
+                status: 'running',
+                progress: 65,
+                downloaded: 13,
+                detected: 20,
+                message: 'Downloading from Unsplash...',
+                current_file: 'mountain_sunset_4k.jpg',
+                images: 13,
+                videos: 0,
+                failed: 2
+            },
+            {
+                id: 'test-2b',
+                query: 'Cooking tutorials',
+                status: 'downloading',
+                progress: 20,
+                downloaded: 2,
+                detected: 10,
+                message: 'Downloading from YouTube...',
+                current_file: 'how_to_make_pasta.mp4',
+                images: 0,
+                videos: 2,
+                failed: 0
+            },
+            {
+                id: 'test-2c',
+                query: 'Code examples',
+                status: 'pending',
+                progress: 0,
+                downloaded: 0,
+                detected: 15,
+                message: 'Waiting in queue...',
+                current_file: '',
+                images: 0,
+                videos: 0,
+                failed: 0
+            }
+        ];
+
+        const test3Job = {
+            id: 'test-3',
+            query: 'Space exploration',
+            status: 'running',
+            progress: 95,
+            downloaded: 19,
+            detected: 20,
+            message: 'Almost complete...',
+            current_file: 'hubble_deep_field_final.jpg',
+            images: 18,
+            videos: 1,
+            failed: 1
+        };
+
+        // Render tests
+        document.getElementById('test1').innerHTML = renderJobProgress(test1Job);
+        document.getElementById('test2').innerHTML = test2Jobs.map(renderJobProgress).join('');
+        document.getElementById('test3').innerHTML = renderJobProgress(test3Job);
+
+        // API test
+        async function testJobsAPI() {
+            const resultElement = document.getElementById('api-result');
+            resultElement.textContent = 'Testing API endpoint...';
+
+            try {
+                const response = await fetch('/scraper/api/jobs?status=running', {
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                resultElement.textContent = JSON.stringify(data, null, 2);
+
+                if (data.success && data.jobs && data.jobs.length > 0) {
+                    resultElement.textContent += '\n\n✓ API working! Found ' + data.jobs.length + ' active jobs.';
+                } else {
+                    resultElement.textContent += '\n\n✓ API working but no active jobs found.';
+                }
+            } catch (error) {
+                resultElement.textContent = '✗ Error: ' + error.message + '\n\nMake sure Flask server is running.';
+            }
+        }
+
+        console.log('%c✓ Job Progress Display Test Loaded', 'background: #10b981; color: white; padding: 5px 10px; border-radius: 4px;');
+        console.log('View test cases above. Click "Test API" button to verify endpoint connectivity.');
+    </script>
+</body>
+</html>

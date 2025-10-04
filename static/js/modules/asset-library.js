@@ -119,10 +119,22 @@ class AssetLibrary {
         
         const meta = document.createElement('div');
         meta.style.cssText = 'font-size: 0.8rem; color: #666;';
-        meta.innerHTML = `
+
+        // Build metadata HTML
+        let metaHTML = `
             <div>${this.formatFileSize(asset.file_size || 0)}</div>
             <div>${this.formatDate(asset.created_at)}</div>
         `;
+
+        // Add source label if available
+        if (asset.source_name) {
+            const sourceLabel = asset.source_url
+                ? `<div style="margin-top: 4px;"><strong>Source:</strong> <a href="${asset.source_url}" target="_blank" style="color: #667eea; text-decoration: none;">${asset.source_name}</a></div>`
+                : `<div style="margin-top: 4px;"><strong>Source:</strong> ${asset.source_name}</div>`;
+            metaHTML += sourceLabel;
+        }
+
+        meta.innerHTML = metaHTML;
         
         // Action buttons
         const actions = document.createElement('div');

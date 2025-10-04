@@ -1331,25 +1331,11 @@
 
 /* === ASSET OVERLAY === */
 .asset-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(
-        to bottom, 
-        rgba(0, 0, 0, 0) 0%, 
-        rgba(0, 0, 0, 0.7) 100%
-    );
-    opacity: 0;
-    transition: opacity 0.2s ease;
-    display: flex;
-    align-items: flex-end;
-    padding: 1rem;
+    display: none !important;
 }
 
 .asset-item:hover .asset-overlay {
-    opacity: 1;
+    display: none !important;
 }
 
 .asset-actions {

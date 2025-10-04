@@ -199,16 +199,33 @@ class MediaViewer {
             video.src = mediaUrl;
             video.controls = true;
             video.autoplay = true;
-            video.loop = true;
+            video.preload = 'metadata';  // Better performance
+            video.playsInline = true;  // Mobile support
             video.className = 'viewer-media';
+
+            // Add loading state
+            video.addEventListener('loadstart', () => {
+                mediaContainer.classList.add('loading');
+            });
+
+            video.addEventListener('canplay', () => {
+                mediaContainer.classList.remove('loading');
+            });
+
+            // Improved error handling
             video.onerror = () => {
                 mediaContainer.innerHTML = `
                     <div class="file-preview error">
                         <i class="fas fa-exclamation-triangle fa-5x"></i>
                         <p>Error loading video</p>
+                        <p class="text-muted small">Try downloading the file instead</p>
+                        <a href="${mediaUrl}" download class="btn btn-primary mt-3">
+                            <i class="fas fa-download"></i> Download Video
+                        </a>
                     </div>
                 `;
             };
+
             mediaContainer.appendChild(video);
             this.mediaElement = video;
         } else {

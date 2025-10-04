@@ -42,48 +42,116 @@ class SearchHandler {
 
     async handleSearch(e) {
         e.preventDefault();
-        
+
         if (this.isSearching) {
             alert('Search already in progress...');
             return;
         }
-        
+
+        // Check if we're in URL mode (if so, don't handle via this form submission)
+        const modeUrl = document.getElementById('mode-url');
+        if (modeUrl && modeUrl.checked) {
+            // URL mode - let the url-scraper module handle it
+            console.log('URL mode detected - skipping keyword search handler');
+            return;
+        }
+
         const query = document.getElementById('search-query').value;
         if (!query) {
             alert('Please enter a search query');
             return;
         }
-        
+
         // Get selected sources
         const selectedSources = window.searchUI ? window.searchUI.getSelectedSources() : [];
-        
+
         if (selectedSources.length === 0) {
             alert('Please select at least one source to search');
             return;
         }
-        
+
+        // Get safe search toggle state - check multiple possible IDs
+        let safeSearchEnabled = true; // Default to safe
+        const safeSearchToggle = document.getElementById('safe-search-toggle') ||
+                                 document.getElementById('safe-search') ||
+                                 document.querySelector('input[name="safe-search"]');
+
+        if (safeSearchToggle) {
+            safeSearchEnabled = safeSearchToggle.checked;
+            console.log('Safe search toggle found:', safeSearchEnabled ? 'ENABLED' : 'DISABLED');
+        } else {
+            console.warn('Safe search toggle not found, defaulting to ENABLED');
+        }
+
+        // Get max results per source
+        const maxResultsSelect = document.getElementById('max-results');
+        const maxResults = maxResultsSelect ? parseInt(maxResultsSelect.value) : 50;
+
+        // Get total file limit (across all sources)
+        const totalFileLimitSelect = document.getElementById('total-file-limit');
+        const totalFileLimit = totalFileLimitSelect ? parseInt(totalFileLimitSelect.value) : 0;
+
+        // Get total size limit (in MB)
+        const totalSizeLimitSelect = document.getElementById('total-size-limit');
+        const totalSizeLimit = totalSizeLimitSelect ? parseInt(totalSizeLimitSelect.value) : 0;
+
+        // Get timeout setting
+        const timeoutSeconds = window.getTimeoutSeconds ? window.getTimeoutSeconds() : 0;
+
+        // Get content types
+        const contentImages = document.getElementById('content-images');
+        const contentVideos = document.getElementById('content-videos');
+        const contentTypes = {
+            images: contentImages ? contentImages.checked : true,
+            videos: contentVideos ? contentVideos.checked : true
+        };
+
+        // Get quality settings
+        const imageSize = document.getElementById('image-size')?.value || 'any';
+        const imageFormat = document.getElementById('image-format')?.value || 'any';
+        const highQualityImages = document.getElementById('high-quality-images')?.checked || false;
+        const videoQuality = document.getElementById('video-quality')?.value || 'best';
+        const videoFormat = document.getElementById('video-format')?.value || 'any';
+        const extractAudio = document.getElementById('extract-audio')?.checked || false;
+
+        const qualitySettings = {
+            image_size: imageSize,
+            image_format: imageFormat,
+            high_quality_images: highQualityImages,
+            video_quality: videoQuality,
+            video_format: videoFormat,
+            extract_audio: extractAudio
+        };
+
         console.log('Starting search for:', query);
         console.log('Selected sources:', selectedSources);
-        
+        console.log('Safe search:', safeSearchEnabled);
+        console.log('Max results per source:', maxResults);
+        console.log('Total file limit:', totalFileLimit || 'No limit');
+        console.log('Total size limit:', totalSizeLimit ? `${totalSizeLimit} MB` : 'No limit');
+        console.log('Job timeout:', timeoutSeconds ? `${timeoutSeconds} seconds` : 'Unlimited');
+        console.log('Content types:', contentTypes);
+        console.log('Quality settings:', qualitySettings);
+
         this.isSearching = true;
         this.showProgress('Starting search...');
-        
+
         try {
             // Get CSRF token
             const csrfToken = this.getCsrfToken();
-            
+
             // Try with FormData first (works better with Flask-WTF)
             const formData = new FormData();
             formData.append('search-query', query);
             formData.append('search-type', 'comprehensive');
             formData.append('sources', selectedSources.join(','));
-            formData.append('limit', '50');
+            formData.append('limit', maxResults.toString());
             if (csrfToken) {
                 formData.append('csrf_token', csrfToken);
             }
-            
+
             // Send as JSON to comprehensive-search endpoint
-            const response = await fetch('/api/comprehensive-search', {
+            const response = await fetch((window.APP_BASE || '/scraper') + '/api/comprehensive-search', {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: {
@@ -93,8 +161,13 @@ class SearchHandler {
                     query: query,
                     search_type: 'comprehensive',
                     enabled_sources: selectedSources,
-                    max_content: 50,
-                    safe_search: true
+                    max_content: maxResults,
+                    total_file_limit: totalFileLimit,
+                    total_size_limit: totalSizeLimit,
+                    timeout_seconds: timeoutSeconds,
+                    content_types: contentTypes,
+                    quality_settings: qualitySettings,
+                    safe_search: safeSearchEnabled
                 })
             });
             
@@ -103,7 +176,7 @@ class SearchHandler {
                 this.handleSearchResponse(data);
             } else {
                 // Try bulletproof search as fallback
-                const fallbackResponse = await fetch('/api/bulletproof-search', {
+                const fallbackResponse = await fetch((window.APP_BASE || '/scraper') + '/api/bulletproof-search', {
                     method: 'POST',
                     credentials: 'same-origin',
                     headers: {
@@ -113,7 +186,7 @@ class SearchHandler {
                         query: query,
                         sources: selectedSources,
                         maxResults: 50,
-                        safeSearch: true
+                        safeSearch: safeSearchEnabled
                     })
                 });
                 
@@ -136,8 +209,20 @@ class SearchHandler {
         if (data.job_id) {
             // Async search with job ID
             this.currentJobId = data.job_id;
+            window.currentJobId = data.job_id; // Make available globally for timeout handler
             this.showJobStarted(data.job_id);
             this.monitorProgress(data.job_id);
+
+            // Start the job timer if the function is available
+            const timeoutSeconds = window.getTimeoutSeconds ? window.getTimeoutSeconds() : 0;
+            if (window.startJobTimer) {
+                window.startJobTimer(timeoutSeconds);
+            }
+
+            // Emit jobCreated event for enhanced dashboard
+            window.dispatchEvent(new CustomEvent('jobCreated', {
+                detail: { jobId: data.job_id }
+            }));
         } else if (data.results) {
             // Direct results
             this.displayResults(data.results);
@@ -197,10 +282,18 @@ class SearchHandler {
                 
                 if (data.status === 'completed') {
                     clearInterval(progressInterval);
+                    // Stop the timer
+                    if (window.stopJobTimer) {
+                        window.stopJobTimer();
+                    }
                     this.displayResults(data.results || []);
                     this.isSearching = false;
                 } else if (data.status === 'failed') {
                     clearInterval(progressInterval);
+                    // Stop the timer
+                    if (window.stopJobTimer) {
+                        window.stopJobTimer();
+                    }
                     this.showError('Search failed: ' + (data.error || 'Unknown error'));
                     this.isSearching = false;
                 } else {

@@ -669,6 +669,10 @@ def google_callback():
 
         # Log user in with persistent session
         session.permanent = True
+        # Set session variables for @require_auth decorator
+        session['user_id'] = user.id
+        session['user_email'] = user.email
+        session['user_name'] = user.name
         login_user(user, remember=True, duration=timedelta(days=30))
         logger.info(f"User {user.email} logged in successfully")
 
@@ -796,6 +800,10 @@ def google_verify():
 
             # Log user in with persistent session
             session.permanent = True
+            # Set session variables for @require_auth decorator
+            session['user_id'] = user.id
+            session['user_email'] = user.email
+            session['user_name'] = user.name
             login_user(user, remember=True, duration=timedelta(days=30))
             logger.info(f"User {user.email} logged in successfully via Google Identity Services")
 
@@ -883,6 +891,10 @@ def google_verify():
 
         # Log user in with persistent session
         session.permanent = True
+        # Set session variables for @require_auth decorator
+        session['user_id'] = user.id
+        session['user_email'] = user.email
+        session['user_name'] = user.name
         login_user(user, remember=True, duration=timedelta(days=30))
         logger.info(f"User {user.email} logged in successfully via Google Identity Services")
 
@@ -1062,8 +1074,12 @@ def test_admin_quick_login():
         
         # Log the user in
         session.permanent = True
+        # Set user_id in session for @require_auth decorator
+        session['user_id'] = test_admin_id
+        session['user_email'] = test_admin_email
+        session['user_name'] = test_admin_name
         login_user(user, remember=True, duration=timedelta(days=7))
-        
+
         logger.info(f"Test admin quick login successful: {test_admin_email}")
         flash(f"Logged in as Test Admin ({test_admin_email})", "success")
         
@@ -1118,8 +1134,12 @@ def test_admin_login():
         
         # Log the user in
         session.permanent = True
+        # Set user_id in session for @require_auth decorator
+        session['user_id'] = test_admin_id
+        session['user_email'] = test_admin_email
+        session['user_name'] = test_admin_name
         login_user(user, remember=True, duration=timedelta(days=7))
-        
+
         logger.info(f"Test admin login successful: {test_admin_email}")
         
         return jsonify({
@@ -1162,10 +1182,14 @@ def mock_login_dev(email=None):
             )  # Add Google ID
             _MEM_USERS[mem_id] = user
         session.permanent = True
+        # Set user_id in session for @require_auth decorator
+        session['user_id'] = uid
+        session['user_email'] = email
+        session['user_name'] = name
         login_user(user, remember=True, duration=timedelta(days=30))
         flash(f"Mock login successful for {email}", "success")
-        # Redirect to root to avoid double /scraper prefix
-        return redirect("/")
+        # Redirect to scraper app
+        return redirect("/scraper")
     except Exception as e:
         logger.error(f"Mock login failed: {e}")
         flash("Mock login failed", "error")

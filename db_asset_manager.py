@@ -9,6 +9,100 @@ import hashlib
 from datetime import datetime
 from sqlalchemy import func
 from models import Asset, MediaBlob, db
+from io import BytesIO
+from PIL import Image
+import logging
+
+# Setup logger
+logger = logging.getLogger(__name__)
+
+def generate_thumbnail(file_data, content_type, max_size=(200, 200)):
+    """Generate thumbnail for images and videos
+
+    Args:
+        file_data: Raw bytes of the file
+        content_type: MIME type of the file
+        max_size: Maximum size of thumbnail (width, height)
+
+    Returns:
+        tuple: (thumbnail_bytes, thumbnail_mime_type) or (None, None) if failed
+    """
+    try:
+        # Handle images
+        if content_type and content_type.startswith('image/'):
+            # Open image from bytes
+            img = Image.open(BytesIO(file_data))
+
+            # Convert RGBA to RGB if needed (for JPEG output)
+            if img.mode in ('RGBA', 'LA', 'P'):
+                # Create a white background
+                background = Image.new('RGB', img.size, (255, 255, 255))
+                if img.mode == 'P':
+                    img = img.convert('RGBA')
+                background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+                img = background
+
+            # Generate thumbnail maintaining aspect ratio
+            img.thumbnail(max_size, Image.Resampling.LANCZOS)
+
+            # Save to bytes
+            output = BytesIO()
+            img.save(output, format='JPEG', quality=85, optimize=True)
+            thumbnail_bytes = output.getvalue()
+
+            return thumbnail_bytes, 'image/jpeg'
+
+        # Handle videos (extract first frame)
+        elif content_type and content_type.startswith('video/'):
+            try:
+                # Try using opencv if available
+                import cv2
+                import numpy as np
+                import tempfile
+
+                # Write video data to temp file (cv2 needs file path)
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as tmp_file:
+                    tmp_file.write(file_data)
+                    tmp_path = tmp_file.name
+
+                try:
+                    # Open video
+                    cap = cv2.VideoCapture(tmp_path)
+
+                    # Read first frame
+                    ret, frame = cap.read()
+                    cap.release()
+
+                    if ret:
+                        # Convert BGR to RGB
+                        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+                        # Convert to PIL Image
+                        img = Image.fromarray(frame)
+
+                        # Generate thumbnail
+                        img.thumbnail(max_size, Image.Resampling.LANCZOS)
+
+                        # Save to bytes
+                        output = BytesIO()
+                        img.save(output, format='JPEG', quality=85, optimize=True)
+                        thumbnail_bytes = output.getvalue()
+
+                        return thumbnail_bytes, 'image/jpeg'
+                finally:
+                    # Clean up temp file
+                    if os.path.exists(tmp_path):
+                        os.remove(tmp_path)
+
+            except ImportError:
+                logger.warning("OpenCV not available for video thumbnail generation")
+            except Exception as e:
+                logger.warning(f"Failed to generate video thumbnail with OpenCV: {e}")
+
+    except Exception as e:
+        logger.error(f"Error generating thumbnail: {e}")
+
+    return None, None
 
 def add_asset(job_id, filepath, file_type, metadata=None):
     """Add asset to database"""
@@ -28,10 +122,32 @@ def add_asset(job_id, filepath, file_type, metadata=None):
                 file_data = f.read()
             file_size = len(file_data)
         
-        # Determine content type
-        content_type = file_type
-        if not content_type or content_type == 'unknown':
+        # Determine content type - ALWAYS detect from file, not from generic file_type parameter
+        content_type = None
+
+        # First try to guess from filename extension
+        if filename:
             content_type, _ = mimetypes.guess_type(filename)
+
+        # If that fails, detect from file signature (magic bytes)
+        if not content_type and file_data and len(file_data) >= 12:
+            # Check common image/video signatures
+            if file_data.startswith(b'\xff\xd8\xff'):
+                content_type = 'image/jpeg'
+            elif file_data.startswith(b'\x89PNG\r\n\x1a\n'):
+                content_type = 'image/png'
+            elif file_data.startswith(b'GIF87a') or file_data.startswith(b'GIF89a'):
+                content_type = 'image/gif'
+            elif file_data.startswith(b'RIFF') and file_data[8:12] == b'WEBP':
+                content_type = 'image/webp'
+            elif file_data.startswith(b'BM'):
+                content_type = 'image/bmp'
+            elif file_data[4:12] == b'ftypmp42' or file_data[4:12] == b'ftypisom':
+                content_type = 'video/mp4'
+            elif file_data.startswith(b'\x1a\x45\xdf\xa3'):
+                content_type = 'video/webm'
+
+        # Last resort: use generic type
         if not content_type:
             content_type = 'application/octet-stream'
         
@@ -70,16 +186,29 @@ def add_asset(job_id, filepath, file_type, metadata=None):
         # Create MediaBlob if we have file data
         if file_data:
             file_hash = hashlib.sha256(file_data).hexdigest()
+
+            # Generate thumbnail
+            thumbnail_data, thumbnail_mime = generate_thumbnail(file_data, content_type)
+
             media_blob = MediaBlob(
                 asset_id=asset.id,
                 user_id=user_id,
                 media_data=file_data,
                 mime_type=content_type,
                 file_hash=file_hash,
+                thumbnail_data=thumbnail_data,
+                thumbnail_mime_type=thumbnail_mime,
                 created_at=datetime.utcnow()
             )
             db.session.add(media_blob)
-        
+
+            if thumbnail_data:
+                # Mark this as a thumbnail by updating asset metadata
+                metadata_dict = json.loads(asset.asset_metadata) if asset.asset_metadata else {}
+                metadata_dict['has_thumbnail'] = True
+                asset.asset_metadata = json.dumps(metadata_dict)
+                logger.info(f"Generated thumbnail for asset {asset.id}")
+
         db.session.commit()
         print(f"[ASSETS] Added asset {asset.id}: {filename}")
         return str(asset.id)
@@ -203,24 +332,43 @@ def delete_asset(asset_id):
         return False
 
 def bulk_delete_assets(asset_ids, user_id=None):
-    """Bulk delete assets from database"""
+    """Bulk delete assets from database and filesystem"""
     try:
         deleted_count = 0
+        deleted_files = []
+
         for asset_id in asset_ids:
             query = Asset.query.filter_by(id=int(asset_id), is_deleted=False)
             if user_id:
                 query = query.filter_by(user_id=user_id)
-            
+
             asset = query.first()
             if asset:
+                # Delete physical file if exists and not stored in DB
+                if not asset.stored_in_db and asset.file_path and os.path.exists(asset.file_path):
+                    try:
+                        os.remove(asset.file_path)
+                        deleted_files.append(asset.file_path)
+                        logger.info(f"Deleted file: {asset.file_path}")
+                    except Exception as e:
+                        logger.error(f"Error deleting file {asset.file_path}: {e}")
+
+                # Delete MediaBlob if exists
+                media_blob = MediaBlob.query.filter_by(asset_id=asset.id).first()
+                if media_blob:
+                    db.session.delete(media_blob)
+                    logger.info(f"Deleted MediaBlob for asset {asset.id}")
+
+                # Mark asset as deleted (soft delete)
                 asset.is_deleted = True
                 deleted_count += 1
-        
+
         db.session.commit()
+        logger.info(f"Bulk deleted {deleted_count} assets, removed {len(deleted_files)} files")
         return deleted_count
-        
+
     except Exception as e:
-        print(f"[ERROR] Failed to bulk delete assets: {e}")
+        logger.error(f"Failed to bulk delete assets: {e}")
         db.session.rollback()
         return 0
 
@@ -309,10 +457,35 @@ def save_asset(**kwargs):
                 file_data = f.read()
             file_size = len(file_data)
         
-        # Auto-detect content type
-        if not content_type and filename:
-            content_type, _ = mimetypes.guess_type(filename)
-        if not content_type:
+        # Auto-detect content type - prioritize actual file detection over passed parameter
+        detected_type = None
+
+        # First try to guess from filename extension
+        if filename:
+            detected_type, _ = mimetypes.guess_type(filename)
+
+        # If that fails, detect from file signature (magic bytes)
+        if not detected_type and file_data and len(file_data) >= 12:
+            # Check common image/video signatures
+            if file_data.startswith(b'\xff\xd8\xff'):
+                detected_type = 'image/jpeg'
+            elif file_data.startswith(b'\x89PNG\r\n\x1a\n'):
+                detected_type = 'image/png'
+            elif file_data.startswith(b'GIF87a') or file_data.startswith(b'GIF89a'):
+                detected_type = 'image/gif'
+            elif file_data.startswith(b'RIFF') and file_data[8:12] == b'WEBP':
+                detected_type = 'image/webp'
+            elif file_data.startswith(b'BM'):
+                detected_type = 'image/bmp'
+            elif file_data[4:12] == b'ftypmp42' or file_data[4:12] == b'ftypisom':
+                detected_type = 'video/mp4'
+            elif file_data.startswith(b'\x1a\x45\xdf\xa3'):
+                detected_type = 'video/webm'
+
+        # Use detected type if found, otherwise use passed content_type, otherwise default
+        if detected_type:
+            content_type = detected_type
+        elif not content_type:
             content_type = 'application/octet-stream'
         
         # Determine file type
@@ -355,15 +528,28 @@ def save_asset(**kwargs):
         # Create MediaBlob if we have file data
         if file_data:
             file_hash = hashlib.sha256(file_data).hexdigest()
+
+            # Generate thumbnail
+            thumbnail_data, thumbnail_mime = generate_thumbnail(file_data, content_type)
+
             media_blob = MediaBlob(
                 asset_id=asset.id,
                 user_id=user_id,
                 media_data=file_data,
                 mime_type=content_type,
                 file_hash=file_hash,
+                thumbnail_data=thumbnail_data,
+                thumbnail_mime_type=thumbnail_mime,
                 created_at=datetime.utcnow()
             )
             db.session.add(media_blob)
+
+            if thumbnail_data:
+                # Mark this as a thumbnail by updating asset metadata
+                metadata_dict = full_metadata.copy() if full_metadata else {}
+                metadata_dict['has_thumbnail'] = True
+                asset.asset_metadata = json.dumps(metadata_dict)
+                logger.info(f"Generated thumbnail for asset {asset.id}")
         
         db.session.commit()
         print(f"[ASSETS] Saved asset {asset.id}: {filename} from {source}")

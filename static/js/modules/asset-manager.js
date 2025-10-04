@@ -661,6 +661,10 @@ class EnhancedAssetManager {
             card.classList.add('selected');
         }
 
+        const sourceDisplay = asset.source_url
+            ? `<a href="${asset.source_url}" target="_blank" style="color: #667eea; text-decoration: none;">${asset.source}</a>`
+            : asset.source;
+
         card.innerHTML = `
             <div class="asset-media">
                 ${this.createAssetMedia(asset)}
@@ -672,7 +676,7 @@ class EnhancedAssetManager {
             <div class="asset-info">
                 <div class="asset-filename" title="${asset.filename}">${asset.filename}</div>
                 <div class="asset-meta">
-                    <span class="asset-source">${asset.source}</span>
+                    <span class="asset-source">${sourceDisplay}</span>
                     <span class="asset-size">${asset.formattedSize}</span>
                 </div>
                 <div class="asset-date">${asset.formattedDate}</div>
@@ -1066,7 +1070,7 @@ class EnhancedAssetManager {
                     <div class="modal-footer d-flex justify-content-between">
                         <div class="asset-details">
                             <small class="text-muted">
-                                <strong>Source:</strong> ${asset.source} | 
+                                <strong>Source:</strong> ${asset.source_url ? `<a href="${asset.source_url}" target="_blank" style="color: #667eea;">${asset.source}</a>` : asset.source} |
                                 <strong>Size:</strong> ${asset.formattedSize} | 
                                 <strong>Date:</strong> ${asset.formattedDate}
                             </small>

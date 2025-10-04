@@ -133,6 +133,14 @@
     padding: 2px 6px;
 }
 
+/* Implemented status color-coding */
+.source-implemented {
+    color: #198754; /* Bootstrap success */
+}
+.source-unimplemented {
+    color: #dc3545; /* Bootstrap danger */
+}
+
 .source-label .fa-crown {
     font-size: 12px;
 }

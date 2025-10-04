@@ -1,0 +1,95 @@
+{
+  "passed": [
+    {
+      "test": "Server Accessibility",
+      "status": "PASS",
+      "details": "Status code: 200"
+    },
+    {
+      "test": "Sources API",
+      "status": "PASS",
+      "details": "Found 8 sources"
+    },
+    {
+      "test": "Comprehensive Search API",
+      "status": "PASS",
+      "details": "Job ID: aed7193d-a765-4dc2-a714-64fa16996b9f"
+    },
+    {
+      "test": "API Response Structure",
+      "status": "PASS",
+      "details": "Basic API structure validated"
+    }
+  ],
+  "failed": [
+    {
+      "test": "Job Status Monitoring",
+      "status": "FAIL",
+      "details": "Timeout after 120s",
+      "status_updates": [
+        {
+          "status": {
+            "completed": false,
+            "detected": 0,
+            "downloaded": 0,
+            "id": "aed7193d-a765-4dc2-a714-64fa16996b9f",
+            "images": 0,
+            "message": "Starting comprehensive search (Safe search: ON)...",
+            "progress": 0,
+            "type": "comprehensive_search",
+            "updated_at": "2025-10-02T08:43:20.467314",
+            "videos": 0
+          },
+          "message": "",
+          "progress": 0,
+          "downloaded": 0,
+          "timestamp": 0.008062362670898438
+        },
+        {
+          "status": {
+            "completed": false,
+            "detected": 0,
+            "downloaded": 0,
+            "id": "aed7193d-a765-4dc2-a714-64fa16996b9f",
+            "images": 0,
+            "message": "Downloading: nature_unsplash_2...",
+            "progress": 0,
+            "type": "comprehensive_search",
+            "updated_at": "2025-10-02T08:43:21.867716",
+            "videos": 0
+          },
+          "message": "",
+          "progress": 0,
+          "downloaded": 0,
+          "timestamp": 2.014063596725464
+        },
+        {
+          "status": {
+            "completed": true,
+            "detected": 0,
+            "downloaded": 0,
+            "id": "aed7193d-a765-4dc2-a714-64fa16996b9f",
+            "images": 0,
+            "message": "Download completed! Got 0 files (0 images, 0 videos)",
+            "progress": 100,
+            "type": "comprehensive_search",
+            "updated_at": "2025-10-02T08:43:23.893991",
+            "videos": 0
+          },
+          "message": "",
+          "progress": 0,
+          "downloaded": 0,
+          "timestamp": 4.019792556762695
+        }
+      ]
+    }
+  ],
+  "warnings": [
+    {
+      "test": "API Response Structure",
+      "details": "Job status structure not tested (no active job)"
+    }
+  ],
+  "start_time": "2025-10-02T01:43:20.391736",
+  "end_time": "2025-10-02T01:45:21.269714"
+}

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asset Selection Demo - No Auth Required</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { padding: 2rem; background: #f5f5f5; }
+        .asset-toolbar {
+            margin: 1rem 0; display: flex; gap: 0.5rem; align-items: center;
+            padding: 0.75rem; background: #fff; border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .assets-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem; margin-top: 1rem;
+        }
+        .asset-item {
+            background: white; border-radius: 0.5rem; overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: relative;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .asset-item:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
+        .asset-item img { width: 100%; height: 150px; object-fit: cover; }
+        .asset-checkbox {
+            position: absolute; top: 8px; right: 8px; width: 20px; height: 20px;
+            cursor: pointer; z-index: 10; accent-color: #3b82f6;
+        }
+        .file-type-badge {
+            position: absolute; top: 8px; left: 8px; padding: 4px 8px;
+            border-radius: 4px; font-size: 0.65rem; font-weight: 700;
+            color: white; z-index: 5; text-transform: uppercase;
+            letter-spacing: 0.5px; display: flex; align-items: center; gap: 4px;
+        }
+        .file-type-badge.image { background: rgba(59, 130, 246, 0.95); }
+        .file-type-badge.video { background: rgba(16, 185, 129, 0.95); }
+        .file-info { padding: 0.5rem; font-size: 0.85rem; color: #666; text-align: center; }
+        .file-ext { font-weight: 600; color: #333; }
+        .demo-badge { background: #ff9800; color: white; padding: 0.5rem 1rem;
+            border-radius: 0.5rem; margin-bottom: 1rem; display: inline-block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="demo-badge">
+            <i class="fas fa-info-circle"></i> Demo Mode - Using Sample Data
+        </div>
+
+        <h1 class="mb-3">Asset Selection & Bulk Delete UI</h1>
+        <p class="text-muted">This demo shows the implemented UI with sample assets (no backend required)</p>
+
+        <!-- Asset Toolbar -->
+        <div class="asset-toolbar">
+            <button id="select-all-btn" class="btn btn-sm btn-secondary">
+                <i class="fas fa-check-square"></i> Select All
+            </button>
+            <button id="delete-selected-btn" class="btn btn-sm btn-danger" style="display: none;">
+                <i class="fas fa-trash"></i> Delete Selected (<span id="selected-count">0</span>)
+            </button>
+            <div style="flex: 1;"></div>
+            <span id="selection-status" style="color: #666; font-size: 0.9rem;"></span>
+        </div>
+
+        <!-- Sample Assets Grid -->
+        <div id="assets-grid" class="assets-grid"></div>
+    </div>
+
+    <script>
+        // Sample asset data
+        const sampleAssets = [
+            { id: 1, filename: 'sunset.jpg', file_type: 'image', source: 'Unsplash' },
+            { id: 2, filename: 'beach-video.mp4', file_type: 'video', source: 'Pexels' },
+            { id: 3, filename: 'mountain.png', file_type: 'image', source: 'Pixabay' },
+            { id: 4, filename: 'nature.jpg', file_type: 'image', source: 'Google Images' },
+            { id: 5, filename: 'timelapse.mp4', file_type: 'video', source: 'YouTube' },
+            { id: 6, filename: 'landscape.jpg', file_type: 'image', source: 'Bing Images' },
+            { id: 7, filename: 'wildlife.mp4', file_type: 'video', source: 'Vimeo' },
+            { id: 8, filename: 'city.jpg', file_type: 'image', source: 'Unsplash' }
+        ];
+
+        let selectedAssets = new Set();
+
+        function updateSelectionUI() {
+            const deleteBtn = document.getElementById('delete-selected-btn');
+            const countSpan = document.getElementById('selected-count');
+            const statusSpan = document.getElementById('selection-status');
+            const selectAllBtn = document.getElementById('select-all-btn');
+
+            if (selectedAssets.size > 0) {
+                deleteBtn.style.display = 'inline-flex';
+                countSpan.textContent = selectedAssets.size;
+                statusSpan.textContent = `${selectedAssets.size} selected`;
+                selectAllBtn.innerHTML = '<i class="fas fa-square"></i> Deselect All';
+            } else {
+                deleteBtn.style.display = 'none';
+                statusSpan.textContent = '';
+                selectAllBtn.innerHTML = '<i class="fas fa-check-square"></i> Select All';
+            }
+        }
+
+        function createAssetCard(asset) {
+            const div = document.createElement('div');
+            div.className = 'asset-item';
+            div.dataset.assetId = asset.id;
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'asset-checkbox';
+            checkbox.dataset.assetId = asset.id;
+            checkbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    selectedAssets.add(String(asset.id));
+                } else {
+                    selectedAssets.delete(String(asset.id));
+                }
+                updateSelectionUI();
+            });
+
+            const badge = document.createElement('div');
+            badge.className = `file-type-badge ${asset.file_type}`;
+            const icon = asset.file_type === 'video' ? 'video' : 'image';
+            badge.innerHTML = `<i class="fas fa-${icon}"></i> ${asset.file_type.toUpperCase()}`;
+
+            const img = document.createElement('img');
+            img.src = `https://picsum.photos/200/150?random=${asset.id}`;
+            img.alt = asset.filename;
+
+            const fileInfo = document.createElement('div');
+            fileInfo.className = 'file-info';
+            const ext = asset.filename.split('.').pop();
+            fileInfo.innerHTML = `
+                <span class="file-ext">.${ext}</span><br>
+                <small style="font-size: 0.75rem;">${asset.source}</small>
+            `;
+
+            div.appendChild(checkbox);
+            div.appendChild(badge);
+            div.appendChild(img);
+            div.appendChild(fileInfo);
+            return div;
+        }
+
+        // Render sample assets
+        const grid = document.getElementById('assets-grid');
+        sampleAssets.forEach(asset => {
+            grid.appendChild(createAssetCard(asset));
+        });
+
+        // Select/Deselect all
+        document.getElementById('select-all-btn').addEventListener('click', () => {
+            const checkboxes = document.querySelectorAll('.asset-checkbox');
+            const allChecked = selectedAssets.size === checkboxes.length;
+
+            checkboxes.forEach(cb => {
+                cb.checked = !allChecked;
+                const id = cb.dataset.assetId;
+                if (!allChecked) {
+                    selectedAssets.add(id);
+                } else {
+                    selectedAssets.delete(id);
+                }
+            });
+            updateSelectionUI();
+        });
+
+        // Delete selected
+        document.getElementById('delete-selected-btn').addEventListener('click', () => {
+            if (confirm(`Delete ${selectedAssets.size} asset(s)?`)) {
+                selectedAssets.forEach(id => {
+                    const card = document.querySelector(`[data-asset-id="${id}"]`);
+                    if (card) {
+                        card.style.transition = 'opacity 0.3s ease';
+                        card.style.opacity = '0';
+                        setTimeout(() => card.remove(), 300);
+                    }
+                });
+                selectedAssets.clear();
+                updateSelectionUI();
+                setTimeout(() => alert('✅ Assets deleted (demo mode)'), 300);
+            }
+        });
+
+        updateSelectionUI();
+    </script>
+</body>
+</html>

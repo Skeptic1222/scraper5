@@ -29,6 +29,7 @@ requests==2.32.5
 httpx==0.28.1
 urllib3==2.5.0
 charset-normalizer==3.4.3
+yt-dlp
 
 # Image Processing
 pillow==11.3.0
@@ -87,3 +88,5 @@ paypalrestsdk==1.13.3
 
 # Optional: Database Drivers
 pyodbc==5.2.0
+brotli>=1.1.0
+curl-cffi>=0.7.0

@@ -1,0 +1,132 @@
+/**
+ * Toast Notifications CSS
+ * Provides slide-in/out animations for toast messages
+ */
+
+/* Slide-in animation from right */
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Slide-out animation to right */
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+/* Toast notification base styles */
+.toast-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 10px 15px rgba(0, 0, 0, 0.1);
+    z-index: 10000;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 250px;
+    max-width: 400px;
+    animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toast-notification i {
+    font-size: 18px;
+}
+
+.toast-success {
+    background: #10b981;
+    color: white;
+}
+
+.toast-error {
+    background: #ef4444;
+    color: white;
+}
+
+.toast-warning {
+    background: #f59e0b;
+    color: white;
+}
+
+.toast-info {
+    background: #3b82f6;
+    color: white;
+}
+
+/* Stacking multiple toasts */
+.toast-notification:nth-child(2) {
+    top: 90px;
+}
+
+.toast-notification:nth-child(3) {
+    top: 160px;
+}
+
+.toast-notification:nth-child(4) {
+    top: 230px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .toast-notification {
+        left: 10px;
+        right: 10px;
+        max-width: calc(100% - 20px);
+        min-width: auto;
+    }
+}
+
+/* Asset card selection highlight */
+.asset-card {
+    transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.2s ease !important;
+}
+
+.asset-card.selected {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5) !important;
+    border-color: #3b82f6 !important;
+}
+
+.asset-card:hover {
+    transform: translateY(-2px);
+}
+
+/* Button press animation */
+.btn {
+    transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.btn:active {
+    transform: scale(0.95);
+}
+
+.btn-primary,
+.btn-success,
+.btn-danger,
+.btn-warning,
+.btn-info {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:hover,
+.btn-success:hover,
+.btn-danger:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+}

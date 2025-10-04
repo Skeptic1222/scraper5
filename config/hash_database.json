@@ -1,0 +1,14 @@
+{
+  "fake_hashes": [
+    "d41d8cd98f00b204e9800998ecf8427e",
+    "6fbc753e9030176cc6435f20913a698e"
+  ],
+  "fake_urls": [
+    "https://via.placeholder.com/",
+    "https://placehold.it/",
+    "https://cdn5-static.motherlessmedia.com/images/plc.gif",
+    "https://dummyimage.com/"
+  ],
+  "last_updated": "2025-10-03T22:52:40.468025",
+  "version": "1.0"
+}

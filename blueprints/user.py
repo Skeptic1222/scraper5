@@ -268,3 +268,45 @@ def update_nsfw_setting():
 @user_bp.route("/api/watermark-css")
 def get_watermark_styles():
     return make_response(get_watermark_css(), 200, {"Content-Type": "text/css"})
+
+
+@user_bp.route("/api/user/preferences", methods=["GET"])
+@optional_auth
+def get_user_preferences():
+    """Get user preferences from database or return defaults"""
+    try:
+        if current_user and current_user.is_authenticated:
+            preferences = current_user.get_preferences()
+            return jsonify({"success": True, "preferences": preferences})
+        else:
+            # Return default preferences for non-authenticated users
+            return jsonify({
+                "success": True,
+                "preferences": {
+                    "safeSearch": True,
+                    "downloadQuality": "medium",
+                    "concurrentDownloads": 5,
+                    "theme": "light",
+                    "autoPlay": False,
+                    "notifications": True
+                }
+            })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+
+@user_bp.route("/api/user/preferences", methods=["POST"])
+@optional_auth
+def save_user_preferences():
+    """Save user preferences to database"""
+    try:
+        if current_user and current_user.is_authenticated:
+            data = request.json or {}
+            current_user.set_preferences(data)
+            db.session.commit()
+            return jsonify({"success": True, "message": "Preferences saved"})
+        else:
+            # Non-authenticated users can't save to backend
+            return jsonify({"success": False, "message": "Login required to save preferences"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})

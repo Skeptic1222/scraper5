@@ -20,10 +20,35 @@
     padding-bottom: 100%; /* Creates 1:1 aspect ratio */
     background: #fff;
     border-radius: 12px;
-    overflow: hidden;
+    overflow: visible; /* Changed from hidden to show source label */
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+}
+
+/* Source Label Below Thumbnail */
+.asset-source-label {
+    position: absolute;
+    bottom: -28px; /* Position below the square card */
+    left: 0;
+    right: 0;
+    padding: 4px 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-align: center;
+    border-radius: 0 0 8px 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.asset-source-label:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
 .asset-card.square-card:hover {
@@ -109,19 +134,11 @@
 
 /* Asset Info Overlay */
 .asset-overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
-    color: white;
-    padding: 12px;
-    transform: translateY(100%);
-    transition: transform 0.3s ease;
+    display: none !important;
 }
 
 .asset-card:hover .asset-overlay {
-    transform: translateY(0);
+    display: none !important;
 }
 
 .asset-name {

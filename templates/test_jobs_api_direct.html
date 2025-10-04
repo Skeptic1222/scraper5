@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Jobs API Debug Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #f5f5f5; }
+        .test-section { background: white; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+        pre { background: #f0f0f0; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Jobs API Debug Test</h1>
+
+    <div class="test-section">
+        <h2>Test 1: API Call with status=running</h2>
+        <button onclick="testRunningJobs()">Run Test</button>
+        <div id="test1-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: API Call with NO status filter</h2>
+        <button onclick="testAllJobs()">Run Test</button>
+        <div id="test2-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Check Current Authentication</h2>
+        <button onclick="checkAuth()">Run Test</button>
+        <div id="test3-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Create Test Job</h2>
+        <button onclick="createTestJob()">Create Job</button>
+        <div id="test4-result"></div>
+    </div>
+
+    <script>
+        const APP_BASE = window.APP_BASE || '/scraper';
+
+        async function testRunningJobs() {
+            const result = document.getElementById('test1-result');
+            result.innerHTML = '<p>Testing...</p>';
+
+            try {
+                const response = await fetch(APP_BASE + '/api/jobs?status=running', {
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                result.innerHTML = `
+                    <p class="success">Status: ${response.status}</p>
+                    <p>Response:</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <p>Jobs count: ${data.jobs ? data.jobs.length : 'N/A'}</p>
+                    <p>Has message: ${data.message ? 'YES - ' + data.message : 'NO'}</p>
+                `;
+            } catch (error) {
+                result.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testAllJobs() {
+            const result = document.getElementById('test2-result');
+            result.innerHTML = '<p>Testing...</p>';
+
+            try {
+                const response = await fetch(APP_BASE + '/api/jobs', {
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                result.innerHTML = `
+                    <p class="success">Status: ${response.status}</p>
+                    <p>Response:</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                result.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function checkAuth() {
+            const result = document.getElementById('test3-result');
+            result.innerHTML = '<p>Checking...</p>';
+
+            try {
+                const response = await fetch(APP_BASE + '/api/current-user', {
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                result.innerHTML = `
+                    <p class="success">Status: ${response.status}</p>
+                    <p>Response:</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <p>Authenticated: ${data.authenticated ? 'YES' : 'NO'}</p>
+                    <p>User: ${data.email || 'Not logged in'}</p>
+                `;
+            } catch (error) {
+                result.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function createTestJob() {
+            const result = document.getElementById('test4-result');
+            result.innerHTML = '<p>Creating test job...</p>';
+
+            try {
+                const response = await fetch(APP_BASE + '/api/comprehensive-search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        query: 'test search',
+                        max_content: 5,
+                        safe_search: true,
+                        enabled_sources: ['unsplash']
+                    })
+                });
+
+                const data = await response.json();
+
+                result.innerHTML = `
+                    <p class="${data.success ? 'success' : 'error'}">Status: ${response.status}</p>
+                    <p>Response:</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    ${data.job_id ? `<p class="success">Job ID: ${data.job_id}</p>` : ''}
+                `;
+            } catch (error) {
+                result.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

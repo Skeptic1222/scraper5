@@ -68,16 +68,30 @@ def get_jobs():
     try:
         limit = int(request.args.get("limit", 20))
         status_filter = request.args.get("status")
+
+        # DEBUG LOGGING
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"[JOBS API] status_filter={status_filter}, authenticated={current_user.is_authenticated}")
+
+        # Allow unauthenticated users to view active/running jobs only
         if current_user.is_authenticated:
             user_id = None if current_user.is_admin() else current_user.id
         else:
-            return jsonify(
-                {"jobs": [], "total": 0, "message": "Login to view job history"}
-            )
+            # For unauthenticated users, only show active jobs (running, pending, downloading)
+            # This allows the dashboard to display active downloads without requiring login
+            if status_filter in ['running', 'pending', 'downloading']:
+                user_id = None  # Show all active jobs
+            else:
+                # For historical jobs, require authentication
+                return jsonify(
+                    {"success": True, "jobs": [], "total": 0, "message": "Login to view job history"}
+                )
+
         jobs = db_job_manager.get_user_jobs(
             user_id=user_id, limit=limit, status_filter=status_filter
         )
-        stats = db_job_manager.get_job_statistics(user_id=user_id)
+        stats = db_job_manager.get_job_statistics(user_id=user_id) if current_user.is_authenticated else {}
         return jsonify(
             {"success": True, "jobs": jobs, "statistics": stats, "total": len(jobs)}
         )
@@ -86,12 +100,17 @@ def get_jobs():
 
 
 @jobs_bp.route("/api/jobs/<job_id>", methods=["DELETE"])
-@user_or_admin_required
+@optional_auth
 def cancel_job(job_id):
     try:
+        # Allow cancellation for both authenticated and unauthenticated users
+        is_authenticated = current_user and hasattr(current_user, 'is_authenticated') and current_user.is_authenticated
+        is_admin = is_authenticated and current_user.is_admin()
+        user_id = current_user.id if is_authenticated else None
+
         success = db_job_manager.cancel_job(
             job_id=job_id,
-            user_id=current_user.id if not current_user.is_admin() else None,
+            user_id=None if is_admin else user_id,
         )
         if success:
             return jsonify({"success": True, "message": "Job cancelled successfully"})
