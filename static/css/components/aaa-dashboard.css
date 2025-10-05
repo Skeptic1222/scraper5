@@ -1,0 +1,624 @@
+/**
+ * AAA Quality Dashboard Styles
+ * Modern, compact, professional design with smooth animations
+ */
+
+/* ========================================
+   COMPACT SYSTEM STATISTICS
+   ======================================== */
+
+.aaa-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.aaa-stat-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 1px solid #e0e6ed;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.aaa-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+    border-color: #0d6efd;
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.bg-primary-gradient {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+}
+
+.bg-success-gradient {
+    background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+}
+
+.bg-info-gradient {
+    background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%);
+}
+
+.bg-warning-gradient {
+    background: linear-gradient(135deg, #ffc107 0%, #cc9a06 100%);
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    line-height: 1.2;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-updated {
+    animation: pulse-update 0.5s ease-out;
+}
+
+@keyframes pulse-update {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); color: #0d6efd; }
+}
+
+/* ========================================
+   AAA DOWNLOAD PANEL
+   ======================================== */
+
+.aaa-download-panel {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    border: 1px solid #e0e6ed;
+}
+
+.aaa-panel-header {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.header-left h5 {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.pulse-indicator {
+    width: 10px;
+    height: 10px;
+    background: #ff3d3d;
+    border-radius: 50%;
+    animation: pulse-live 1.5s infinite;
+}
+
+@keyframes pulse-live {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(255, 61, 61, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(255, 61, 61, 0);
+    }
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.timer-badge {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.375rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+}
+
+.btn-cancel {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 0.375rem 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+}
+
+.btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.05);
+}
+
+/* ========================================
+   COMPACT METRICS ROW
+   ======================================== */
+
+.aaa-metrics-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1px;
+    background: #e0e6ed;
+    border-bottom: 1px solid #e0e6ed;
+}
+
+.metric-item {
+    background: #f8f9fa;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    transition: background 0.2s;
+}
+
+.metric-item:hover {
+    background: #ffffff;
+}
+
+.metric-icon {
+    font-size: 1.1rem;
+}
+
+.metric-num {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    line-height: 1;
+}
+
+.metric-txt {
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+/* ========================================
+   STATS ROW (Speed, Size, Types)
+   ======================================== */
+
+.aaa-stats-row {
+    padding: 1rem 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+    border-bottom: 1px solid #e0e6ed;
+}
+
+.stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: white;
+    border: 1px solid #e0e6ed;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.stat-pill:hover {
+    border-color: #0d6efd;
+    box-shadow: 0 2px 8px rgba(13, 110, 253, 0.15);
+}
+
+.stat-pill i {
+    font-size: 1rem;
+}
+
+.stat-pill strong {
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.stat-pill span {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+/* ========================================
+   ACTIVE DOWNLOADS SECTION
+   ======================================== */
+
+.aaa-active-section {
+    padding: 1.25rem 1.5rem;
+    background: white;
+    border-bottom: 1px solid #e0e6ed;
+}
+
+.section-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.count-badge {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    color: white;
+    padding: 0.25rem 0.65rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.aaa-file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+/* Custom Scrollbar */
+.aaa-file-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.aaa-file-list::-webkit-scrollbar-track {
+    background: #f1f3f5;
+    border-radius: 3px;
+}
+
+.aaa-file-list::-webkit-scrollbar-thumb {
+    background: #0d6efd;
+    border-radius: 3px;
+}
+
+.placeholder-msg {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+}
+
+.placeholder-msg i {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+    opacity: 0.4;
+}
+
+.placeholder-msg p {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+/* Individual File Download Item */
+.file-download-item {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border: 1px solid #e0e6ed;
+    border-radius: 10px;
+    padding: 0.875rem;
+    transition: all 0.2s;
+    animation: slide-in 0.3s ease-out;
+}
+
+@keyframes slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.file-download-item:hover {
+    border-color: #0d6efd;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.1);
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.625rem;
+}
+
+.file-icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.file-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.file-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.125rem;
+}
+
+.file-meta {
+    font-size: 0.75rem;
+    color: #6c757d;
+    display: flex;
+    gap: 1rem;
+}
+
+.file-speed {
+    font-weight: 600;
+    color: #198754;
+}
+
+.file-progress {
+    width: 100%;
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+}
+
+.file-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #0d6efd 0%, #0a58ca 50%, #0d6efd 100%);
+    background-size: 200% 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease-out;
+    animation: shimmer 2s linear infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* ========================================
+   RECENT FILES LOG
+   ======================================== */
+
+.aaa-recent-section {
+    padding: 1.25rem 1.5rem;
+    background: white;
+}
+
+.btn-clear {
+    background: transparent;
+    border: 1px solid #e0e6ed;
+    color: #6c757d;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-left: auto;
+}
+
+.btn-clear:hover {
+    background: #f8f9fa;
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+.aaa-log-container {
+    background: #1a1d24;
+    border-radius: 8px;
+    padding: 0.875rem;
+    max-height: 180px;
+    overflow-y: auto;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+}
+
+.aaa-log-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.aaa-log-container::-webkit-scrollbar-track {
+    background: #0d1117;
+    border-radius: 3px;
+}
+
+.aaa-log-container::-webkit-scrollbar-thumb {
+    background: #0d6efd;
+    border-radius: 3px;
+}
+
+.log-entry {
+    color: #8b949e;
+    padding: 0.25rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    animation: log-fade-in 0.3s ease-out;
+}
+
+@keyframes log-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.log-entry i {
+    font-size: 0.75rem;
+}
+
+.log-entry.success {
+    color: #3fb950;
+}
+
+.log-entry.error {
+    color: #f85149;
+}
+
+.log-entry.info {
+    color: #58a6ff;
+}
+
+.log-time {
+    color: #6c757d;
+    font-size: 0.75rem;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 768px) {
+    .aaa-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .aaa-metrics-row {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .metric-item:nth-child(4),
+    .metric-item:nth-child(5) {
+        grid-column: span 1.5;
+    }
+
+    .aaa-stats-row {
+        gap: 0.5rem;
+    }
+
+    .stat-pill {
+        font-size: 0.75rem;
+        padding: 0.375rem 0.75rem;
+    }
+
+    .aaa-panel-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .header-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 480px) {
+    .aaa-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .aaa-metrics-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .metric-item:last-child {
+        grid-column: span 2;
+    }
+}
+
+/* ========================================
+   DARK MODE SUPPORT (Optional)
+   ======================================== */
+
+@media (prefers-color-scheme: dark) {
+    .aaa-stat-card {
+        background: linear-gradient(135deg, #1a1d24 0%, #0d1117 100%);
+        border-color: #30363d;
+    }
+
+    .stat-value {
+        color: #ffffff;
+    }
+
+    .stat-label {
+        color: #8b949e;
+    }
+
+    .aaa-download-panel {
+        background: #0d1117;
+        border-color: #30363d;
+    }
+
+    .metric-item {
+        background: #161b22;
+        color: #ffffff;
+    }
+
+    .metric-num {
+        color: #ffffff;
+    }
+
+    .aaa-stats-row {
+        background: #0d1117;
+        border-color: #30363d;
+    }
+
+    .stat-pill {
+        background: #161b22;
+        border-color: #30363d;
+        color: #ffffff;
+    }
+
+    .file-download-item {
+        background: #161b22;
+        border-color: #30363d;
+    }
+
+    .file-name {
+        color: #ffffff;
+    }
+}
