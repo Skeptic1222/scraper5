@@ -418,10 +418,18 @@ class EnhancedSearchHandler {
             });
 
             const data = await response.json();
-            
+
             if (data.success) {
                 this.currentJobId = data.job_id;
-                this.showNotification('Search started!', 'success');
+
+                // Dispatch jobCreated event for realtime dashboard
+                window.dispatchEvent(new CustomEvent('jobCreated', {
+                    detail: { jobId: data.job_id }
+                }));
+
+                // Dashboard will auto-navigate via realtime dashboard module
+                // No notification needed - user will see live progress on dashboard
+
                 this.startPolling();
             } else {
                 this.showNotification(data.error || 'Search failed', 'error');

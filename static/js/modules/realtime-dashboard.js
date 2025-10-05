@@ -35,12 +35,20 @@ class RealtimeDashboard {
     }
 
     switchToDashboardTab() {
-        // Find and activate the dashboard tab
-        const dashboardTab = document.querySelector('a[href="#dashboard"]');
-        if (dashboardTab) {
-            // Use Bootstrap 5 tab activation
-            const tab = new bootstrap.Tab(dashboardTab);
-            tab.show();
+        // Navigate to dashboard section using navigation manager
+        if (window.navigation && typeof window.navigation.showSection === 'function') {
+            window.navigation.showSection('dashboard-section');
+
+            // Update URL hash
+            window.location.hash = '#dashboard';
+
+            // Update active nav item
+            const dashboardNav = document.querySelector('[data-section="dashboard-section"]');
+            if (dashboardNav) {
+                window.navigation.setActiveNavItem(dashboardNav);
+            }
+        } else {
+            console.warn('Navigation manager not available');
         }
     }
 
