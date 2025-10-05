@@ -62,127 +62,15 @@ class RealtimeDashboard {
         this.switchToDashboardTab();
 
         const container = document.getElementById('dashboard-progress-container');
-        if (!container) return;
+        if (!container) {
+            console.error('Dashboard container not found!');
+            return;
+        }
 
+        // Show the AAA dashboard (HTML is already in index.html)
         container.style.display = 'block';
-        container.innerHTML = `
-            <div class="card border-primary">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="h6 mb-0 d-flex justify-content-between align-items-center">
-                        <span>
-                            <i class="fas fa-download"></i> Download Progress
-                        </span>
-                        <span class="badge bg-light text-primary ms-2" id="job-timer">
-                            <i class="fas fa-clock"></i> <span id="elapsed-time">00:00</span> / <span id="timeout-display">Unlimited</span>
-                        </span>
-                        <button type="button" class="btn btn-sm btn-outline-light" id="cancel-search">
-                            <i class="fas fa-stop"></i> Cancel
-                        </button>
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <!-- Status Overview -->
-                    <div class="row text-center mb-3">
-                        <div class="col-6 col-md-2">
-                            <div class="metric-card">
-                                <div class="metric-value text-info" id="metric-discovered">0</div>
-                                <div class="metric-label">Discovered</div>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <div class="metric-card">
-                                <div class="metric-value text-warning" id="metric-queued">0</div>
-                                <div class="metric-label">Queued</div>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <div class="metric-card">
-                                <div class="metric-value text-primary" id="metric-downloading">0</div>
-                                <div class="metric-label">Downloading</div>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <div class="metric-card">
-                                <div class="metric-value text-success" id="metric-completed">0</div>
-                                <div class="metric-label">Completed</div>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <div class="metric-card">
-                                <div class="metric-value text-danger" id="metric-failed">0</div>
-                                <div class="metric-label">Failed</div>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <div class="metric-card">
-                                <div class="metric-value text-muted" id="metric-threads">0</div>
-                                <div class="metric-label">Threads</div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- File Types & Speed -->
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <div class="stat-box">
-                                <i class="fas fa-image text-info"></i>
-                                <span class="stat-value" id="stat-images">0</span>
-                                <span class="stat-label">Images</span>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="stat-box">
-                                <i class="fas fa-video text-danger"></i>
-                                <span class="stat-value" id="stat-videos">0</span>
-                                <span class="stat-label">Videos</span>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="stat-box">
-                                <i class="fas fa-tachometer-alt text-success"></i>
-                                <span class="stat-value" id="stat-speed">0 KB/s</span>
-                                <span class="stat-label">Total Speed</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Active Downloads -->
-                    <div class="mb-3">
-                        <h6 class="mb-2">
-                            <i class="fas fa-download"></i> Active Downloads
-                            <span class="badge bg-primary ms-2" id="active-count">0</span>
-                        </h6>
-                        <div id="active-downloads" class="active-downloads-container">
-                            <div class="text-muted text-center py-3">
-                                <i class="fas fa-hourglass-half"></i> Waiting for downloads to start...
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Recent Files -->
-                    <div>
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h6 class="mb-0">
-                                <i class="fas fa-list"></i> Recent Files
-                            </h6>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" id="clear-log">
-                                <i class="fas fa-trash"></i> Clear
-                            </button>
-                        </div>
-                        <div id="recent-files" class="recent-files-container bg-dark text-light p-2 rounded">
-                            <div class="text-muted">Ready to start download...</div>
-                        </div>
-                    </div>
-
-                    <!-- Transfer Summary -->
-                    <div class="mt-3 text-center text-muted small">
-                        <i class="fas fa-database"></i> Total Transfer: <span id="total-transfer">0 MB</span>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // Setup event listeners
+        // Setup event listeners for the static HTML elements
         this.setupEventListeners();
     }
 
