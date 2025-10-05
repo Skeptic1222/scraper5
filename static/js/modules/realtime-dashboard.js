@@ -34,6 +34,16 @@ class RealtimeDashboard {
         });
     }
 
+    switchToDashboardTab() {
+        // Find and activate the dashboard tab
+        const dashboardTab = document.querySelector('a[href="#dashboard"]');
+        if (dashboardTab) {
+            // Use Bootstrap 5 tab activation
+            const tab = new bootstrap.Tab(dashboardTab);
+            tab.show();
+        }
+    }
+
     startMonitoring(jobId) {
         this.jobId = jobId;
         this.showDashboard();
@@ -48,7 +58,10 @@ class RealtimeDashboard {
     }
 
     showDashboard() {
-        const container = document.getElementById('search-progress-container');
+        // Switch to dashboard tab automatically
+        this.switchToDashboardTab();
+
+        const container = document.getElementById('dashboard-progress-container');
         if (!container) return;
 
         container.style.display = 'block';
@@ -383,7 +396,7 @@ class RealtimeDashboard {
 
     handleJobComplete(data) {
         // Update final stats
-        const container = document.getElementById('search-progress-container');
+        const container = document.getElementById('dashboard-progress-container');
         if (container) {
             const header = container.querySelector('.card-header');
             if (header) {
