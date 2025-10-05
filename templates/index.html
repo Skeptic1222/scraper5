@@ -593,41 +593,15 @@
 <!-- Navigation Manager -->
 <script src="{{ url_for('static', filename='js/modules/nav.js') }}"></script>
 
-<!-- Download Dashboard Module -->
-<script src="{{ url_for('static', filename='js/simple-dashboard.js') }}"></script>
-
-<!-- Real-time Dashboard Module -->
+<!-- AAA Dashboard Modules -->
 <script src="{{ url_for('static', filename='js/modules/realtime-dashboard.js') }}"></script>
-
-<!-- Dashboard Manager Module -->
 <script src="{{ url_for('static', filename='js/modules/dashboard-manager.js') }}"></script>
 
-<!-- Initialize Dashboard -->
+<!-- Initialize AAA Dashboard -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize dashboard when DOM is ready
-    if (window.downloadDashboard && window.downloadDashboard.init) {
-        console.log('Initializing dashboard...');
-        window.downloadDashboard.init();
-    } else {
-        console.log('Calling createSimpleDashboard directly...');
-        if (typeof createSimpleDashboard === 'function') {
-            createSimpleDashboard();
-        }
-    }
-
-    // Also reinitialize when dashboard section becomes active
-    const dashboardNav = document.querySelector('[data-section="dashboard-section"]');
-    if (dashboardNav) {
-        dashboardNav.addEventListener('click', function() {
-            setTimeout(function() {
-                if (window.downloadDashboard && window.downloadDashboard.init) {
-                    window.downloadDashboard.init();
-                }
-            }, 100);
-        });
-    }
-});
+console.log('✅ AAA Dashboard modules loaded');
+console.log('Dashboard Manager:', window.dashboardManager ? 'Ready' : 'Not loaded');
+console.log('Realtime Dashboard:', window.realtimeDashboard ? 'Ready' : 'Not loaded');
 </script>
 
 <!-- Enhanced Job Dashboard -->
